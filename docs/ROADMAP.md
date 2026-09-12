@@ -3,7 +3,8 @@
 **Roadmap generation:** 2026.09 — product-direction reset after Mobility and Operator convergence
 **Date:** 2026-09-11
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
-**Current sealed redesign baseline:** Phase 13 spatial-focus merge `a75f041d469957ce0573a483c5d431826edda475`
+**Current sealed redesign baseline:** Phase 13F merge `310b73a2eec63f9f0b2f3a0d53752867c1097359`
+**Active programme:** Phase 13G.1 — Living HQ Architectural World Redesign
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
 <!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
@@ -34,49 +35,30 @@ The finished product must answer from real system state: what the organization i
 
 The roadmap is the master scheduler, but it does **not** supersede specialized canonical specifications. Future sessions must not treat separate documents as optional islands or infer that a roadmap rewrite deleted their requirements.
 
-### Mandatory session entry path
-
 1. `docs/ROADMAP.md` — master product direction, programme order, current/next work and cross-programme integration map.
-2. `docs/aios-v2/README.md` — canonical AIOS V2 session entry point and concise active programme boundary.
+2. `docs/aios-v2/README.md` — canonical AIOS V2 session entry point and active programme boundary.
 3. `docs/aios-v2/AIOS_V2_COMPLETE_REDESIGN_MASTER_PLAN.md` — product destination, redesign principles, six-system model and acceptance philosophy.
-4. `docs/aios-v2/AIOS_V2_MASTER_PLAN_EXECUTION_RECONCILIATION_2026-09-08.md` — execution/governance bridge. Historical state/SHA snapshots inside it are evidence from its date, not newer than this roadmap.
-5. `docs/aios-v2/AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — canonical employee, department, skills, tools, memory, learning and capability/authority architecture.
+4. `docs/aios-v2/AIOS_V2_MASTER_PLAN_EXECUTION_RECONCILIATION_2026-09-08.md` — execution/governance bridge; dated SHA/status snapshots are historical evidence.
+5. `docs/aios-v2/AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — employee, department, skills, tools, memory, learning and capability/authority architecture.
 6. `docs/aios-v2/AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md` — mandatory visible-redesign quality law and anti-generic/anti-AI-slop rules.
-7. `docs/aios-v2/AIOS_V2_EFFICIENT_PROOF_LADDER.md` — development-versus-final-seal proof strategy: iterate narrowly, seal broadly.
-8. `docs/aios-v2/AIOS_V2_MIGRATION_AND_FINAL_ACCEPTANCE_CHECKLIST.md` — final migration and whole-product acceptance inventory. Individual checkbox/state snapshots may lag accepted implementation and must be reconciled before final closure.
-
-Historical phase audits, PR-specific acceptance records and design references remain supporting evidence and should be read when the active task touches their subject or a regression requires historical context.
+7. `docs/aios-v2/AIOS_V2_EFFICIENT_PROOF_LADDER.md` — iterate narrowly, seal broadly.
+8. `docs/aios-v2/AIOS_V2_MIGRATION_AND_FINAL_ACCEPTANCE_CHECKLIST.md` — final migration and whole-product acceptance inventory.
+9. `docs/aios-v2/AIOS_V2_PHASE_13G1_ARCHITECTURAL_WORLD_REDIRECT_2026-09-11.md` — Owner rejection record and architectural redirect.
+10. `docs/aios-v2/AIOS_V2_PHASE_13G1_VISUAL_OUTCOME_EXECUTION_PLAN_2026-09-11.md` — exact visual outcome, spatial programme, work packages and acceptance gates for the active Living HQ correction.
 
 ### Authority and precedence
 
-When documents appear to disagree, use this order:
+When documents appear to disagree, use this order: canonical truth/evidence/authority/security/domain contracts; AIOS Constitution/accepted governance; this roadmap for current scheduling; Complete Redesign Master Plan; Employee Capability & Skills Architecture; active execution/proof directives; dated reconciliation snapshots; external references/donor patterns; implementation convenience.
 
-1. canonical truth, evidence, authority, security and domain contracts;
-2. AIOS Constitution / accepted governance rules;
-3. this master roadmap for current programme scheduling and current/next phase state;
-4. the Complete Redesign Master Plan for product/redesign destination;
-5. Employee Capability & Skills Architecture for employee/capability/skills semantics;
-6. active execution directives and proof/acceptance specifications;
-7. dated reconciliation/status snapshots;
-8. external repositories, design references and donor patterns;
-9. implementation convenience.
-
-A newer accepted exact-head implementation may make an old status snapshot stale; it does not silently repeal the permanent architectural or acceptance rule in that document.
+A newer accepted exact-head implementation may make an old status snapshot stale; it does not silently repeal permanent architectural or acceptance rules.
 
 ### No-orphan requirement
 
-Every unfinished requirement in a canonical companion specification must satisfy at least one of these conditions:
-
-- mapped to an active/future roadmap phase;
-- explicitly marked already satisfied by accepted implementation;
-- explicitly deferred with rationale;
-- explicitly superseded by a named accepted contract.
-
-Before Phase 13 final closure and again before post-redesign capability work begins, perform a companion-spec reconciliation so unfinished requirements cannot disappear simply because they live in another file.
+Every unfinished requirement in a canonical companion specification must be mapped to an active/future roadmap phase, explicitly marked satisfied by accepted implementation, explicitly deferred with rationale, or explicitly superseded by a named accepted contract.
 
 ### Historical compatibility markers
 
-Historical roadmap milestone identifiers that are referenced by repository tests remain discoverable here even after the roadmap reset. In particular, the accepted coverage-tranche operations milestone **v10.22**, its **multi-batch tranche operations** capability, and the historical migration marker `0032_initial_rule_assertions` remain part of the preserved programme record; detailed evidence lives in `docs/COVERAGE_TRANCHE_OPERATIONS_V10_22.md`. These markers preserve compatibility and traceability only—they do not redefine the current Phase 13–22 execution sequence or the current migration head.
+Historical identifiers referenced by repository tests remain discoverable after roadmap updates. The accepted coverage-tranche operations milestone **v10.22**, its **multi-batch tranche operations** capability, and historical migration marker `0032_initial_rule_assertions` remain preserved programme records. They are traceability markers, not current execution authority.
 
 ---
 
@@ -112,8 +94,6 @@ The Cockpit is the Human Owner's operating surface. The Board Room is a module i
 
 External models, providers, skills and donor frameworks provide capability. AIOS owns organizational meaning, truth and authority.
 
-Permanent distinctions:
-
 ```text
 Memory       != Truth
 Conversation != Authority
@@ -127,7 +107,7 @@ Prediction   != canonical state
 Scores route; gates authorize
 ```
 
-Core invariants: Human Owner / Board remains supreme authority; Board by exception and transparency by default; CAN DO is distinct from MAY DO; capability, authority, autonomy and risk remain separate; memory and conversation cannot silently become truth/authority; external runtimes remain replaceable; scores route while governed gates authorize; canonical truth cannot silently inherit model error; compression cannot remove governance meaning; cost optimization cannot override quality; frontier intelligence is an escalation resource; consequential effects cross governed boundaries and remain reconstructable; autonomy is earned capability-by-capability; the visual organization represents real organizational state; **the organization causes the animation, animation never silently causes the organization**; predictive/environmental layers remain non-authoritative; UI interaction is not a business action without an explicit command boundary; tool observation is not evidence merely because an agent saw it; self-improvement must remain bounded, reviewable, reversible and attributable.
+Human Owner / Board remains supreme authority. CAN DO remains distinct from MAY DO. Capability, authority, autonomy and risk remain separate. Memory and conversation cannot silently become truth/authority. External runtimes remain replaceable. Canonical truth cannot silently inherit model error. Consequential effects remain reconstructable. Autonomy is earned capability-by-capability. The visual organization represents real organizational state: **the organization causes the animation, animation never silently causes the organization**. UI interaction is not a business action without an explicit command boundary.
 
 ---
 
@@ -135,13 +115,19 @@ Core invariants: Human Owner / Board remains supreme authority; Board by excepti
 
 Global Mobility AIOS develops as five connected surfaces: **Mobility**, **Operator/Cockpit**, **Living HQ**, **Board/Governance**, and **Learning & Optimization**.
 
-Mobility provides one coherent client journey across Overview, My Case, Documents, Timeline and Messages from canonical mobility state. Operator is the professional command surface for work, profiles, pathways, evidence, tools, communications, decisions and history. Living HQ is the flagship spatial representation of the actual AI organization. Board/Governance handles consequential decisions, escalations, authority, risk and exceptions. Learning & Optimization uses measured outcomes to propose improvements without silently rewriting governance.
+Mobility provides the client journey across Overview, My Case, Documents, Timeline and Messages. Operator is the professional command surface. Living HQ is the flagship spatial representation of the actual AI organization. Board/Governance handles consequential decisions, escalations, authority, risk and exceptions. Learning & Optimization uses measured outcomes to propose improvements without silently rewriting governance.
 
 ---
 
 ## 6. Current product state
 
-Mobility and Operator visual convergence are sealed. Living HQ character, architecture, room, smart-object, WebGPU and presentation foundations exist. Phase 13A spatial-focus polish is sealed at merge `a75f041d469957ce0573a483c5d431826edda475`.
+Mobility and Operator visual convergence are sealed.
+
+Living HQ Phase 13A–13F semantics are sealed. The stable redesign base after 13F is merge `310b73a2eec63f9f0b2f3a0d53752867c1097359`.
+
+The first Phase 13G closure candidate, PR #146, passed automated proof but **failed explicit Owner visual acceptance**. The Owner determined that the visible result still looked materially like the previous creature/card/square-room system and did not deliver the required modern-office transformation. PR #146 therefore remains Draft and must not be merged in that rejected visual state.
+
+This rejection is an acceptance result, not a cosmetic preference to bypass. Phase 13 is not sealed.
 
 Permanent M.4.1 presentation mapping remains:
 
@@ -158,7 +144,7 @@ presenceClaimed   = false
 locomotionAllowed = false
 ```
 
-Walking, conversations, coffee breaks, room entry, handoffs or richer animation may only be promoted when the relevant canonical semantics exist; they cannot be invented for entertainment.
+Walking, conversations, coffee breaks, room entry, handoffs or richer animation may only be promoted when relevant canonical semantics exist; they cannot be invented for entertainment.
 
 ---
 
@@ -166,41 +152,176 @@ Walking, conversations, coffee breaks, room entry, handoffs or richer animation 
 
 ### 13A — Spatial focus polish — SEALED
 
-Overview / Departments / Chambers / Infrastructure focus modes, contextual HUD, presentation-only emphasis, explicit no-authority/no-presence claims, and desktop/phone proof. Accepted merge: `a75f041d469957ce0573a483c5d431826edda475`.
+Overview / Departments / Chambers / Infrastructure focus modes, contextual HUD, presentation-only emphasis, explicit no-authority/no-presence claims and desktop/phone proof.
 
-### 13B — Entity focus inspector — NEXT
+### 13B — Entity focus inspector — SEALED
 
-Inspect department / employee / room / smart-object projections using only governed render-model data. Surface semantic state, presentation state, WorkItem linkage, department work/blocker counts and room/smart-object metrics. Preserve the exact contract: `Selection changes view focus only; it cannot mutate AIOS.`
+Read-only department / employee / room / smart-object inspection from governed render-model data. Permanent contract: `Selection changes view focus only; it cannot mutate AIOS.`
 
-### 13C — Contextual drill-down
+### 13C — Contextual drill-down — SEALED
 
-Connect spatial selections to richer read-only inspectors; keep local selection separate from canonical commands; expose lineage/evidence without turning the scene into a dashboard farm.
+Richer read-only inspectors with lineage/evidence/authority posture while local selection remains separate from canonical commands.
 
-### 13D — Canonical handoff visualization
+### 13D — Canonical handoff visualization — SEALED
 
-Only durable handoff/activity semantics may produce handoff visuals. Show origin, destination, WorkItem and state; distinguish queued/accepted/blocked/completed; never infer transfer from shared Mission membership.
+Handoff visuals originate only from durable canonical handoff/activity semantics. Shared Mission membership never implies transfer.
 
-### 13E — Governed conversation visualization
+### 13E — Governed conversation visualization — SEALED
 
-Only canonical communication/activity may produce semantic conversation cues. Decorative social behavior must remain explicitly non-semantic or be omitted where it could imply work.
+Semantic conversation cues originate only from canonical communication/activity. Decorative social behavior cannot imply work.
 
-### 13F — Mission-room and Board escalation convergence
+### 13F — Mission-room and Board escalation convergence — SEALED
 
-Mission rooms reflect real Mission/WorkItem state; blocked/escalated work routes to appropriate governance surfaces; Board activity reflects actual escalation/decision records; no fake occupancy.
+Mission/WorkItem/blocker/risk/decision/human-action context is surfaced from canonical state without fake occupancy or inferred Board action. Accepted merge: `310b73a2eec63f9f0b2f3a0d53752867c1097359`.
 
-### 13G — Living HQ final visual acceptance + companion-spec reconciliation
+### 13G — Final visual acceptance + companion reconciliation — BLOCKED BY OWNER VISUAL REJECTION
 
-Desktop/phone visual proof, responsive/reduced-motion/forced-colors acceptance, performance budget, truth-state assertions and Owner-led visual acceptance. Before closure, reconcile the canonical companion documents and classify every unfinished redesign requirement as satisfied, mapped, deferred or superseded.
+The initial 13G candidate demonstrated that green CI alone does not satisfy the flagship visual requirement. Closure is split into an architectural correction followed by final acceptance.
+
+### 13G.1 — Architectural World Redesign — ACTIVE
+
+**Outcome:** the Living HQ must read at first glance as a premium contemporary digital-company headquarters, not a dashboard/card grid whose boxes are styled as rooms, and it must behave as a live organization surface driven by real AIOS agent state rather than a static office illustration.
+
+The Owner-approved visual direction is one continuous architectural office world with believable depth, circulation, glass partitions, timber/stone/carpet/metal material language, real workplace furniture, planting, lighting, windows, open-plan work areas, specialist glass rooms, executive Board space, miniature employees integrated into the environment, and restrained world-anchored AIOS HUDs.
+
+#### Non-negotiable five-second acceptance test
+
+Without reading labels, a first-time viewer must perceive a modern premium headquarters, one connected workplace, open working areas plus glass specialist/executive spaces, miniature employees belonging inside the environment, and a live digital organization.
+
+If the first impression is cards, square rooms, tiles, panels, game board, pixel tower, neon sci-fi pods, repeated creatures or conventional admin dashboard, the candidate fails regardless of automated test status.
+
+#### Non-negotiable real-time organization requirement
+
+Living HQ is not a static scene. Its visible state must continuously derive from the governed Living Organization projection. Agent state, WorkItems, Missions, blockers, canonical handoffs, governed conversations, evidence posture, Board-attention risk, current decisions and human-action requests drive visible presentation changes in the office world.
+
+The target pipeline is:
+
+```text
+REAL AIOS CANONICAL STATE
+        ↓
+Living Organization projection
+        ↓
+Department / Employee / WorkItem / Mission / Blocker /
+Handoff / Conversation / Decision / Escalation state
+        ↓
+Living HQ world-state projection
+        ↓
+Characters + workstations + zones + HUD + environment reactions
+```
+
+A state change in AIOS must become a state change in the Living HQ presentation without hardcoded theatrical activity. The scene is allowed to be visually alive; it is not allowed to invent organizational facts.
+
+Examples:
+
+- `working` employee → focused workstation presentation, active monitor/work pulse and supported task cue;
+- `blocked` employee → visible attention/blocker posture at the workstation;
+- `awaiting_owner` → restrained Owner-attention cue without claiming new work;
+- `queued` → ready/waiting presentation without active-execution implication;
+- `completed` → settled presentation without implying new availability;
+- department active-work count → zone activity/intensity response;
+- canonical blocker → Mission/department attention cue;
+- canonical handoff → short governed transfer cue between involved entities/zones;
+- canonical conversation → semantic communication cue between recorded participants only;
+- evidence state → Evidence Lab presentation response without certifying evidence;
+- Board-attention risk / current decision / open human action → Board-zone governance response without implying occupancy or Board action.
+
+#### Canonical dynamics versus ambient life
+
+**Canonical dynamics** communicate actual organizational state and may only be derived from governed records.
+
+**Ambient life** exists solely to prevent the world from feeling frozen: breathing, subtle head/hand shifts, typing loops for already-working presentation, monitor flicker, chair micro-motion, light variation and similarly neutral environmental motion. Ambient behavior must not create or imply a WorkItem, conversation, handoff, decision, physical location, availability, authority or completion event.
+
+Locomotion remains disallowed under the current contract. Walking between rooms, coffee breaks, meeting entry and other spatial behaviors remain forbidden until future canonical semantics explicitly earn them.
+
+#### Desktop composition target
+
+- left/foreground: AIOS identity integrated into architecture or a real display surface;
+- centre foreground/midground: Operations / Mission open-plan floor with desk clusters, monitors, chairs, planting and miniature employees;
+- centre/background: Evidence Lab behind glass with focused analysis language;
+- centre-right: Technology/build cluster integrated into the open floor;
+- right/background: premium glass Board/Executive room with genuine conference table and executive seating;
+- right/foreground: lounge/shared workplace fabric;
+- throughout: circulation, ceiling/lighting, glazing/windows, floor/material transitions and foreground/midground/background depth.
+
+Functional zones are spatial parts of one HQ. They must not be standalone rectangular UI cards masquerading as architecture.
+
+#### Character target
+
+The repeated generic creature/card presentation is rejected. Replace it with an original miniature workforce system differentiated through silhouette, face/head/hair, wardrobe, accessories, workstation context and restrained department identity. CEO, Technology/CTO, Regulatory/Evidence and Operations archetypes must be recognisable before reading role text. Characters belong inside desks/chairs/zones rather than floating avatar cards.
+
+Character animation is state-derived. Visual behavior must change when canonical employee state changes. A working employee should not visually behave like a queued or blocked employee.
+
+#### HUD target
+
+World first, HUD second. Use compact contextual overlays anchored to zones/entities. Rich inspectors appear on selection. The architecture must remain understandable when labels/HUDs are mentally removed. Live HUD values must derive from the same governed render model as the visible world, not from an independent frontend truth store.
+
+#### 13G.1A — Continuous architectural shell — ACTIVE
+
+Replace the visible three-room/card axis with one continuous office-world shell. Establish elevated camera/perspective, continuous floor, architectural ceiling and lighting, windows/glazing, circulation, major glass partitions, material zones and depth layers. Preserve canonical room keys and semantic DOM contracts even when visual geometry changes completely.
+
+**Gate:** screenshot clearly reads as one modern office before detailed furniture/character polish.
+
+#### 13G.1B — Workplace interiors
+
+Build Operations/Mission, Technology, Evidence, Board and shared/lounge interiors with distinct furniture, equipment, material and lighting identities.
+
+**Gate:** each zone is recognisable spatially without relying on large labels.
+
+#### 13G.1C — Miniature workforce art system
+
+Replace the rejected creature/card presentation and integrate differentiated miniature workforce characters into the office environment while preserving M.4.1 truth mapping.
+
+**Gate:** CEO / Technology / Regulatory-Evidence / Operations archetypes are distinguishable without role text and no floating-avatar-card impression remains.
+
+#### 13G.1D — Real-time agent/world state binding
+
+Bind the architectural world directly to the existing governed Living Scene render model. Employee presentation state, WorkItem assignment/status, department activity, Missions and blockers must drive characters, workstations, local lighting/intensity and compact zone cues in real time.
+
+The world may interpolate presentation transitions, but it may not create an independent canonical state machine.
+
+**Gate:** deterministic fixture/state transitions visibly change the correct employee and office zone without page reload or hardcoded scenario-specific decoration.
+
+#### 13G.1E — Canonical organizational event reactions
+
+Integrate existing canonical handoffs, governed conversations, evidence posture, Board-attention risks, current decisions and human-action requests as short-lived or persistent world reactions where appropriate.
+
+Handoff animation requires an actual canonical handoff. Conversation cues require an actual canonical conversation record. Board response requires actual governance records. Shared Mission membership is never sufficient evidence for transfer or conversation.
+
+**Gate:** positive and empty-state fixtures prove that the world reacts when canonical records exist and remains quiet when they do not.
+
+#### 13G.1F — Ambient life + cinematic depth
+
+Tune lighting, glass, material separation, depth, shadows, focus transitions and ambient micro-motion. Supported ambient motion may make the office feel continuously alive but cannot communicate fabricated work or physical presence.
+
+**Gate:** desktop has foreground/midground/background depth, visible life when canonical activity is present, restrained neutral ambience otherwise, and no neon-box/pixel-tower appearance.
+
+#### 13G.1G — Mobile live-HQ composition
+
+Create a dedicated HQ viewport plus spatial focus/drill-down model. Preserve real-time state reactions at phone scale. Do not stack a desktop room/card grid vertically.
+
+**Gate:** phone remains intentional, spatial, readable, touch-safe, dynamically state-aware and free of horizontal body overflow.
+
+#### 13G.1H — Owner visual + live-behavior proof
+
+Generate exact-head desktop and phone screenshots plus deterministic state-transition proof showing at minimum working, blocked, waiting, canonical handoff/conversation and Board-attention responses. Owner acceptance is mandatory for both visual quality and live behavior.
+
+**Gate:** explicit Owner acceptance. Green CI cannot override visual or live-behavior rejection.
+
+### 13G.2 — Final acceptance and companion reconciliation
+
+Only after 13G.1H passes, reconstruct useful closure work from Draft PR #146 onto the accepted architectural/live-world base. Run Repository Policy, targeted Living HQ browser proof, V12 Production Proof, Q17 performance and Q18 asset profiling on one exact candidate head. Inspect desktop/phone/Q17/Q18 artifacts. Reconcile ROADMAP, README, migration/final checklist and companion specs. Merge only the exact accepted head and verify the actual merge commit/tree/parents/signature.
+
+### Phase 13 permanent visual truth boundary
+
+The architectural/live-world correction changes presentation, not canonical organization semantics. Room presentation does not assert occupancy. Character placement does not assert physical presence or employee location. Mission-room presentation does not route work. Evidence Lab presentation does not certify evidence. Board-room presentation does not constitute Board action. Handoff and conversation cues remain canonical-only. Local spatial selection remains view state only. No visual element may create work, evidence, decision, authority, presence, occupancy or availability.
+
+The real-time rule is one-way: canonical organization state may drive Living HQ presentation; Living HQ animation may never silently write canonical organization state.
 
 ---
 
 ## 8. Post-redesign priority — Autonomous Global Regulatory Intelligence
 
-This programme is explicitly preserved from `docs/aios-v2/README.md` and `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md`; it must **not** be lost behind generic platform phases.
-
-Goal: strengthen Global Intelligence into a high-autonomy **Global Immigration Intelligence Department** capable of maintaining visa/residence/work/study/family/business/talent/digital-nomad/permanent-residence knowledge across jurisdictions with minimal routine human intervention while keeping legal/publication authority evidence-driven.
-
-Target loop:
+After redesign completion, strengthen Global Intelligence into a high-autonomy **Global Immigration Intelligence Department** maintaining visa/residence/work/study/family/business/talent/digital-nomad/permanent-residence knowledge across jurisdictions with minimal routine human intervention while keeping legal/publication authority evidence-driven.
 
 ```text
 official-source discovery
@@ -218,75 +339,47 @@ official-source discovery
  → continuous drift detection / quarantine / rollback
 ```
 
-Human specialists remain the exception path for genuine ambiguity, authoritative contradiction, insufficient evidence, novel/high-consequence interpretation or unresolved machine disagreement. LLM confidence is diagnostic metadata, never legal authority.
-
-Publication classes remain part of the programme: deterministic/routine Class A; stronger-gated structured eligibility Class B; interpretive/high-consequence Class C with specialist exception judgment; and conflicted/insufficient Class D which never promotes. Promotion policy is versioned and employees cannot increase their own authority class.
-
-Self-correction is mandatory: stale, superseded, contradicted or regression-failing rules must support quarantine/demotion/rollback and dependency-impact propagation while historical decisions preserve the exact rule/source fingerprints used at the time.
-
-Coverage must be explicit by jurisdiction, pathway, source class, language and rule type. The eligibility engine consumes VerifiedRules rather than independently reinterpreting the open web for each case.
-
-Evaluation must precede broad authority using a growing multilingual/multi-jurisdiction gold corpus, adversarial tests and false-promotion-focused metrics. The primary KPI is **correct autonomous throughput at an acceptably tiny false-promotion rate**, not raw automation percentage.
-
-Delivery programme:
-
-1. reconcile existing regulatory intelligence, SourceSnapshot, VerifiedRule, pathway and professional-review contracts;
-2. establish jurisdiction/authority/certified-source registry and coverage graph;
-3. implement multilingual assertion extraction plus independent verification;
-4. add temporal/supersession, contradiction and authority-hierarchy reasoning;
-5. add deterministic rule compiler and pathway/eligibility regression harness;
-6. add adversarial/mutation verification;
-7. implement versioned automatic-promotion classes plus quarantine/demotion/rollback;
-8. build continuous evaluation/calibration corpus;
-9. pilot bounded Class A/B autonomous publication and expand only from measured evidence;
-10. scale jurisdiction/source coverage without Austria hard-coding;
-11. integrate real department/work/coverage/verification state into Operator/Owner/Living HQ.
-
-**North star:** automate research, verification, promotion, monitoring and correction as far as evidence permits; escalate judgment, not routine work.
+Human specialists remain the exception path for genuine ambiguity, authoritative contradiction, insufficient evidence, novel/high-consequence interpretation or unresolved machine disagreement. LLM confidence is diagnostic metadata, never legal authority. The primary KPI is **correct autonomous throughput at an acceptably tiny false-promotion rate**, not raw automation percentage.
 
 ---
 
 ## 9. Platform capability expansion
 
-These platform phases support the regulatory-intelligence programme and the wider digital organization. Their ordering may interleave with the department programme only where a concrete dependency requires it.
-
 ### Phase 14 — AIOS Native Skills Registry
 
-Adopt selectively from the SKILL.md ecosystem/`antigravity-awesome-skills`: portable definitions, validation, discovery metadata, curated role bundles and workflow recipes. AIOS adds durable ID/version, compatible roles, allowed/denied tools, mutation classification, authority tier, evidence behavior, risk, budget, output contract, tests and revocation. Do not bulk-import external catalogues.
-
-This phase implements the registry portion of `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md`; learned/imported skill acquisition never implies authority acquisition.
+Portable skill definitions, validation, discovery metadata, curated role bundles and workflow recipes with durable ID/version, compatible roles, allowed/denied tools, mutation classification, authority tier, evidence behavior, risk, budget, output contract, tests and revocation. Learned/imported capability never implies authority acquisition.
 
 ### Phase 15 — Agent Lifecycle Governance Hooks
 
-Introduce governed pre/post tool-use, tool failure, permission request/denial, task lifecycle, subagent lifecycle, session lifecycle, compaction and cancellation signals. Inspiration may come from `open-agent-sdk-typescript`, but signals enter existing AIOS activity/evidence/governance boundaries and remain telemetry until normalized into canonical meaning.
+Governed pre/post tool-use, tool failure, permission request/denial, task/subagent/session lifecycle, compaction and cancellation signals through existing AIOS boundaries.
 
 ### Phase 16 — Runtime Reliability & Cost Intelligence
 
-Gap-audit before adoption. Evaluate model routing, budgets, loop/stall detection, cancellation/circuit breakers, bounded retry, checkpoint/recovery, governance-preserving context compaction, OpenTelemetry-compatible observability and provider health/quality history. PraisonAI and other donors are mechanism references, not orchestration replacements.
+Gap-audit routing, budgets, loop/stall detection, cancellation/circuit breakers, bounded retry, checkpoint/recovery, governance-preserving context compaction, observability and provider quality history before adoption.
 
 ### Phase 17 — Agent Security Assurance
 
-Use OWASP Agentic AI/LLM guidance, AI verification standards, multi-agent threat modelling, MCP security, agent identity/authorization, secure tool invocation, prompt-injection boundaries, skill/tool supply-chain integrity, provenance integrity, adversarial regression and security incident response. Tests must target AIOS authority semantics, not generic scanner counts.
+Agentic-AI threat modelling, identity/authorization, secure tool invocation, prompt-injection boundaries, skill/tool supply-chain integrity, provenance integrity, adversarial regression and incident response.
 
 ### Phase 18 — Enterprise Governance, Risk & Compliance
 
-Map canonical evidence and governance into useful enterprise controls: risk linkage, policy/control ownership, audit-ready evidence export, approval/exception lineage, incident tracking, capability authorization reviews and standards mappings where product/customer need justifies them.
+Risk linkage, policy/control ownership, audit-ready evidence export, approval/exception lineage, incident tracking, capability authorization reviews and justified standards mappings.
 
 ### Phase 19 — Organizational Learning & Optimization
 
-Measure provider/model performance, employee/skill success and corrections, repeated blockers, source reliability, cost per successful outcome, routing/handoff quality, escalation, decision reversal and time-to-resolution. Learning begins as proposals; promotion requires governed acceptance.
+Measure provider/model performance, employee/skill success and corrections, repeated blockers, source reliability, cost per successful outcome, routing/handoff quality, escalation, decision reversal and time-to-resolution. Learning begins as proposals.
 
 ### Phase 20 — Earned Autonomy
 
-Grant autonomy capability-by-capability with bounded scope, authority ceiling, risk class, budget, rollback, audit, quality threshold, revocation and periodic review. No global autonomous mode bypasses governance.
+Grant autonomy capability-by-capability with bounded scope, authority ceiling, risk class, budget, rollback, audit, quality threshold, revocation and periodic review.
 
 ### Phase 21 — External Interoperability
 
-Evaluate MCP, A2A-style interoperability, coding agents, enterprise connectors, local/open models and sandboxed execution only when product need requires them. Every integration requires identity, authority, provenance, timeout, failure and replay boundaries.
+Evaluate MCP, A2A-style interoperability, coding agents, enterprise connectors, local/open models and sandboxed execution only when product need requires them, with identity/authority/provenance/failure boundaries.
 
 ### Phase 22 — Production Operations & Scale
 
-Deployment architecture, justified PostgreSQL/Redis/worker scaling, backup/restore, disaster recovery, secrets lifecycle, observability/alerting, load testing, privacy/retention, tenancy/isolation, release/rollback, runbooks and cost controls. AIOS remains primarily the governed control plane; large-model inference stays external unless evidence supports another model.
+Deployment architecture, justified PostgreSQL/Redis/worker scaling, backup/restore, disaster recovery, secrets lifecycle, observability/alerting, load testing, privacy/retention, tenancy/isolation, release/rollback, runbooks and cost controls.
 
 ---
 
@@ -294,37 +387,39 @@ Deployment architecture, justified PostgreSQL/Redis/worker scaling, backup/resto
 
 Repository research is a donor programme, not an architecture vote.
 
-**Adopt selectively:** `awesome-ai-organization` for organizational coverage/roles/workflow/HITL/audit/cost-quality patterns; `agency-agents` for role design and measurable specialist responsibilities; `munder-difflin` for live-office legibility, avatar representation, handoff/status visualization, human gates, budgets/circuit breakers/isolation concepts without importing its file-hive runtime or fake activity; `antigravity-awesome-skills` for skill-format/discovery ideas; `open-agent-sdk-typescript` for lifecycle/permission/budget/cancellation/subagent concepts; PraisonAI for gap-audited routing/guardrails/telemetry/recovery/loop detection/compaction/interoperability; `career-ops` for bounded workflow/canonical-status/human-final-decision/browser-proof patterns.
+Adopt selectively: `awesome-ai-organization` for organizational coverage/roles/workflow/HITL/audit/cost-quality patterns; `agency-agents` for role design and measurable specialist responsibilities; `munder-difflin` for live-office legibility, avatar representation, handoff/status visualization, human gates, budgets/circuit breakers/isolation concepts without importing its file-hive runtime or fake activity; `antigravity-awesome-skills` for skill-format/discovery ideas; `open-agent-sdk-typescript` for lifecycle/permission/budget/cancellation/subagent concepts; PraisonAI for gap-audited routing/guardrails/telemetry/recovery/loop detection/compaction/interoperability; `career-ops` for bounded workflow/canonical-status/human-final-decision/browser-proof patterns.
 
-**Research-only/constrained:** Automaton may inform protected rules, audited versioned self-change, heartbeat/resource degradation and rate limits, but sovereign self-replication, autonomous self-funding, unrestricted self-modification and no-human-operator governance are rejected. MiroFish may inform graph/persona/memory/simulation visualization concepts, but simulation is not organizational truth and AGPL code is not copied without an explicit licensing decision. Security/pentesting collections contribute defensive standards/testing methods only; offensive utilities are not AIOS product dependencies.
-
-The companion session-entry ledger may contain additional donor decisions (for example runtime seams, memory research and engineering-hardening references). Those decisions remain valid unless explicitly reconciled/superseded here; the no-orphan rule applies to them too.
+Automaton is constrained to protected rules, audited versioned self-change, heartbeat/resource degradation and rate-limit concepts; sovereign self-replication, autonomous self-funding, unrestricted self-modification and no-human-operator governance are rejected. MiroFish may inform graph/persona/memory/simulation visualization, but simulation is not organizational truth and AGPL code is not copied without an explicit licensing decision.
 
 ---
 
 ## 11. UI / UX direction
 
-AIOS should feel like a premium operating system for a living digital company rather than an admin template: modern, spatial, information-dense without clutter; environment-as-interface where useful; cinematic depth for hierarchy; original miniature employee characters with recognizable role families; modern HQ architecture rather than pixel towers; contextual HUDs/inspectors; clear separation of live truth, prediction, history and presentation.
+AIOS should feel like a premium operating system for a living digital company rather than an admin template: modern, spatial and information-dense without clutter.
 
-Motion communicates supported state—focus, blocked attention, waiting, completion, canonical handoffs, genuine escalation and scene navigation. Decorative ambience cannot imply false work, presence or authority.
+For Living HQ specifically, **environment-as-interface is now mandatory**. The architectural office world is the hero surface. HUDs and inspectors augment it. The Owner-approved direction is premium contemporary office architecture with open-plan workplace, glass specialist/executive rooms, warm timber, neutral stone/concrete/textile, matte metal, plants, real furniture, windows, architectural lighting and miniature employees integrated into the scene.
 
-Every flagship slice considers desktop/phone, keyboard, reduced motion, forced colors/high contrast, readable fallback, predictable focus semantics and bounded rendering cost. The Visual Redesign Execution Directive remains mandatory: old content inside V2 chrome is not a completed redesign, and generic SaaS/AI-slop output is rejected even when CI is green.
+The environment must also be **organization-driven in real time**. Employees, workstations, department zones, Mission attention, governed handoff/conversation cues, Evidence posture and Board escalation presentation respond to the current governed render model. A static office illustration does not satisfy Living HQ.
+
+Old content inside V2 chrome is not a completed redesign. Generic SaaS/AI-slop output, repeated creatures, room cards, pixel towers and cosmetic relabeling are rejected even when CI is green.
+
+Motion communicates supported state. Canonical dynamics derive only from real organization records. Decorative ambience cannot imply false work, presence or authority. Every flagship slice considers desktop/phone, keyboard, reduced motion, forced colors/high contrast, readable fallback, predictable focus semantics and bounded rendering cost.
 
 ---
 
 ## 12. Engineering and proof discipline
 
-**Exact-head acceptance:** only the intended candidate head can be accepted; older green runs are historical evidence.
+**Exact-head acceptance:** only the intended candidate head can be accepted.
 
-**Bounded PRs:** one semantic purpose per PR; do not mix unrelated roadmap/runtime/schema/visual changes.
+**Bounded PRs:** one semantic/visual purpose per PR.
 
-**Stale-branch rule:** if a parent gate changes, reconstruct dependent work onto the newly sealed base before acceptance.
+**Stale-branch rule:** reconstruct dependent work onto newly sealed bases.
 
-**Failure classification:** distinguish deterministic product regression, literal/source-contract regression, browser flake, external browser/dependency infrastructure failure, backend/database failure and policy/hygiene failure before changing code.
+**Failure classification:** distinguish deterministic product regression, literal/source-contract regression, browser flake, external dependency failure, backend/database failure and policy/hygiene failure before changing code.
 
-**Efficient proof:** follow `AIOS_V2_EFFICIENT_PROOF_LADDER.md`: iterate narrowly; seal broadly. Targeted browser/screenshot proof should find visual defects before expensive full proof, while final required quality gates remain mandatory.
+**Efficient proof:** iterate narrowly; seal broadly. For 13G.1A–G, use targeted build/browser/screenshot/state-transition proof and inspect visual artifacts before expensive final V12 sealing. After Owner visual/live-behavior acceptance, full exact-head gates remain mandatory.
 
-**Truth-contract compatibility:** established literal truth statements may be CI-enforced; explanatory copy cannot erase sealed contracts.
+**Truth-contract compatibility:** established literal truth statements may be CI-enforced and must remain discoverable.
 
 ---
 
@@ -337,21 +432,20 @@ AIOS does not become a generic multi-agent clone, ungoverned swarm, bulk-importe
 ## 14. Immediate order of work
 
 ```text
-1. Seal this master-roadmap + canonical-companion reconciliation.
-2. Reconstruct Living HQ Entity Focus onto that sealed base.
-3. Prove and seal the entity inspector.
-4. Continue contextual Living HQ drill-down.
-5. Promote richer handoff/conversation visuals only from canonical semantics.
-6. Complete Living HQ final visual acceptance and companion-spec reconciliation.
-7. Begin Autonomous Global Regulatory Intelligence reconciliation/coverage foundation.
-8. Build AIOS Native Skills Registry where required by employee/regulatory capability work.
-9. Add lifecycle governance hooks through existing canonical boundaries.
-10. Perform runtime-reliability gap audit before importing mechanisms.
-11. Establish Agent Security Assurance before expanding consequential autonomy.
-12. Continue regulatory-intelligence verification/promotion/evaluation programme.
-13. Add enterprise GRC only where customer/audit needs justify it.
-14. Build measured learning and earned autonomy.
-15. Add interoperability and production scale as product dependencies require.
+1. Phase 13G.1A — finish the continuous architectural shell and inspect desktop proof.
+2. Reject immediately if it still reads as boxes/cards rather than one premium office.
+3. Phase 13G.1B — build distinct Operations, Technology, Evidence, Board and shared interiors.
+4. Phase 13G.1C — replace repeated creature presentation with integrated miniature workforce art.
+5. Phase 13G.1D — bind real-time agent, WorkItem, Mission, blocker and department state into the office world.
+6. Phase 13G.1E — add canonical handoff, conversation, evidence and Board-governance reactions.
+7. Phase 13G.1F — establish cinematic depth plus safe ambient life without fabricated activity.
+8. Phase 13G.1G — build intentional mobile live-HQ viewport + drill-down.
+9. Phase 13G.1H — obtain explicit Owner visual and live-behavior acceptance.
+10. Phase 13G.2 — reconstruct final reconciliation, run exact-head full proof, reconcile docs and seal Phase 13.
+11. Begin Autonomous Global Regulatory Intelligence only after redesign is genuinely sealed.
+12. Build Native Skills Registry and lifecycle governance where regulatory/employee capability work requires them.
+13. Establish security, reliability, learning and earned-autonomy foundations before consequential expansion.
+14. Add interoperability and production scale as concrete product dependencies require.
 ```
 
 ---
@@ -362,6 +456,6 @@ Global Mobility AIOS is successful when the Human Owner can open the product and
 
 The system should make it possible to see what the company is doing, inspect why it is doing it, trace what evidence and authority produced each consequential outcome, intervene when necessary, replay what happened, measure cost and quality, and safely grant more autonomy where performance earns it.
 
-The long-term advantage is not the number of agents, models, animations or integrations. It is the combination of capable AI employees, durable organizational memory, canonical evidence and decisions, explicit authority, visible organizational state, reliable execution, measured learning and earned autonomy.
+For the Living HQ flagship, success additionally means the organization is perceived as a believable premium modern headquarters before it is perceived as software chrome, and the headquarters visibly changes as the underlying agents, work and governed organizational events change. The environment makes canonical organizational state legible in real time; it never invents that state.
 
-That combination is the direction of Global Mobility AIOS.
+The long-term advantage is not the number of agents, models, animations or integrations. It is the combination of capable AI employees, durable organizational memory, canonical evidence and decisions, explicit authority, visible organizational state, reliable execution, measured learning and earned autonomy.

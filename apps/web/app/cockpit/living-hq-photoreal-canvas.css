@@ -1,0 +1,34 @@
+/* Lightweight procedural 3D hero layer. Canonical truth remains in the shared render model. */
+.living-hq-photoreal-canvas {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:2;
+  display:block;
+  pointer-events:none;
+  opacity:.94;
+}
+
+/* Keep DOM architecture/HUDs as semantic overlays while the 3D world supplies material depth. */
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-office-shell {
+  opacity:.20;
+  mix-blend-mode:soft-light;
+}
+
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-world-workforce {
+  opacity:.08;
+}
+
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-room,
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-event-reactions {
+  z-index:11;
+}
+
+@media (max-width:760px) {
+  .living-hq-photoreal-canvas { opacity:.90; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-photoreal-canvas { transition:none !important; }
+}

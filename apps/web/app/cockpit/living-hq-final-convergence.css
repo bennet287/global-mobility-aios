@@ -1,0 +1,283 @@
+/* Final visual-convergence pass for the Owner-approved Living HQ direction.
+   The HQ world becomes the dominant hero surface; legacy diagnostic/proof surfaces recede.
+   This layer changes presentation only and never changes canonical state or authority. */
+
+/* Make the continuous HQ world the first direct child inside the spatial renderer stage. */
+.living-webgpu-stage {
+  display:flex;
+  flex-direction:column;
+}
+.living-webgpu-stage > .living-hq-architecture {
+  order:-2;
+  margin-bottom:18px;
+}
+.living-webgpu-stage > header,
+.living-webgpu-stage > .living-hq-spatial-command,
+.living-webgpu-stage > .living-webgpu-canvas-wrap,
+.living-webgpu-stage > .living-hq-entity-inspector {
+  order:2;
+}
+
+.living-hq-architecture {
+  padding:clamp(12px,1.4vw,20px);
+  border-radius:18px;
+}
+.living-hq-architecture-header {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin:0 2px 10px;
+}
+.living-hq-architecture-header > div > span {
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.living-hq-architecture-header strong {
+  font-size:clamp(19px,2vw,27px);
+  letter-spacing:-.02em;
+}
+
+.living-hq-office-world {
+  min-height:clamp(700px,64vw,900px);
+  border-radius:15px;
+}
+
+/* Let the physically lit canvas own the material image. */
+.living-hq-photoreal-canvas {
+  z-index:3;
+  opacity:1;
+  filter:saturate(.98) contrast(1.025);
+}
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-office-shell {
+  opacity:.06;
+  mix-blend-mode:normal;
+}
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-world-workforce {
+  opacity:.025;
+}
+
+/* Room information behaves as compact architectural glass signage rather than room-shaped cards. */
+.living-hq-office-world .living-hq-room {
+  z-index:13 !important;
+  width:auto !important;
+  min-width:170px;
+  max-width:230px;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:74px !important;
+  padding:9px 11px !important;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.19) !important;
+  border-radius:9px !important;
+  background:linear-gradient(135deg,rgba(14,19,22,.86),rgba(17,23,26,.68)) !important;
+  box-shadow:0 8px 22px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.07) !important;
+  backdrop-filter:blur(9px) saturate(.8) !important;
+  transform:none !important;
+}
+.living-hq-office-world .living-hq-room-copy {
+  gap:2px;
+}
+.living-hq-office-world .living-hq-room-copy > span {
+  font-size:8px !important;
+  line-height:1.1;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.living-hq-office-world .living-hq-room-copy > strong {
+  font-size:15px !important;
+  line-height:1.12;
+}
+.living-hq-office-world .living-hq-room-copy > small {
+  margin-top:2px;
+  font-size:8px !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.living-hq-office-world .living-hq-room-context,
+.living-hq-office-world .living-hq-room > footer {
+  display:none !important;
+}
+.living-hq-office-world .living-hq-room-mission { left:11% !important; top:38% !important; right:auto !important; bottom:auto !important; }
+.living-hq-office-world .living-hq-room-evidence { left:45% !important; top:21% !important; right:auto !important; bottom:auto !important; }
+.living-hq-office-world .living-hq-room-board { right:4% !important; top:24% !important; left:auto !important; bottom:auto !important; }
+
+/* Keep event information as restrained floating telemetry. */
+.living-hq-event-reactions {
+  z-index:12 !important;
+  max-width:min(320px,33%);
+  opacity:.9;
+}
+
+/* Secondary structured layers remain available but no longer visually compete with the HQ. */
+.living-hq-department-fabric,
+.living-hq-smart-object-rail,
+.living-hq-department-deck {
+  border-color:rgba(255,255,255,.07) !important;
+  background:rgba(12,16,18,.42) !important;
+  box-shadow:none !important;
+}
+.living-hq-department-deck {
+  opacity:.72;
+}
+
+/* The older GPU field remains a maintained technical fallback/proof surface, not the hero image. */
+.living-webgpu-stage > .living-webgpu-canvas-wrap {
+  max-height:280px;
+  overflow:hidden;
+  opacity:.56;
+}
+.living-webgpu-stage > .living-hq-spatial-command,
+.living-webgpu-stage > .living-hq-entity-inspector {
+  opacity:.72;
+}
+
+/* Phase 13G.1N — converge the flagship HQ and the supporting product surfaces into one visual system.
+   Presentation only: canonical data, state, evidence and authority remain untouched. */
+.living-scene-shell {
+  position:relative;
+  isolation:isolate;
+}
+
+.living-scene-shell::after {
+  content:"";
+  position:absolute;
+  left:clamp(8px,1vw,14px);
+  right:clamp(8px,1vw,14px);
+  bottom:-1px;
+  height:clamp(42px,5vw,72px);
+  pointer-events:none;
+  z-index:0;
+  background:linear-gradient(180deg,rgba(11,15,17,0),rgba(20,24,25,.12));
+}
+
+.living-scene-shell > .living-webgpu-stage,
+.living-scene-shell > .living-structured-reference,
+.living-scene-shell > .living-flow-baseline,
+.living-scene-shell > .living-scene-smart-strip,
+.living-scene-shell > .living-scene-floor {
+  position:relative;
+  z-index:1;
+}
+
+.living-scene-shell > .living-structured-reference,
+.living-scene-shell > .living-flow-baseline,
+.living-scene-shell > .living-scene-smart-strip,
+.living-scene-shell > .living-scene-floor,
+.living-webgpu-stage > .living-hq-spatial-command,
+.living-webgpu-stage > .living-hq-entity-inspector,
+.living-webgpu-stage > .living-webgpu-canvas-wrap {
+  border-color:rgba(255,255,255,.075) !important;
+  border-radius:14px !important;
+  box-shadow:0 12px 34px rgba(0,0,0,.10) !important;
+}
+
+.living-scene-shell > .living-structured-reference,
+.living-scene-shell > .living-flow-baseline,
+.living-scene-shell > .living-scene-smart-strip,
+.living-scene-shell > .living-scene-floor {
+  background:linear-gradient(180deg,rgba(17,22,24,.82),rgba(17,22,24,.68)) !important;
+}
+
+.living-webgpu-stage > .living-hq-spatial-command,
+.living-webgpu-stage > .living-hq-entity-inspector {
+  background:linear-gradient(180deg,rgba(15,20,22,.76),rgba(15,20,22,.58)) !important;
+}
+
+.living-webgpu-stage > header {
+  margin-top:2px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+.living-webgpu-stage > .living-hq-architecture {
+  margin-bottom:12px;
+}
+
+.living-hq-department-fabric,
+.living-hq-smart-object-rail,
+.living-hq-department-deck,
+.living-hq-workforce {
+  border-radius:14px !important;
+}
+
+/* Phase 13G.1P — HQ-to-product transition bridge.
+   Keep the premium dark HQ intact, but soften the exact visual handoff into the
+   light operational product so the page reads as one system rather than two themes. */
+.living-scene-shell {
+  margin-bottom:clamp(22px,2.8vw,38px);
+  overflow:visible;
+}
+
+.living-scene-shell::before {
+  content:"";
+  position:absolute;
+  left:clamp(10px,1.35vw,20px);
+  right:clamp(10px,1.35vw,20px);
+  bottom:clamp(-34px,-2.5vw,-22px);
+  height:clamp(54px,6.5vw,90px);
+  pointer-events:none;
+  z-index:0;
+  border-radius:0 0 22px 22px;
+  background:
+    linear-gradient(180deg,rgba(18,23,24,.16) 0%,rgba(49,57,55,.08) 42%,rgba(244,241,234,0) 100%);
+  filter:blur(.2px);
+}
+
+.living-scene-shell::after {
+  bottom:clamp(-18px,-1.45vw,-10px);
+  height:clamp(70px,7.2vw,102px);
+  background:
+    linear-gradient(180deg,rgba(11,15,17,0) 0%,rgba(21,27,27,.16) 34%,rgba(98,103,94,.07) 66%,rgba(244,241,234,0) 100%);
+}
+
+.living-scene-shell + * {
+  position:relative;
+  z-index:1;
+}
+
+@media (max-width:760px) {
+  .living-hq-architecture { padding:8px; border-radius:14px; }
+  .living-hq-architecture-header { align-items:flex-start; flex-direction:column; margin:2px 4px 8px; }
+  .living-hq-office-world { min-height:620px; border-radius:12px; }
+  .living-hq-office-world .living-hq-room { min-width:0; max-width:44%; padding:6px 7px !important; max-height:58px !important; }
+  .living-hq-office-world .living-hq-room-copy > strong { font-size:11px !important; }
+  .living-hq-office-world .living-hq-room-copy > small { font-size:7px !important; }
+  .living-hq-office-world .living-hq-room-mission { left:3% !important; top:42% !important; }
+  .living-hq-office-world .living-hq-room-evidence { left:36% !important; top:22% !important; }
+  .living-hq-office-world .living-hq-room-board { right:2% !important; top:31% !important; }
+  .living-hq-event-reactions { max-width:46%; }
+  .living-webgpu-stage > .living-webgpu-canvas-wrap { max-height:190px; }
+
+  .living-scene-shell {
+    margin-bottom:22px;
+  }
+
+  .living-scene-shell::before {
+    left:6px;
+    right:6px;
+    bottom:-18px;
+    height:48px;
+    border-radius:0 0 14px 14px;
+  }
+
+  .living-scene-shell::after {
+    height:56px;
+    left:6px;
+    right:6px;
+    bottom:-12px;
+  }
+
+  .living-hq-department-fabric,
+  .living-hq-smart-object-rail,
+  .living-hq-department-deck,
+  .living-hq-workforce {
+    border-radius:12px !important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .living-hq-final-convergence * { animation:none !important; transition:none !important; }
+}

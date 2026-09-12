@@ -74,7 +74,144 @@ section[aria-labelledby="live-cycle-empty-title"] .cockpit-empty-line {
   font-size: 12px;
 }
 
+/* Phase 13G.1O — Product Shell Unification.
+   Presentation only: keep the Cockpit information architecture and canonical
+   organization/evidence/authority semantics unchanged while making the product
+   shell feel continuous with the premium Living HQ world. */
+.cockpit-primary-grid,
+.cockpit-secondary-grid,
+.cockpit-tertiary-grid {
+  gap: clamp(12px, 1.35vw, 18px);
+}
+
+.cockpit-surface,
+.cockpit-operational-intelligence,
+.cockpit-control-dock > a {
+  border-radius: 18px;
+}
+
+.cockpit-surface,
+.cockpit-operational-intelligence {
+  border-color: color-mix(in srgb, var(--line) 72%, rgba(31, 38, 40, .16));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #edf0ec 4%), color-mix(in srgb, var(--surface-muted) 88%, var(--surface) 12%));
+  box-shadow: 0 14px 36px rgba(28, 30, 27, .065), inset 0 1px 0 rgba(255,255,255,.58);
+}
+
+.cockpit-surface-header {
+  padding-bottom: 13px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 68%, transparent);
+}
+
+.cockpit-surface-header.compact {
+  padding-bottom: 11px;
+}
+
+.cockpit-surface-header h3 {
+  letter-spacing: -.028em;
+}
+
+.premium-label,
+.cockpit-surface-header .premium-label {
+  color: color-mix(in srgb, var(--green-strong) 76%, var(--ink-muted));
+}
+
+.cockpit-surface-status,
+.department-owner-label,
+.global-map-status {
+  border-color: color-mix(in srgb, var(--line) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
+}
+
+/* Recast nested information as instrumentation inside one shell rather than
+   a collection of independent dashboard cards. */
+.pulse-executive-layer,
+.pulse-operational-layer,
+.pulse-focus-panel,
+.cockpit-department-drilldown,
+.owner-authority-queue,
+.owner-attention-state,
+.cockpit-lane,
+.activity-empty-state,
+.global-map-empty {
+  border-radius: 14px;
+}
+
+.pulse-executive-card,
+.pulse-domain-card,
+.attention-rows > a,
+.owner-queue-items > a,
+.department-position-list > div {
+  border-radius: 11px;
+}
+
+.cockpit-primary-grid + .cockpit-secondary-grid,
+.cockpit-secondary-grid + .cockpit-tertiary-grid,
+.cockpit-tertiary-grid + .cockpit-operational-intelligence {
+  margin-top: clamp(14px, 1.5vw, 20px);
+}
+
+/* The navigation dock now shares the HQ's charcoal/timber-neutral language
+   instead of the older blue-violet dashboard treatment. */
+.cockpit-control-dock > a {
+  border-color: rgba(255,255,255,.085);
+  background:
+    radial-gradient(circle at 88% 8%, rgba(116,145,132,.11), transparent 34%),
+    linear-gradient(145deg, #1d2424, #111617 72%);
+  box-shadow: 0 14px 34px rgba(12, 16, 17, .14);
+}
+
+.cockpit-control-dock > a > span {
+  color: rgba(174, 205, 191, .72);
+}
+
+.cockpit-control-dock > a:hover,
+.cockpit-control-dock > a:focus-visible {
+  border-color: rgba(174,205,191,.26);
+  box-shadow: 0 20px 46px rgba(12,16,17,.20);
+}
+
+/* Dark mode should use the same hierarchy without creating a second theme. */
+[data-theme="dark"] .cockpit-surface,
+[data-theme="dark"] .cockpit-operational-intelligence {
+  border-color: rgba(255,255,255,.075);
+  background: linear-gradient(180deg, rgba(18,23,24,.92), rgba(12,16,17,.88));
+  box-shadow: 0 16px 38px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+[data-theme="dark"] .cockpit-surface-header {
+  border-bottom-color: rgba(255,255,255,.065);
+}
+
 @media (max-width: 1180px) {
   .pulse-executive-card > div > strong { font-size: 10.75px; }
   .pulse-domain-card strong { font-size: 10.25px; }
+}
+
+@media (max-width: 760px) {
+  .cockpit-primary-grid,
+  .cockpit-secondary-grid,
+  .cockpit-tertiary-grid {
+    gap: 11px;
+  }
+
+  .cockpit-surface,
+  .cockpit-operational-intelligence,
+  .cockpit-control-dock > a {
+    border-radius: 14px;
+  }
+
+  .cockpit-surface-header {
+    padding-bottom: 10px;
+  }
+
+  .pulse-executive-layer,
+  .pulse-operational-layer,
+  .pulse-focus-panel,
+  .cockpit-department-drilldown,
+  .owner-authority-queue,
+  .owner-attention-state,
+  .cockpit-lane {
+    border-radius: 12px;
+  }
 }

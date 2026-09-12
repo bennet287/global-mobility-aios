@@ -2,6 +2,7 @@
 
 **Baseline date:** 2026-09-10
 **Current sealed redesign base:** `e3fd0b162bff3ab725f402fedbbb0b5ce8efe7ff` (actual merge SHA of PR #135)
+**Accepted Living HQ Phase 13G.1H visual/live-behavior head:** `8b92aa09d81f21808492b0bab4178c1ca9ebad3e` (Owner acceptance recorded on PR #147 after Browser Proof #111 desktop + phone inspection)
 
 This checklist prevents structural migration or green CI from being mistaken for whole-product V2 completion.
 
@@ -44,13 +45,13 @@ Execution method: **Tier A targeted iteration → visual/UX acceptance → norma
 - [ ] converge radius, spacing and typography values where recurring
 - [ ] verify reusable component contracts for hover/focus/pressed/selected/disabled/loading/empty/unavailable/error states
 - [ ] Operator visual transformation accepted as first proving ground
-- [ ] Owner/Living HQ flagship visual review accepted
-- [ ] character system visibly communicates role/state/personality beyond labels
-- [ ] modern HQ architecture visibly supports organizational/spatial memory
-- [ ] ambient and semantic motion feel alive without violating truth contracts
+- [x] Owner/Living HQ flagship visual review accepted — 13G.1H Owner acceptance on exact head `8b92aa09d81f21808492b0bab4178c1ca9ebad3e`
+- [x] character system visibly communicates role/state/personality beyond labels — accepted Living HQ miniature workforce direction
+- [x] modern HQ architecture visibly supports organizational/spatial memory — accepted continuous-office world direction
+- [x] ambient and semantic motion feel alive without violating truth contracts — canonical-only live behavior + presentation-only ambient life accepted
 - [ ] inspect responsive composition on desktop/tablet/phone
-- [ ] verify mobile is recomposed, not scaled desktop
-- [ ] save and inspect desktop + phone screenshots for each major visible slice
+- [x] verify mobile is recomposed, not scaled desktop — Browser Proof #111 phone accepted
+- [x] save and inspect desktop + phone screenshots for each major visible slice — final 13G.1H proof inspected and accepted
 - [ ] verify 200% zoom/reflow
 - [ ] verify forced-colors/high-contrast behavior where applicable
 - [ ] verify reduced motion across semantic and presentation-only motion
@@ -61,8 +62,29 @@ Execution method: **Tier A targeted iteration → visual/UX acceptance → norma
 - [ ] perform Impeccable late-polish lens
 - [ ] resolve Driver.js vs custom guided-experience decision; do not install competing tour engines
 - [ ] re-run Q15 visual contracts and inspect intentional deltas
-- [ ] re-run Q17 performance profile after convergence
-- [ ] re-run Q18 asset profile after convergence
+- [x] re-run Q17 performance profile after convergence — exact accepted head profiled by V12 #1906
+- [x] re-run Q18 asset profile after convergence — exact accepted head profiled by V12 #1906
+
+### Living HQ Phase 13G closure record
+
+- [x] 13G.1A continuous architectural world accepted
+- [x] 13G.1B distinct workplace interiors accepted
+- [x] 13G.1C integrated miniature workforce direction accepted
+- [x] 13G.1D canonical real-time scene binding proven without page reload
+- [x] 13G.1E canonical event reactions remain record-driven only
+- [x] 13G.1F safe ambient life/cinematic depth accepted without fabricated organizational facts
+- [x] 13G.1G dedicated phone composition accepted
+- [x] 13G.1H explicit Owner visual + live-behavior acceptance recorded on PR #147
+- [x] Repository Policy #1276 PASS on accepted 13G.1H head
+- [x] Living HQ Browser Proof #111 PASS on accepted 13G.1H head
+- [x] V12 Production Proof #1906 PASS on accepted 13G.1H head
+- [x] Q17 and Q18 artifacts produced by V12 #1906 on accepted 13G.1H head
+- [ ] 13G.2 companion-spec reconciliation committed on a new exact candidate head
+- [ ] 13G.2 exact-head Repository Policy + Living HQ Browser Proof + V12 final seal PASS
+- [ ] PR #147 promoted from Draft only after the exact 13G.2 candidate is accepted
+- [ ] actual Phase 13G merge SHA/tree/parents/signature recorded after merge
+
+The accepted Living HQ boundary remains one-way and presentation-only: canonical organization state may drive visible state; animation, spatial selection, room/character placement, ambient motion, or HUD interaction may not create canonical work, evidence, decisions, authority, physical presence, occupancy, availability, handoffs, conversations, or Board action.
 
 ## Phase 11 — Mobility User migration
 

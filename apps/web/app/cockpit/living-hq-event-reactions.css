@@ -1,0 +1,119 @@
+/* Phase 13G.1E — Canonical organizational event reactions.
+   Presentation only. Reactions summarize existing governed records; they never create
+   conversations, handoffs, blockers, decisions, human actions, Board action or locomotion. */
+
+.living-hq-event-reactions {
+  position: absolute;
+  z-index: 7;
+  inset: 12px 14px auto auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 56%;
+  pointer-events: none;
+}
+
+.living-hq-event-reaction {
+  --reaction-rgb: 132,193,156;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 4px 7px 4px 5px;
+  border: 1px solid rgba(var(--reaction-rgb), .19);
+  border-radius: 999px;
+  background: rgba(12,16,16,.76);
+  box-shadow: 0 5px 16px rgba(0,0,0,.14);
+  backdrop-filter: blur(8px);
+}
+
+.living-hq-event-reaction[data-reaction-emphasis="attention"] { --reaction-rgb: 219,153,94; }
+.living-hq-event-reaction[data-reaction-emphasis="governance"] { --reaction-rgb: 174,151,218; }
+.living-hq-event-reaction[data-reaction-kind="board-risk"] { --reaction-rgb: 217,111,106; }
+
+.living-hq-event-reaction > i {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(var(--reaction-rgb), .86);
+  box-shadow: 0 0 10px rgba(var(--reaction-rgb), .26);
+}
+
+.living-hq-event-reaction > i::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 1px solid rgba(var(--reaction-rgb), .30);
+  border-radius: inherit;
+  opacity: .55;
+}
+
+.living-hq-event-reaction > span {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.living-hq-event-reaction strong {
+  color: rgba(247,243,234,.92);
+  font-size: 8px;
+}
+
+.living-hq-event-reaction small,
+.living-hq-event-reactions-empty {
+  color: rgba(213,206,194,.54);
+  font-size: 6.8px;
+  letter-spacing: .02em;
+}
+
+.living-hq-event-reactions-empty {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(12,16,16,.42);
+}
+
+/* Spatial anchoring by governed event family. These are visual anchors, not room occupancy. */
+.living-hq-event-reaction[data-reaction-kind="handoff"],
+.living-hq-event-reaction[data-reaction-kind="conversation"] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-event-reaction > i::after {
+    animation: living-hq-event-reaction-once 1.4s ease-out 1;
+  }
+}
+
+@keyframes living-hq-event-reaction-once {
+  0% { transform: scale(.72); opacity: .7; }
+  70% { transform: scale(1.55); opacity: .12; }
+  100% { transform: scale(1.65); opacity: 0; }
+}
+
+@media (max-width: 760px) {
+  .living-hq-event-reactions {
+    inset: 8px 8px auto 8px;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .living-hq-event-reaction {
+    min-height: 23px;
+    padding-right: 6px;
+  }
+
+  .living-hq-event-reaction small { font-size: 6.2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-event-reaction,
+  .living-hq-event-reaction > i,
+  .living-hq-event-reaction > i::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

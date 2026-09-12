@@ -1,5 +1,9 @@
 import type { CSSProperties } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
+import { LivingHQAdaptiveRenderer } from "./LivingHQAdaptiveRenderer";
+import { LivingOrganizationDepartmentFabric } from "./LivingOrganizationDepartmentFabric";
+import { LivingOrganizationEventReactions } from "./LivingOrganizationEventReactions";
+import { LivingOrganizationIntegratedWorkforce } from "./LivingOrganizationIntegratedWorkforce";
 
 type RoomDescriptor = {
   key: string;
@@ -25,18 +29,9 @@ function roomDescriptor(
 ): RoomDescriptor | null {
   if (!room) return null;
   const copy = {
-    mission: {
-      eyebrow: "Execution chamber",
-      purpose: "Mission coordination projection",
-    },
-    evidence: {
-      eyebrow: "Verification chamber",
-      purpose: "Evidence inspection projection",
-    },
-    board: {
-      eyebrow: "Authority chamber",
-      purpose: "Board decision projection",
-    },
+    mission: { eyebrow: "Operations / Mission", purpose: "Mission coordination projection" },
+    evidence: { eyebrow: "Evidence Lab", purpose: "Evidence inspection projection" },
+    board: { eyebrow: "Board / Executive", purpose: "Board decision projection" },
   }[roomType];
   return {
     key: room.room_key,
@@ -49,11 +44,38 @@ function roomDescriptor(
   };
 }
 
-export function LivingOrganizationFlagshipArchitecture({
-  renderModel,
-}: {
-  renderModel: LivingSceneRenderModel;
-}) {
+function WorkstationCluster({ variant, count }: { variant: "operations" | "technology"; count: number }) {
+  return (
+    <div className={`living-hq-office-workstations living-hq-office-workstations-${variant}`} aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <span key={index} className="living-hq-office-workstation">
+          <i className="living-hq-office-monitor" />
+          <i className="living-hq-office-chair" />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function WorkplaceInteriors() {
+  return (
+    <>
+      <div className="living-hq-office-operations-table" aria-hidden="true"><i /><i /><i /></div>
+      <i className="living-hq-office-planning-wall" aria-hidden="true" />
+      <div className="living-hq-office-tech-wall" aria-hidden="true"><i /><i /><i /></div>
+      <div className="living-hq-office-tech-console" aria-hidden="true"><i /><i /><i /></div>
+      <i className="living-hq-office-evidence-library" aria-hidden="true" />
+      <div className="living-hq-office-evidence-displays" aria-hidden="true"><i /><i /></div>
+      <i className="living-hq-office-evidence-island" aria-hidden="true" />
+      <i className="living-hq-office-board-media" aria-hidden="true" />
+      <i className="living-hq-office-board-credenza" aria-hidden="true" />
+      <i className="living-hq-office-coffee-point" aria-hidden="true" />
+      <i className="living-hq-office-collaboration-rug" aria-hidden="true" />
+    </>
+  );
+}
+
+export function LivingOrganizationFlagshipArchitecture({ renderModel }: { renderModel: LivingSceneRenderModel }) {
   const activeMissions = renderModel.missions.filter((mission) => isOpenState(mission.state));
   const openBlockers = renderModel.blockers.filter((blocker) => isOpenState(blocker.status));
   const currentDecisions = renderModel.decisions.filter((decision) => decision.is_current);
@@ -100,10 +122,46 @@ export function LivingOrganizationFlagshipArchitecture({
           <span>Flagship spatial hierarchy · projection only</span>
           <strong id="living-hq-architecture-title" role="heading" aria-level={4}>Executive HQ chambers</strong>
         </div>
-        <small>{rooms.length} canonical room projections · {renderModel.smartObjects.length} smart objects</small>
+        <small>{rooms.length} canonical room projections · {renderModel.departmentZones.length} departments · {renderModel.smartObjects.length} smart objects</small>
       </header>
 
-      <div className="living-hq-room-axis" aria-label="Canonical Living Organization rooms">
+      <div
+        className="living-hq-room-axis living-hq-office-world"
+        aria-label="Canonical Living Organization rooms"
+        data-office-world="continuous"
+        data-workplace-interiors="distinct"
+        data-integrated-workforce="canonical"
+        data-renderer-arbitration="single-context"
+      >
+        <LivingHQAdaptiveRenderer renderModel={renderModel} />
+
+        <div className="living-hq-office-shell" aria-hidden="true">
+          <i className="living-hq-office-ceiling" />
+          <i className="living-hq-office-window-wall" />
+          <i className="living-hq-office-skyline" />
+          <i className="living-hq-office-floor living-hq-office-floor-timber" />
+          <i className="living-hq-office-floor living-hq-office-floor-carpet" />
+          <i className="living-hq-office-circulation" />
+          <i className="living-hq-office-glass living-hq-office-glass-evidence" />
+          <i className="living-hq-office-glass living-hq-office-glass-board" />
+          <i className="living-hq-office-light living-hq-office-light-one" />
+          <i className="living-hq-office-light living-hq-office-light-two" />
+          <i className="living-hq-office-light living-hq-office-light-three" />
+          <WorkstationCluster variant="operations" count={4} />
+          <WorkstationCluster variant="technology" count={2} />
+          <WorkplaceInteriors />
+          <div className="living-hq-office-board-table"><i /><i /><i /><i /><i /><i /></div>
+          <div className="living-hq-office-evidence-benches"><i /><i /><i /></div>
+          <div className="living-hq-office-lounge"><i /><i /><i /></div>
+          <i className="living-hq-office-planter living-hq-office-planter-left" />
+          <i className="living-hq-office-planter living-hq-office-planter-center" />
+          <i className="living-hq-office-planter living-hq-office-planter-right" />
+          <span className="living-hq-office-zone-label living-hq-office-zone-technology">Technology</span>
+        </div>
+
+        <LivingOrganizationIntegratedWorkforce renderModel={renderModel} />
+        <LivingOrganizationEventReactions renderModel={renderModel} />
+
         {rooms.map((room, index) => (
           <article
             key={room.key}
@@ -111,20 +169,16 @@ export function LivingOrganizationFlagshipArchitecture({
             data-room-key={room.key}
             data-room-type={room.roomType}
             data-occupancy-claimed="false"
+            data-world-zone="true"
             style={{ "--room-order": index } as CSSProperties}
           >
-            <div className="living-hq-room-shell" aria-hidden="true">
-              <i className="living-hq-room-ceiling" />
-              <i className="living-hq-room-wall living-hq-room-wall-left" />
-              <i className="living-hq-room-wall living-hq-room-wall-right" />
-              <i className="living-hq-room-table" />
-              <i className="living-hq-room-light" />
-            </div>
             <div className="living-hq-room-copy">
               <span>{room.eyebrow}</span>
               <strong>{room.label}</strong>
-              <small>{room.purpose}</small>
               <small>{room.liveContext}</small>
+            </div>
+            <div className="living-hq-room-context">
+              <small>{room.purpose}</small>
               <small>{room.governancePosture}</small>
             </div>
             <footer>
@@ -135,6 +189,8 @@ export function LivingOrganizationFlagshipArchitecture({
         ))}
       </div>
 
+      <LivingOrganizationDepartmentFabric renderModel={renderModel} />
+
       <div className="living-hq-smart-object-rail" aria-label="Living Organization smart objects">
         <div className="living-hq-smart-object-title">
           <span>Infrastructure rail</span>
@@ -142,11 +198,7 @@ export function LivingOrganizationFlagshipArchitecture({
         </div>
         <div className="living-hq-smart-object-list">
           {renderModel.smartObjects.map((object) => (
-            <article
-              key={object.object_key}
-              data-object-state={object.state}
-              data-object-type={object.object_type}
-            >
+            <article key={object.object_key} data-object-state={object.state} data-object-type={object.object_type}>
               <i aria-hidden="true" />
               <div>
                 <strong>{object.label}</strong>
@@ -159,8 +211,8 @@ export function LivingOrganizationFlagshipArchitecture({
       </div>
 
       <p className="living-hq-architecture-truth">
-        Mission and Board context above is derived only from canonical Mission, WorkItem, blocker, decision, human-action and risk-escalation records.
-        These chambers remain presentation-only spatial organization. They do not assert physical occupancy, employee location, room activity,
+        Mission, department coordination, integrated workforce state, event reactions, and Board context above are derived only from canonical Mission, WorkItem, blocker, handoff, conversation, decision, human-action and risk-escalation records.
+        Miniature placement is department-oriented presentation, not a claim of employee physical location. These zones do not assert occupancy,
         work routing, availability, Board action, or authority beyond the canonical scene contract.
       </p>
     </section>

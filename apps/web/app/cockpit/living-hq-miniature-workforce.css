@@ -1,0 +1,394 @@
+/* Phase 13G.1C — Integrated miniature workforce art system.
+   Presentation only. Character placement does not assert physical presence or location.
+   State motion remains derived from canonical employee presentation state. */
+
+.living-hq-workforce {
+  position: relative;
+  z-index: 5;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(229,220,204,.09);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(179,146,103,.08), transparent 24%),
+    linear-gradient(180deg, rgba(24,28,29,.70), rgba(11,14,15,.72));
+}
+
+.living-hq-workforce > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.living-hq-workforce > header span {
+  display: block;
+  color: rgba(177,211,188,.62);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.living-hq-workforce > header strong {
+  display: block;
+  margin-top: 2px;
+  color: rgba(248,244,236,.94);
+  font-family: var(--font-editorial);
+  font-size: clamp(16px,1.35vw,20px);
+  font-weight: 430;
+}
+
+.living-hq-workforce > header small,
+.living-hq-workforce > footer {
+  color: rgba(214,207,195,.42);
+  font-size: 7.5px;
+  line-height: 1.5;
+}
+
+.living-hq-workforce-neighborhoods {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 9px;
+}
+
+.living-hq-workforce-neighborhood {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid rgba(226,216,198,.08);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(237,230,217,.035), transparent 38%),
+    rgba(20,24,24,.58);
+}
+
+.living-hq-workforce-neighborhood > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 7px;
+  border-bottom: 1px solid rgba(225,217,202,.06);
+}
+
+.living-hq-workforce-department-light {
+  width: 5px;
+  height: 24px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(129,201,159,.82), rgba(187,151,105,.58));
+  box-shadow: 0 0 12px rgba(128,194,158,.14);
+}
+
+.living-hq-workforce-neighborhood > header strong {
+  display: block;
+  color: rgba(246,241,232,.87);
+  font-size: 10px;
+}
+
+.living-hq-workforce-neighborhood > header small {
+  display: block;
+  margin-top: 1px;
+  color: rgba(211,204,192,.39);
+  font-size: 7px;
+}
+
+.living-hq-workforce-floor {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 7px;
+  padding: 9px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 16%, rgba(255,255,255,.018) 16% 16.3%, transparent 16.3% 33%),
+    linear-gradient(180deg, rgba(84,79,71,.20), rgba(39,39,36,.14));
+}
+
+.living-hq-workforce-person {
+  --person-accent: 132,193,156;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 92px auto;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.living-hq-workforce-person[data-character-state="blocked_wait"] { --person-accent: 216,116,111; }
+.living-hq-workforce-person[data-character-state="awaiting_attention"] { --person-accent: 221,177,91; }
+.living-hq-workforce-person[data-character-state="queued_wait"] { --person-accent: 165,144,215; }
+.living-hq-workforce-person[data-character-state="settled_idle"] { --person-accent: 132,193,156; }
+.living-hq-workforce-person[data-character-state="neutral_static"] { --person-accent: 170,174,173; }
+
+.living-hq-workforce-scene {
+  position: relative;
+  min-height: 92px;
+  overflow: hidden;
+  border-radius: 9px;
+  background:
+    radial-gradient(ellipse at 50% 88%, rgba(var(--person-accent),.08), transparent 52%),
+    linear-gradient(180deg, rgba(231,224,211,.035), rgba(0,0,0,.04));
+}
+
+.living-hq-workforce-desk {
+  position: absolute;
+  z-index: 2;
+  left: 10%;
+  right: 10%;
+  bottom: 18px;
+  height: 8px;
+  border-radius: 2px;
+  background: linear-gradient(180deg,#aa825f,#72543c);
+  box-shadow: 0 8px 10px rgba(0,0,0,.16);
+}
+
+.living-hq-workforce-desk::before,
+.living-hq-workforce-desk::after {
+  content:"";
+  position:absolute;
+  top:7px;
+  width:3px;
+  height:18px;
+  background:#5f5043;
+}
+.living-hq-workforce-desk::before { left:9%; }
+.living-hq-workforce-desk::after { right:9%; }
+
+.living-hq-workforce-monitor {
+  position:absolute;
+  z-index:3;
+  left:16%;
+  bottom:27px;
+  width:28px;
+  height:20px;
+  border:2px solid #333a39;
+  border-radius:3px;
+  background:linear-gradient(145deg,#263737,#101717);
+  box-shadow:0 0 9px rgba(var(--person-accent),.09);
+}
+
+.living-hq-workforce-person[data-work-item-bound="true"] .living-hq-workforce-monitor {
+  background:
+    linear-gradient(90deg, rgba(var(--person-accent),.28) 0 18%, transparent 18% 31%, rgba(var(--person-accent),.16) 31% 47%, transparent 47%),
+    linear-gradient(145deg,#263737,#101717);
+}
+
+.living-hq-workforce-seat {
+  position:absolute;
+  z-index:1;
+  right:18%;
+  bottom:7px;
+  width:24px;
+  height:27px;
+  border-radius:8px 8px 4px 4px;
+  background:#353a38;
+}
+
+.living-hq-workforce-figure {
+  position:absolute;
+  z-index:5;
+  right:17%;
+  bottom:14px;
+  width:42px;
+  height:70px;
+  transform-origin:center bottom;
+}
+
+.living-hq-workforce-shadow {
+  position:absolute;
+  left:50%;
+  bottom:-2px;
+  width:36px;
+  height:9px;
+  border-radius:50%;
+  background:rgba(0,0,0,.24);
+  transform:translateX(-50%);
+}
+
+.living-hq-workforce-leg {
+  position:absolute;
+  bottom:6px;
+  width:7px;
+  height:24px;
+  border-radius:4px;
+  background:#313737;
+}
+.living-hq-workforce-leg-left { left:12px; transform:rotate(4deg); }
+.living-hq-workforce-leg-right { right:12px; transform:rotate(-4deg); }
+
+.living-hq-workforce-torso {
+  position:absolute;
+  left:50%;
+  bottom:25px;
+  width:26px;
+  height:29px;
+  border-radius:9px 9px 6px 6px;
+  background:linear-gradient(145deg,rgba(var(--person-accent),.84),rgba(var(--person-accent),.36));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+  transform:translateX(-50%);
+}
+
+.living-hq-workforce-arm {
+  position:absolute;
+  z-index:2;
+  bottom:30px;
+  width:6px;
+  height:22px;
+  border-radius:6px;
+  background:rgba(var(--person-accent),.62);
+  transform-origin:top center;
+}
+.living-hq-workforce-arm-left { left:5px; transform:rotate(18deg); }
+.living-hq-workforce-arm-right { right:5px; transform:rotate(-28deg); }
+
+.living-hq-workforce-head {
+  position:absolute;
+  z-index:4;
+  left:50%;
+  bottom:49px;
+  width:24px;
+  height:22px;
+  border-radius:47% 47% 43% 43% / 50% 50% 55% 55%;
+  background:linear-gradient(145deg,#e5c8af,#b88f77);
+  transform:translateX(-50%);
+}
+
+.living-hq-workforce-hair {
+  position:absolute;
+  z-index:5;
+  left:50%;
+  bottom:65px;
+  width:23px;
+  height:8px;
+  border-radius:12px 12px 4px 4px;
+  background:#282a28;
+  transform:translateX(-50%);
+}
+
+.living-hq-workforce-face {
+  position:absolute;
+  z-index:6;
+  left:50%;
+  bottom:56px;
+  width:13px;
+  height:3px;
+  border-top:1px solid rgba(49,41,36,.68);
+  border-bottom:1px solid rgba(49,41,36,.40);
+  transform:translateX(-50%);
+}
+
+.living-hq-workforce-person[data-character-variant="1"] .living-hq-workforce-hair {
+  width:18px; height:12px; border-radius:13px 7px 4px 4px; transform:translateX(-50%) rotate(7deg);
+}
+.living-hq-workforce-person[data-character-variant="2"] .living-hq-workforce-hair {
+  width:26px; height:6px; border-radius:999px 999px 3px 3px;
+}
+.living-hq-workforce-person[data-character-variant="3"] .living-hq-workforce-hair {
+  width:15px; height:13px; border-radius:5px 14px 4px 7px; transform:translateX(-50%) rotate(-8deg);
+}
+.living-hq-workforce-person[data-character-variant="4"] .living-hq-workforce-hair {
+  width:27px; height:10px; border-radius:14px 14px 8px 3px; transform:translateX(-50%) rotate(2deg);
+}
+
+.living-hq-workforce-person[data-character-archetype="executive"] .living-hq-workforce-torso { background:linear-gradient(145deg,#343a42,#20252a); }
+.living-hq-workforce-person[data-character-archetype="technology"] .living-hq-workforce-torso { background:linear-gradient(145deg,#4f6f76,#263f45); }
+.living-hq-workforce-person[data-character-archetype="evidence"] .living-hq-workforce-torso { background:linear-gradient(145deg,#756c89,#443d54); }
+.living-hq-workforce-person[data-character-archetype="operations"] .living-hq-workforce-torso { background:linear-gradient(145deg,#587460,#304737); }
+.living-hq-workforce-person[data-character-archetype="finance"] .living-hq-workforce-torso { background:linear-gradient(145deg,#74674e,#463d2e); }
+.living-hq-workforce-person[data-character-archetype="people"] .living-hq-workforce-torso { background:linear-gradient(145deg,#805e64,#513a3f); }
+.living-hq-workforce-person[data-character-archetype="product"] .living-hq-workforce-torso { background:linear-gradient(145deg,#6e6482,#42394f); }
+
+.living-hq-workforce-accessory {
+  position:absolute;
+  z-index:8;
+}
+.living-hq-workforce-accessory-brief { right:0; bottom:18px; width:10px; height:13px; border-radius:2px; background:#5f4633; }
+.living-hq-workforce-accessory-headset { left:8px; bottom:57px; width:26px; height:13px; border:2px solid #28383a; border-bottom:0; border-radius:12px 12px 0 0; }
+.living-hq-workforce-accessory-folio { left:0; bottom:26px; width:11px; height:15px; border-radius:2px; background:#6d5e76; }
+.living-hq-workforce-accessory-tablet { right:0; bottom:29px; width:11px; height:15px; border:1px solid #29302e; border-radius:2px; background:#556d64; }
+.living-hq-workforce-accessory-ledger { left:0; bottom:24px; width:13px; height:10px; border-radius:2px; background:#6c6049; }
+.living-hq-workforce-accessory-notebook { right:0; bottom:24px; width:12px; height:10px; border-radius:2px; background:#79575f; }
+.living-hq-workforce-accessory-sketch { left:0; bottom:23px; width:13px; height:12px; border-radius:2px; background:#726985; }
+.living-hq-workforce-accessory-badge { right:8px; bottom:40px; width:5px; height:7px; border-radius:1px; background:rgba(236,225,203,.72); }
+
+.living-hq-workforce-state-beacon {
+  position:absolute;
+  z-index:9;
+  right:7px;
+  top:7px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:rgba(var(--person-accent),.78);
+  box-shadow:0 0 9px rgba(var(--person-accent),.32);
+}
+
+.living-hq-workforce-label {
+  min-width:0;
+  display:grid;
+  gap:1px;
+  padding:5px 3px 2px;
+}
+.living-hq-workforce-label strong,
+.living-hq-workforce-label span,
+.living-hq-workforce-label small {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.living-hq-workforce-label strong { color:rgba(244,239,229,.82); font-size:8px; }
+.living-hq-workforce-label span { color:rgba(211,203,191,.42); font-size:6.7px; text-transform:capitalize; }
+.living-hq-workforce-label small { color:rgba(var(--person-accent),.70); font-size:6.4px; text-transform:uppercase; letter-spacing:.04em; }
+
+@media (prefers-reduced-motion:no-preference) {
+  .living-hq-workforce-person[data-character-motion="work_pulse"] .living-hq-workforce-figure {
+    animation:living-hq-workforce-focus 2.8s ease-in-out infinite;
+  }
+  .living-hq-workforce-person[data-character-motion="work_pulse"] .living-hq-workforce-arm-right {
+    animation:living-hq-workforce-type 1.15s ease-in-out infinite;
+  }
+  .living-hq-workforce-person[data-character-motion="blocked_pulse"] .living-hq-workforce-state-beacon {
+    animation:living-hq-workforce-alert 1.35s ease-in-out infinite;
+  }
+  .living-hq-workforce-person[data-character-motion="waiting_breathe"] .living-hq-workforce-figure,
+  .living-hq-workforce-person[data-character-motion="settled_breathe"] .living-hq-workforce-figure {
+    animation:living-hq-workforce-breathe 4.4s ease-in-out infinite;
+  }
+  @keyframes living-hq-workforce-focus { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-1.5px)} }
+  @keyframes living-hq-workforce-type { 0%,100%{transform:rotate(-28deg)} 50%{transform:rotate(-18deg)} }
+  @keyframes living-hq-workforce-alert { 0%,100%{opacity:.45;transform:scale(1)} 50%{opacity:1;transform:scale(1.25)} }
+  @keyframes living-hq-workforce-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.012)} }
+}
+
+@media (max-width:980px) {
+  .living-hq-workforce-neighborhoods { grid-template-columns:1fr; }
+}
+
+@media (max-width:620px) {
+  .living-hq-workforce { padding:11px; }
+  .living-hq-workforce > header { align-items:flex-start; flex-direction:column; gap:3px; }
+  .living-hq-workforce-floor { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width:420px) {
+  .living-hq-workforce-floor { grid-template-columns:1fr; }
+  .living-hq-workforce-person { grid-template-columns:98px 1fr; grid-template-rows:92px; align-items:center; }
+  .living-hq-workforce-label { padding-left:8px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .living-hq-workforce-figure,
+  .living-hq-workforce-arm,
+  .living-hq-workforce-state-beacon { animation:none !important; }
+}
+
+@media (forced-colors:active) {
+  .living-hq-workforce,
+  .living-hq-workforce-neighborhood,
+  .living-hq-workforce-scene {
+    background:Canvas;
+    border-color:CanvasText;
+    box-shadow:none;
+  }
+  .living-hq-workforce-monitor,
+  .living-hq-workforce-state-beacon,
+  .living-hq-workforce-accessory { display:none; }
+}

@@ -1,0 +1,66 @@
+/* Phase 13G.1D — Performance-first Living HQ render budget.
+   Canonical employees/state remain represented. Decorative detail and ambient motion degrade first. */
+
+.living-hq-workforce[data-render-detail="balanced"] .living-hq-workforce-accessory,
+.living-hq-workforce[data-render-detail="balanced"] .living-hq-workforce-face {
+  opacity: .72;
+}
+
+.living-hq-workforce[data-render-detail="compact"] .living-hq-workforce-accessory,
+.living-hq-workforce[data-render-detail="compact"] .living-hq-workforce-face {
+  display: none;
+}
+
+.living-hq-workforce[data-render-detail="compact"] .living-hq-workforce-scene {
+  min-height: 76px;
+}
+
+.living-hq-workforce[data-render-detail="compact"] .living-hq-workforce-person {
+  grid-template-rows: 76px auto;
+}
+
+.living-hq-workforce[data-render-detail="compact"] .living-hq-workforce-label span {
+  display: none;
+}
+
+.living-hq-workforce[data-render-detail="compact"] .living-hq-workforce-floor {
+  gap: 5px;
+  padding: 7px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-workforce[data-motion-budget="canonical-only"]
+    .living-hq-workforce-person[data-character-motion="waiting_breathe"] .living-hq-workforce-figure,
+  .living-hq-workforce[data-motion-budget="canonical-only"]
+    .living-hq-workforce-person[data-character-motion="settled_breathe"] .living-hq-workforce-figure,
+  .living-hq-workforce[data-motion-budget="critical-only"]
+    .living-hq-workforce-person[data-character-motion="waiting_breathe"] .living-hq-workforce-figure,
+  .living-hq-workforce[data-motion-budget="critical-only"]
+    .living-hq-workforce-person[data-character-motion="settled_breathe"] .living-hq-workforce-figure {
+    animation: none;
+  }
+
+  .living-hq-workforce[data-motion-budget="critical-only"]
+    .living-hq-workforce-person[data-character-motion="work_pulse"] .living-hq-workforce-figure,
+  .living-hq-workforce[data-motion-budget="critical-only"]
+    .living-hq-workforce-person[data-character-motion="work_pulse"] .living-hq-workforce-arm-right {
+    animation: none;
+  }
+
+  .living-hq-workforce[data-motion-budget="critical-only"]
+    .living-hq-workforce-person[data-character-motion="work_pulse"] .living-hq-workforce-monitor {
+    box-shadow: 0 0 8px rgba(var(--person-accent),.12);
+  }
+
+  .living-hq-workforce[data-motion-budget="critical-only"]
+    .living-hq-workforce-person[data-character-motion="blocked_pulse"] .living-hq-workforce-state-beacon {
+    animation-duration: 1.8s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-workforce * {
+    animation: none !important;
+    transition-duration: 0s !important;
+  }
+}

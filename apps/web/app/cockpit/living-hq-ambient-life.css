@@ -1,0 +1,157 @@
+/* Phase 13G.1F — Ambient life and cinematic depth.
+   Presentation only. Ambient motion never asserts work, presence, occupancy, conversation, handoff, or authority.
+   Only compositor-friendly opacity/transform motion is used; mobile/reduced-motion paths disable or collapse it. */
+
+.living-hq-office-world {
+  isolation: isolate;
+}
+
+.living-hq-office-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(112deg, transparent 0 42%, rgba(240, 224, 197, .028) 49%, transparent 57%),
+    radial-gradient(circle at 74% 18%, rgba(214, 189, 151, .035), transparent 22%);
+  opacity: .72;
+  transform: translate3d(-1.5%, 0, 0);
+  will-change: transform, opacity;
+}
+
+.living-hq-office-light,
+.living-hq-office-skyline,
+.living-hq-office-window-wall,
+.living-hq-office-planter,
+.living-hq-office-monitor {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Architectural depth only: no semantic state is encoded in these values. */
+.living-hq-office-light {
+  opacity: .88;
+}
+
+.living-hq-office-skyline {
+  opacity: .82;
+  transform-origin: center bottom;
+}
+
+.living-hq-office-window-wall {
+  opacity: .94;
+}
+
+.living-hq-office-planter {
+  transform-origin: 50% 100%;
+}
+
+/* Decorative office monitors get a very small luminance drift. Canonical employee/work state
+   continues to use the dedicated miniature-workforce monitor/state bindings instead. */
+.living-hq-office-workstation .living-hq-office-monitor {
+  opacity: .86;
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 721px) {
+  .living-hq-office-shell::after {
+    animation: living-hq-ambient-daylight 24s ease-in-out infinite alternate;
+  }
+
+  .living-hq-office-light-one {
+    animation: living-hq-ambient-light 9s ease-in-out infinite alternate;
+  }
+
+  .living-hq-office-light-two {
+    animation: living-hq-ambient-light 11s ease-in-out 1.8s infinite alternate;
+  }
+
+  .living-hq-office-light-three {
+    animation: living-hq-ambient-light 13s ease-in-out 3.2s infinite alternate;
+  }
+
+  .living-hq-office-skyline {
+    animation: living-hq-ambient-skyline 28s ease-in-out infinite alternate;
+  }
+
+  .living-hq-office-planter-left {
+    animation: living-hq-ambient-plant 15s ease-in-out infinite alternate;
+  }
+
+  .living-hq-office-planter-center {
+    animation: living-hq-ambient-plant 17s ease-in-out 2.5s infinite alternate-reverse;
+  }
+
+  .living-hq-office-planter-right {
+    animation: living-hq-ambient-plant 19s ease-in-out 5s infinite alternate;
+  }
+
+  .living-hq-office-workstation:nth-child(odd) .living-hq-office-monitor {
+    animation: living-hq-ambient-monitor 8s ease-in-out infinite alternate;
+  }
+
+  .living-hq-office-workstation:nth-child(even) .living-hq-office-monitor {
+    animation: living-hq-ambient-monitor 10s ease-in-out 2s infinite alternate-reverse;
+  }
+}
+
+@keyframes living-hq-ambient-daylight {
+  from { opacity: .54; transform: translate3d(-1.5%, 0, 0); }
+  to { opacity: .78; transform: translate3d(1.5%, 0, 0); }
+}
+
+@keyframes living-hq-ambient-light {
+  from { opacity: .80; }
+  to { opacity: .94; }
+}
+
+@keyframes living-hq-ambient-skyline {
+  from { opacity: .76; transform: translate3d(-1px, 0, 0) scale(1); }
+  to { opacity: .84; transform: translate3d(1px, -1px, 0) scale(1.002); }
+}
+
+@keyframes living-hq-ambient-plant {
+  from { transform: rotate(-.25deg) translateZ(0); }
+  to { transform: rotate(.25deg) translateZ(0); }
+}
+
+@keyframes living-hq-ambient-monitor {
+  from { opacity: .78; }
+  to { opacity: .90; }
+}
+
+/* Mobile and constrained viewports keep the architectural depth but drop continuous ambience first. */
+@media (max-width: 720px) {
+  .living-hq-office-shell::after {
+    opacity: .46;
+    transform: none;
+    will-change: auto;
+  }
+
+  .living-hq-office-light,
+  .living-hq-office-skyline,
+  .living-hq-office-planter,
+  .living-hq-office-workstation .living-hq-office-monitor {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-office-shell::after,
+  .living-hq-office-light,
+  .living-hq-office-skyline,
+  .living-hq-office-window-wall,
+  .living-hq-office-planter,
+  .living-hq-office-workstation .living-hq-office-monitor {
+    animation: none !important;
+    transform: none;
+    will-change: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  .living-hq-office-shell::after {
+    display: none;
+  }
+}

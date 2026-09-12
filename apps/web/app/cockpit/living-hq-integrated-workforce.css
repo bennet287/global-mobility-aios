@@ -1,0 +1,185 @@
+/* Phase 13G.1H realism correction — canonical workforce rendered as restrained office-scale human silhouettes.
+   Placement remains presentation-only department identity, never a physical-location claim. */
+
+.living-hq-world-workforce {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.living-hq-world-person {
+  --world-accent: 107,188,143;
+  --world-skin: 210,169,136;
+  --world-hair: 54,47,43;
+  --world-suit: 54,63,68;
+  position: absolute;
+  left: var(--world-person-x);
+  top: var(--world-person-y);
+  width: 54px;
+  height: 82px;
+  transform: translate(-50%,-50%);
+  filter: drop-shadow(0 8px 7px rgba(0,0,0,.20));
+}
+
+.living-hq-world-person:nth-child(3n+2) { --world-skin: 173,126,95; --world-hair: 37,31,29; }
+.living-hq-world-person:nth-child(3n) { --world-skin: 232,193,160; --world-hair: 75,54,43; }
+.living-hq-world-person[data-character-archetype="executive"] { --world-accent: 203,170,91; --world-suit: 42,48,53; }
+.living-hq-world-person[data-character-archetype="technology"] { --world-accent: 91,169,158; --world-suit: 48,60,65; }
+.living-hq-world-person[data-character-archetype="evidence"] { --world-accent: 137,117,184; --world-suit: 62,58,71; }
+.living-hq-world-person[data-character-archetype="operations"] { --world-accent: 91,156,113; --world-suit: 55,64,60; }
+.living-hq-world-person[data-character-archetype="finance"] { --world-accent: 94,139,176; --world-suit: 49,57,66; }
+.living-hq-world-person[data-character-archetype="people"] { --world-accent: 180,116,139; --world-suit: 64,57,61; }
+
+.living-hq-world-desk {
+  position: absolute;
+  left: 2px;
+  right: 0;
+  bottom: 1px;
+  height: 13px;
+  border-radius: 2px 2px 1px 1px;
+  background: linear-gradient(180deg,#a17b58 0%,#7d5b41 70%,#684a34 100%);
+  box-shadow: 0 3px 0 rgba(50,38,30,.92), 0 8px 10px rgba(0,0,0,.17);
+}
+
+.living-hq-world-desk::before,
+.living-hq-world-desk::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  width: 3px;
+  height: 12px;
+  background: #37322f;
+}
+.living-hq-world-desk::before { left: 7px; }
+.living-hq-world-desk::after { right: 7px; }
+
+.living-hq-world-desk i {
+  position: absolute;
+  left: 8px;
+  bottom: 9px;
+  width: 20px;
+  height: 13px;
+  border-radius: 1px;
+  background: linear-gradient(145deg,#21353b,#0f191c);
+  border: 1px solid rgba(var(--world-accent),.30);
+  box-shadow: 0 2px 4px rgba(0,0,0,.26), inset 0 0 8px rgba(var(--world-accent),.10);
+}
+
+.living-hq-world-desk b {
+  position: absolute;
+  left: 17px;
+  bottom: 4px;
+  width: 2px;
+  height: 7px;
+  background: #495351;
+}
+
+/* Human proportions: smaller head, longer torso/legs, restrained facial detail. */
+.living-hq-world-figure { position:absolute; left:24px; top:2px; width:25px; height:67px; }
+.living-hq-world-shadow { position:absolute; left:2px; bottom:0; width:23px; height:5px; border-radius:50%; background:rgba(0,0,0,.24); filter:blur(.4px); }
+.living-hq-world-torso {
+  position:absolute;
+  left:7px;
+  top:20px;
+  width:13px;
+  height:26px;
+  border-radius:5px 5px 3px 3px;
+  background: linear-gradient(90deg, rgb(var(--world-suit)), color-mix(in srgb, rgb(var(--world-suit)) 78%, white));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+}
+.living-hq-world-torso::before {
+  content:"";
+  position:absolute;
+  left:5px;
+  top:1px;
+  width:3px;
+  height:14px;
+  background:rgba(var(--world-accent),.58);
+  clip-path:polygon(50% 0,100% 18%,70% 100%,30% 100%,0 18%);
+}
+.living-hq-world-head {
+  position:absolute;
+  left:8px;
+  top:6px;
+  width:12px;
+  height:14px;
+  border-radius:48% 48% 46% 46%;
+  background:rgb(var(--world-skin));
+  box-shadow:inset -1px -1px 0 rgba(86,54,39,.12);
+}
+.living-hq-world-head::after {
+  content:"";
+  position:absolute;
+  left:3px;
+  top:6px;
+  width:6px;
+  height:1px;
+  background:rgba(52,43,38,.42);
+  box-shadow:0 3px 0 rgba(74,51,41,.24);
+}
+.living-hq-world-hair {
+  position:absolute;
+  left:7px;
+  top:4px;
+  width:14px;
+  height:7px;
+  border-radius:7px 7px 3px 3px;
+  background:rgb(var(--world-hair));
+  clip-path:polygon(3% 35%,18% 10%,82% 0,100% 38%,93% 92%,12% 84%);
+}
+.living-hq-world-leg { position:absolute; top:45px; width:4px; height:18px; border-radius:2px; background:#34383b; transform-origin:top center; }
+.living-hq-world-leg-left { left:9px; transform:rotate(3deg); }
+.living-hq-world-leg-right { right:5px; transform:rotate(-3deg); }
+.living-hq-world-arm { position:absolute; top:23px; width:3px; height:18px; border-radius:2px; background:rgb(var(--world-suit)); transform-origin:top center; }
+.living-hq-world-arm-left { left:4px; transform:rotate(13deg); }
+.living-hq-world-arm-right { right:2px; transform:rotate(-24deg); }
+.living-hq-world-arm::after {
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-3px;
+  width:3px;
+  height:4px;
+  border-radius:50%;
+  background:rgb(var(--world-skin));
+}
+.living-hq-world-state { position:absolute; right:-1px; top:1px; width:4px; height:4px; border-radius:50%; background:rgb(var(--world-accent)); box-shadow:0 0 6px rgba(var(--world-accent),.62); }
+
+.living-hq-world-person[data-character-archetype="executive"] .living-hq-world-torso::after {
+  content:"";
+  position:absolute;
+  inset:3px 2px auto auto;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:rgba(var(--world-accent),.9);
+}
+
+.living-hq-world-person[data-live-semantic-state="blocked"] .living-hq-world-state { background:#d96d58; box-shadow:0 0 8px rgba(217,109,88,.72); }
+.living-hq-world-person[data-live-semantic-state="awaiting_owner"] .living-hq-world-state { background:#d6a447; }
+.living-hq-world-person[data-live-semantic-state="completed"] { opacity:.70; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-world-person[data-character-motion="work_pulse"] .living-hq-world-desk i {
+    animation: living-hq-world-monitor 2.2s ease-in-out infinite alternate;
+  }
+  .living-hq-world-person[data-character-motion="work_pulse"] .living-hq-world-arm-right {
+    animation: living-hq-world-type 1.35s ease-in-out infinite alternate;
+  }
+  .living-hq-world-person[data-character-motion="blocked_pulse"] .living-hq-world-state {
+    animation: living-hq-world-alert 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes living-hq-world-monitor { from { opacity:.80; } to { opacity:1; box-shadow:0 0 9px rgba(var(--world-accent),.20); } }
+@keyframes living-hq-world-type { from { transform:rotate(-20deg); } to { transform:rotate(-27deg); } }
+@keyframes living-hq-world-alert { 50% { transform:scale(1.32); opacity:.72; } }
+
+@media (max-width:760px) {
+  .living-hq-world-person { width:40px; height:61px; transform:translate(-50%,-50%) scale(.74); transform-origin:center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-world-person * { animation:none !important; }
+}

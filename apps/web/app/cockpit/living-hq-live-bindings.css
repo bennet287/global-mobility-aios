@@ -1,0 +1,155 @@
+/* Phase 13G.1D — Canonical live-state visual binding.
+   Presentation only. These reactions read existing render-model state and never create work,
+   presence, authority, handoffs, conversations, or locomotion. */
+
+.living-hq-contract-alias {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.living-hq-workforce[data-live-binding="canonical-render-model"] {
+  --live-working: 132, 193, 156;
+  --live-blocked: 216, 116, 111;
+  --live-awaiting: 221, 177, 91;
+}
+
+.living-hq-workforce-neighborhood {
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.living-hq-workforce-neighborhood[data-zone-active]:not([data-zone-active="0"]) {
+  border-color: rgba(132, 193, 156, .16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 10px 28px rgba(0,0,0,.12);
+}
+
+.living-hq-workforce-neighborhood[data-zone-working]:not([data-zone-working="0"]) .living-hq-workforce-department-light {
+  background: linear-gradient(180deg, rgba(var(--live-working), .96), rgba(var(--live-working), .42));
+  box-shadow: 0 0 18px rgba(var(--live-working), .26);
+}
+
+.living-hq-workforce-neighborhood[data-zone-blocked]:not([data-zone-blocked="0"]) {
+  border-color: rgba(var(--live-blocked), .28);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(var(--live-blocked), .09), transparent 34%),
+    linear-gradient(180deg, rgba(237,230,217,.035), transparent 38%),
+    rgba(20,24,24,.58);
+}
+
+.living-hq-workforce-neighborhood[data-zone-blocked]:not([data-zone-blocked="0"]) .living-hq-workforce-department-light {
+  background: linear-gradient(180deg, rgba(var(--live-blocked), .96), rgba(var(--live-blocked), .45));
+  box-shadow: 0 0 20px rgba(var(--live-blocked), .30);
+}
+
+.living-hq-workforce-neighborhood[data-zone-awaiting-owner]:not([data-zone-awaiting-owner="0"])::after {
+  content: "OWNER ATTENTION";
+  position: absolute;
+  z-index: 8;
+  top: 7px;
+  right: 8px;
+  padding: 3px 6px;
+  border: 1px solid rgba(var(--live-awaiting), .24);
+  border-radius: 999px;
+  color: rgba(246, 211, 137, .82);
+  background: rgba(49, 42, 28, .68);
+  font-size: 5.8px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.living-hq-workforce-person[data-semantic-state="working"] .living-hq-workforce-monitor {
+  border-color: rgba(var(--person-accent), .38);
+  box-shadow: 0 0 16px rgba(var(--person-accent), .19);
+}
+
+.living-hq-workforce-person[data-semantic-state="blocked"] .living-hq-workforce-monitor {
+  border-color: rgba(216,116,111,.48);
+  background:
+    linear-gradient(135deg, rgba(216,116,111,.28), transparent 55%),
+    linear-gradient(145deg,#2d2525,#151111);
+  box-shadow: 0 0 18px rgba(216,116,111,.20);
+}
+
+.living-hq-workforce-person[data-semantic-state="awaiting_owner"] .living-hq-workforce-monitor {
+  border-color: rgba(221,177,91,.44);
+  box-shadow: 0 0 15px rgba(221,177,91,.17);
+}
+
+.living-hq-workforce-person[data-semantic-state="queued"] .living-hq-workforce-monitor {
+  opacity: .62;
+  filter: saturate(.72);
+}
+
+.living-hq-workforce-person[data-semantic-state="completed"] .living-hq-workforce-monitor {
+  opacity: .42;
+  filter: saturate(.45);
+}
+
+.living-hq-workforce-person[data-work-status="blocked"] .living-hq-workforce-desk::after {
+  background: rgba(216,116,111,.85);
+}
+
+.living-hq-department-coordination article[data-handoff-count]:not([data-handoff-count="0"]) i {
+  box-shadow: 0 0 16px rgba(132,193,156,.20);
+}
+
+.living-hq-department-coordination article[data-conversation-count]:not([data-conversation-count="0"]) i {
+  outline: 1px solid rgba(159,178,224,.16);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-workforce-person[data-semantic-state="working"] .living-hq-workforce-monitor {
+    animation: living-hq-live-monitor 2.2s ease-in-out infinite;
+  }
+
+  .living-hq-workforce-neighborhood[data-zone-blocked]:not([data-zone-blocked="0"]) .living-hq-workforce-department-light {
+    animation: living-hq-live-blocked-zone 1.6s ease-in-out infinite;
+  }
+
+  .living-hq-workforce-neighborhood[data-zone-awaiting-owner]:not([data-zone-awaiting-owner="0"])::after {
+    animation: living-hq-live-owner-attention 2.4s ease-in-out infinite;
+  }
+
+  .living-hq-department-coordination article[data-handoff-count]:not([data-handoff-count="0"]) i::after {
+    animation-duration: 1.8s;
+  }
+
+  @keyframes living-hq-live-monitor {
+    0%,100% { filter: brightness(.9); }
+    50% { filter: brightness(1.18); }
+  }
+
+  @keyframes living-hq-live-blocked-zone {
+    0%,100% { opacity: .62; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes living-hq-live-owner-attention {
+    0%,100% { opacity: .62; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-1px); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-workforce-neighborhood,
+  .living-hq-workforce-person .living-hq-workforce-monitor,
+  .living-hq-workforce-department-light {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .living-hq-workforce-neighborhood[data-zone-awaiting-owner]:not([data-zone-awaiting-owner="0"])::after {
+    border-color: CanvasText;
+    color: CanvasText;
+    background: Canvas;
+  }
+}
