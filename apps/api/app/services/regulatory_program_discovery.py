@@ -8,7 +8,6 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     AuditLog,
-    Jurisdiction,
     MobilityPathway,
     MobilityPathwayVersion,
     RegulatoryChange,
@@ -23,6 +22,25 @@ DISCOVERY_VERSION = "regulatory-program-discovery-v1"
 DISCOVERY_ACTION = "regulatory_pathway_candidates_discovered"
 SUPPORTED_CHANGE_TYPE = "new_program"
 MAX_CANDIDATES_PER_CHANGE = 25
+FATAL_DISCOVERY_REASONS = {
+    "change_not_pending_review",
+    "change_not_new_program",
+    "regulatory_integrity_clearance_missing",
+    "independently_verified_new_program_delta_missing",
+    "current_snapshot_missing",
+    "current_snapshot_source_mismatch",
+    "current_snapshot_content_hash_missing",
+    "current_snapshot_parser_profile_invalid",
+    "verification_snapshot_id_missing",
+    "verification_snapshot_hash_missing",
+    "verification_snapshot_id_mismatch",
+    "verification_snapshot_hash_mismatch",
+    "structured_program_catalog_missing",
+    "verified_program_missing_from_current_catalog",
+    "candidate_program_name_missing",
+    "candidate_program_inactive",
+    "no_pathway_candidates_discovered",
+}
 
 
 @dataclass(frozen=True)
@@ -56,6 +74,7 @@ class ProgramDiscoveryPacket:
     watchdog_audit_id: str | None
     candidates: tuple[PathwayCandidate, ...]
     fanout_limited: bool
+    discovery_eligible: bool
     candidate_only: bool
     publication_allowed: bool
     pathway_create_allowed: bool
@@ -72,6 +91,7 @@ class ProgramDiscoveryPacket:
             "watchdog_audit_id": self.watchdog_audit_id,
             "candidates": [item.payload() for item in self.candidates],
             "fanout_limited": self.fanout_limited,
+            "discovery_eligible": self.discovery_eligible,
             "candidate_only": self.candidate_only,
             "publication_allowed": self.publication_allowed,
             "pathway_create_allowed": self.pathway_create_allowed,
@@ -197,14 +217,20 @@ def discover_pathway_candidates(
         metadata = _load_json(snapshot.metadata_json, {})
         if snapshot.official_source_id != change.official_source_id:
             reasons.append("current_snapshot_source_mismatch")
+        if not snapshot.content_hash:
+            reasons.append("current_snapshot_content_hash_missing")
         if metadata.get("parser_profile") != "structured_program_catalog_v1":
             reasons.append("current_snapshot_parser_profile_invalid")
         verification_evidence = verification_payload.get("evidence", {}) if verification_payload else {}
         verified_snapshot_id = str(verification_evidence.get("current_snapshot_id") or "")
         verified_snapshot_hash = str(verification_evidence.get("current_snapshot_content_hash") or "")
-        if verified_snapshot_id and verified_snapshot_id != str(snapshot.id):
+        if not verified_snapshot_id:
+            reasons.append("verification_snapshot_id_missing")
+        elif verified_snapshot_id != str(snapshot.id):
             reasons.append("verification_snapshot_id_mismatch")
-        if verified_snapshot_hash and verified_snapshot_hash != str(snapshot.content_hash or ""):
+        if not verified_snapshot_hash:
+            reasons.append("verification_snapshot_hash_missing")
+        elif verified_snapshot_hash != str(snapshot.content_hash or ""):
             reasons.append("verification_snapshot_hash_mismatch")
 
     catalog = metadata.get("program_catalog") if isinstance(metadata, dict) else None
@@ -230,13 +256,16 @@ def discover_pathway_candidates(
         reasons.append("candidate_fanout_limit_reached")
     selected_ids = candidate_ids[:bounded_limit]
 
-    jurisdiction = session.get(Jurisdiction, change.jurisdiction_id)
     candidates: list[PathwayCandidate] = []
     for program_id in selected_ids:
         row = catalog_index[program_id]
         name = str(row.get("name") or "").strip()
         if not name:
             reasons.append("candidate_program_name_missing")
+            continue
+        active = bool(row.get("active", False))
+        if not active:
+            reasons.append("candidate_program_inactive")
             continue
         candidate_key = ":".join(
             [
@@ -253,7 +282,7 @@ def discover_pathway_candidates(
                 summary=str(row.get("summary") or "").strip(),
                 effective_date=(str(row.get("effective_date") or "").strip() or None),
                 status=str(row.get("status") or "unknown").strip().lower(),
-                active=bool(row.get("active", False)),
+                active=active,
                 possible_existing_pathway_ids=_possible_existing_pathways(
                     session,
                     change=change,
@@ -270,6 +299,9 @@ def discover_pathway_candidates(
     if not candidates:
         reasons.append("no_pathway_candidates_discovered")
 
+    unique_reasons = tuple(sorted(set(reasons)))
+    discovery_eligible = bool(candidates) and not any(reason in FATAL_DISCOVERY_REASONS for reason in unique_reasons)
+
     return ProgramDiscoveryPacket(
         regulatory_change_id=str(change.id),
         discovery_version=DISCOVERY_VERSION,
@@ -279,11 +311,12 @@ def discover_pathway_candidates(
         watchdog_audit_id=str(watchdog_audit.id) if watchdog_audit else None,
         candidates=tuple(candidates),
         fanout_limited=fanout_limited,
+        discovery_eligible=discovery_eligible,
         candidate_only=True,
         publication_allowed=False,
         pathway_create_allowed=False,
         canonical_write_allowed=False,
-        reasons=tuple(sorted(set(reasons))),
+        reasons=unique_reasons,
     )
 
 
@@ -307,9 +340,7 @@ def discover_new_program_candidates(
     audit_writes = 0
     for change in changes:
         packet = discover_pathway_candidates(session, change)
-        if not packet.candidates:
-            continue
-        if "regulatory_integrity_clearance_missing" in packet.reasons:
+        if not packet.discovery_eligible:
             continue
         payload = packet.payload()
         packets.append(packet)
