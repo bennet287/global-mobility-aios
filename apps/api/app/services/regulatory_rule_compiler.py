@@ -36,6 +36,21 @@ SUPPORTED_VALUE_TYPES = {
     "currency_amount",
     "string_list",
 }
+FATAL_COMPILER_REASONS = {
+    "change_not_pending_review",
+    "current_pathway_discovery_packet_missing",
+    "current_snapshot_missing",
+    "current_snapshot_source_mismatch",
+    "current_snapshot_content_hash_missing",
+    "current_snapshot_parser_profile_invalid",
+    "discovery_snapshot_id_missing",
+    "discovery_snapshot_hash_missing",
+    "discovery_snapshot_id_mismatch",
+    "discovery_snapshot_hash_mismatch",
+    "structured_program_catalog_missing",
+    "discovery_candidates_invalid",
+    "discovery_candidate_invalid",
+}
 
 
 @dataclass(frozen=True)
@@ -146,6 +161,7 @@ def _latest_discovery(
     valid = bool(
         audit
         and payload.get("discovery_version") == DISCOVERY_VERSION
+        and payload.get("discovery_eligible") is True
         and payload.get("candidate_only") is True
         and payload.get("publication_allowed") is False
         and payload.get("pathway_create_allowed") is False
@@ -327,11 +343,19 @@ def compile_regulatory_candidates(
         metadata = _load_json(snapshot.metadata_json, {})
         if snapshot.official_source_id != change.official_source_id:
             reasons.append("current_snapshot_source_mismatch")
+        if not snapshot.content_hash:
+            reasons.append("current_snapshot_content_hash_missing")
+        if metadata.get("parser_profile") != "structured_program_catalog_v1":
+            reasons.append("current_snapshot_parser_profile_invalid")
         discovered_snapshot_id = str(discovery_payload.get("source_snapshot_id") or "")
         discovered_snapshot_hash = str(discovery_payload.get("source_snapshot_content_hash") or "")
-        if discovered_snapshot_id and discovered_snapshot_id != str(snapshot.id):
+        if not discovered_snapshot_id:
+            reasons.append("discovery_snapshot_id_missing")
+        elif discovered_snapshot_id != str(snapshot.id):
             reasons.append("discovery_snapshot_id_mismatch")
-        if discovered_snapshot_hash and discovered_snapshot_hash != str(snapshot.content_hash or ""):
+        if not discovered_snapshot_hash:
+            reasons.append("discovery_snapshot_hash_missing")
+        elif discovered_snapshot_hash != str(snapshot.content_hash or ""):
             reasons.append("discovery_snapshot_hash_mismatch")
 
     catalog = metadata.get("program_catalog") if isinstance(metadata, dict) else None
@@ -345,15 +369,17 @@ def compile_regulatory_candidates(
                 if program_id:
                     catalog_index[program_id] = row
 
-    compiled_candidates: list[CompiledPathwayCandidate] = []
     discovered_candidates = discovery_payload.get("candidates", []) if discovery_payload else []
     if not isinstance(discovered_candidates, list):
         reasons.append("discovery_candidates_invalid")
         discovered_candidates = []
 
+    packet_provenance_failed = any(reason in FATAL_COMPILER_REASONS for reason in reasons)
+    compiled_candidates: list[CompiledPathwayCandidate] = []
     for candidate in discovered_candidates:
         if not isinstance(candidate, dict):
             reasons.append("discovery_candidate_invalid")
+            packet_provenance_failed = True
             continue
         program_id = str(candidate.get("program_id") or "").strip()
         row = catalog_index.get(program_id)
@@ -361,6 +387,11 @@ def compile_regulatory_candidates(
         if row is None:
             candidate_reasons.append("candidate_program_missing_from_current_catalog")
             row = {}
+
+        effective_date_raw = candidate.get("effective_date") or row.get("effective_date")
+        effective_date, effective_date_error = _iso_date(effective_date_raw)
+        if effective_date_error:
+            candidate_reasons.append("candidate_effective_date_invalid")
 
         raw_rules = row.get("typed_rules")
         compiled_rules: list[CompiledRuleCandidate] = []
@@ -381,7 +412,10 @@ def compile_regulatory_candidates(
                 seen_rule_keys.add(compiled.rule_key)
                 compiled_rules.append(compiled)
 
-        if raw_rules not in (None, []) and candidate_reasons:
+        if packet_provenance_failed:
+            candidate_reasons.append("compiler_provenance_gate_failed")
+
+        if packet_provenance_failed or (raw_rules not in (None, []) and candidate_reasons):
             compile_status = "quarantined"
         elif compiled_rules:
             compile_status = "typed_candidate"
@@ -395,7 +429,7 @@ def compile_regulatory_candidates(
                 name=str(candidate.get("name") or row.get("name") or "").strip(),
                 status=str(candidate.get("status") or row.get("status") or "unknown").strip().lower(),
                 summary=str(candidate.get("summary") or row.get("summary") or "").strip(),
-                effective_date=(str(candidate.get("effective_date") or row.get("effective_date") or "").strip() or None),
+                effective_date=effective_date,
                 compile_status=compile_status,
                 typed_rules=tuple(compiled_rules),
                 reasons=tuple(sorted(set(candidate_reasons))),
@@ -443,7 +477,7 @@ def compile_discovered_regulatory_candidates(
     packets: list[RegulatoryCompilePacket] = []
     audit_writes = 0
     for change in changes:
-        discovery_audit, discovery_payload = _latest_discovery(session, change)
+        _, discovery_payload = _latest_discovery(session, change)
         if not discovery_payload:
             continue
         packet = compile_regulatory_candidates(session, change)
