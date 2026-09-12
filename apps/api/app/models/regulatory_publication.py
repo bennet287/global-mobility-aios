@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
@@ -25,7 +24,7 @@ class RegulatoryPublicationSet(SQLModel, table=True):
     actor_key: str = Field(index=True)
     authorization_audit_id: UUID = Field(index=True, foreign_key="audit_logs.id")
     authority_bridge_audit_id: UUID = Field(index=True, foreign_key="audit_logs.id")
-    autonomy_profile_id: UUID = Field(index=True, foreign_key="capability_autonomy_profiles.id")
+    autonomy_profile_id: str = Field(index=True)
     autonomy_profile_sequence: int
     intended_rule_count: int
     intended_mutations_sha256: str = Field(index=True)
