@@ -9,6 +9,7 @@ from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import SourceMonitor, now_utc
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
+from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
 from app.services.source_retrieval import execute_source_monitor
 
@@ -82,3 +83,15 @@ def verify_routed_regulatory_changes_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return verify_routed_regulatory_changes(session, limit=limit)
+
+
+@celery_app.task
+def scan_regulatory_integrity_task(limit: int = 100) -> dict:
+    """Run RI.A3 temporal and contradiction checks over independently verified changes.
+
+    The watchdog is non-authoritative: it records integrity evidence only and never
+    approves/publishes/supersedes regulatory truth or mutates pathway state.
+    """
+
+    with Session(db_module.engine) as session:
+        return scan_regulatory_integrity(session, limit=limit)
