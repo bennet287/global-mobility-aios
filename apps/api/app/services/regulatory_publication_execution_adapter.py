@@ -29,6 +29,13 @@ MACHINE_PUBLICATION_ENABLED = False
 REVIEW_DISPOSITION_CONTRACT_READY = False
 MULTI_RULE_PUBLICATION_CONTRACT_READY = False
 
+CANONICAL_CONTRACT_BLOCKERS = frozenset(
+    {
+        "machine_review_disposition_contract_missing",
+        "atomic_multi_rule_publication_contract_missing",
+    }
+)
+
 
 @dataclass(frozen=True)
 class RegulatoryPublicationExecutionPreflight:
@@ -118,6 +125,27 @@ def _current_bridge(
     return audit, payload if valid else {}
 
 
+def _execution_state(reasons: tuple[str, ...]) -> str:
+    """Classify preflight reasons without allowing the kill switch to mask drift.
+
+    `ready_but_disabled` is intentionally narrow: it means the execution contract,
+    evidence, and live Board delegation are otherwise clean and the global publication
+    kill switch is the only remaining reason. Canonical representation blockers are
+    reported separately. Every other reason is a fail-closed quarantine condition.
+    """
+
+    reason_set = set(reasons)
+    if not reason_set:
+        return "execution_authorized"
+
+    non_switch_reasons = reason_set - {"machine_publication_disabled"}
+    if not non_switch_reasons:
+        return "ready_but_disabled"
+    if non_switch_reasons.issubset(CANONICAL_CONTRACT_BLOCKERS):
+        return "blocked_canonical_contract_gap"
+    return "quarantined"
+
+
 def assess_regulatory_publication_execution(
     session: Session,
     change: RegulatoryChange,
@@ -198,21 +226,8 @@ def assess_regulatory_publication_execution(
         reasons.append("machine_publication_disabled")
 
     unique_reasons = tuple(sorted(set(reasons)))
-    execution_authority = not unique_reasons
-    if execution_authority:
-        execution_state = "execution_authorized"
-    elif any(
-        reason in unique_reasons
-        for reason in (
-            "machine_review_disposition_contract_missing",
-            "atomic_multi_rule_publication_contract_missing",
-        )
-    ):
-        execution_state = "blocked_canonical_contract_gap"
-    elif "machine_publication_disabled" in unique_reasons:
-        execution_state = "ready_but_disabled"
-    else:
-        execution_state = "quarantined"
+    execution_state = _execution_state(unique_reasons)
+    execution_authority = execution_state == "execution_authorized"
 
     return RegulatoryPublicationExecutionPreflight(
         regulatory_change_id=str(change.id),
