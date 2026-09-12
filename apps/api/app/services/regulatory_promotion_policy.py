@@ -121,6 +121,7 @@ def _current_discovery_packet(
     valid = bool(
         audit
         and payload.get("discovery_version") == DISCOVERY_VERSION
+        and payload.get("discovery_eligible") is True
         and payload.get("candidate_only") is True
         and payload.get("publication_allowed") is False
         and payload.get("pathway_create_allowed") is False
