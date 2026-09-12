@@ -9,6 +9,7 @@ from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import SourceMonitor, now_utc
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
+from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
 from app.services.source_retrieval import execute_source_monitor
 
 
@@ -69,3 +70,15 @@ def route_pending_regulatory_changes_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return route_pending_regulatory_changes(session, limit=limit)
+
+
+@celery_app.task
+def verify_routed_regulatory_changes_task(limit: int = 100) -> dict:
+    """Independently verify RI.A1 candidates from immutable snapshot evidence.
+
+    RI.A2 does not reuse classifier output as verification evidence and does not
+    approve regulatory changes, publish/supersede VerifiedRules, or mutate pathways.
+    """
+
+    with Session(db_module.engine) as session:
+        return verify_routed_regulatory_changes(session, limit=limit)
