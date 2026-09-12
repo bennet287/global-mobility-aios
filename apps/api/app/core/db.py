@@ -151,6 +151,10 @@ def register_models() -> None:
         CapabilityAutonomyEvidenceEvaluationPolicy,
     )
     from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
+    from app.models.regulatory_publication import (  # noqa: F401
+        RegulatoryPublicationSet,
+        RegulatoryReviewDisposition,
+    )
 
     _register_legacy_metadata_constraints()
 
