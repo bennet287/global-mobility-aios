@@ -65,6 +65,11 @@ celery_app.conf.update(
             "schedule": 300.0,
             "args": (100,),
         },
+        "compile-discovered-regulatory-candidates": {
+            "task": "app.tasks.source_monitor_tasks.compile_discovered_regulatory_candidates_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
         "scan-document-expiry-reminders": {
             "task": "app.tasks.document_expiry_tasks.scan_document_expiry_reminders_task",
             "schedule": 21600.0,
