@@ -13,6 +13,7 @@ from app.services.regulatory_freshness_guard import scan_regulatory_freshness
 from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
 from app.services.regulatory_program_discovery import discover_new_program_candidates
+from app.services.regulatory_promotion_authorization import generate_machine_promotion_authorization_envelopes
 from app.services.regulatory_promotion_policy import run_shadow_promotion_policy
 from app.services.regulatory_reassessment_propagation import propagate_regulatory_reassessment_impacts
 from app.services.regulatory_rule_compiler import compile_discovered_regulatory_candidates
@@ -113,3 +114,11 @@ def scan_regulatory_freshness_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return scan_regulatory_freshness(session, limit=limit)
+
+
+@celery_app.task
+def generate_machine_promotion_authorization_envelopes_task(limit: int = 100) -> dict:
+    """Generate RI.A7.1 evidence-ready envelopes while machine execution remains disabled."""
+
+    with Session(db_module.engine) as session:
+        return generate_machine_promotion_authorization_envelopes(session, limit=limit)
