@@ -9,6 +9,7 @@ from app.models.domain import (
     MobilityPathwayVersion,
     OfficialSource,
     RegulatoryChange,
+    SourceSnapshot,
     now_utc,
 )
 from app.services.audit_log import record_audit
@@ -35,10 +36,20 @@ def _seed_integrity_clear_change(db_session):
     db_session.add(source)
     db_session.flush()
 
+    snapshot = SourceSnapshot(
+        official_source_id=source.id,
+        url=source.url,
+        content_hash="a" * 64,
+        status="changed",
+        captured_at=now_utc(),
+    )
+    db_session.add(snapshot)
+    db_session.flush()
+
     change = RegulatoryChange(
         jurisdiction_id=jurisdiction.id,
         official_source_id=source.id,
-        current_snapshot_id=None,
+        current_snapshot_id=snapshot.id,
         domain="visa",
         change_type="new_program",
         title="New route",
@@ -47,11 +58,6 @@ def _seed_integrity_clear_change(db_session):
         status="pending_review",
         detected_at=now_utc(),
     )
-    # current_snapshot_id is non-null in the production schema; the focused RI.A4
-    # unit does not dereference it, so assign a stable placeholder after construction.
-    from uuid import uuid4
-
-    change.current_snapshot_id = uuid4()
     db_session.add(change)
     db_session.flush()
 
