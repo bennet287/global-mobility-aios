@@ -177,7 +177,7 @@ def publish_board_delegated_machine_rule_set(
     if snapshot.content_hash != preflight.source_snapshot_content_hash:
         raise RegulatoryMachinePublicationError("Current source snapshot hash no longer matches authorization")
 
-    profile_id = bridge.get("autonomy_profile_id")
+    profile_id = str(bridge.get("autonomy_profile_id") or "").strip()
     profile_sequence = bridge.get("autonomy_profile_sequence")
     if not profile_id or not isinstance(profile_sequence, int) or profile_sequence < 1:
         raise RegulatoryMachinePublicationError("Board autonomy profile lineage is incomplete")
@@ -202,7 +202,7 @@ def publish_board_delegated_machine_rule_set(
             actor_key=actor_key,
             authorization_audit_id=authorization_audit.id,
             authority_bridge_audit_id=bridge_audit.id,
-            autonomy_profile_id=UUID(str(profile_id)),
+            autonomy_profile_id=profile_id,
             autonomy_profile_sequence=profile_sequence,
             intended_rule_count=len(normalized_mutations),
             intended_mutations_sha256=mutation_fingerprint,
@@ -315,7 +315,7 @@ def publish_board_delegated_machine_rule_set(
                 "actor_key": publication_set.actor_key,
                 "authorization_audit_id": str(publication_set.authorization_audit_id),
                 "authority_bridge_audit_id": str(publication_set.authority_bridge_audit_id),
-                "autonomy_profile_id": str(publication_set.autonomy_profile_id),
+                "autonomy_profile_id": publication_set.autonomy_profile_id,
                 "autonomy_profile_sequence": publication_set.autonomy_profile_sequence,
                 "source_snapshot_id": str(snapshot.id),
                 "source_snapshot_hash": snapshot.content_hash,
