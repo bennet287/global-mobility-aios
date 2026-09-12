@@ -31,9 +31,9 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
     task_track_started=True,
-    task_time_limit=300,  # 5 minutes hard limit
-    task_soft_time_limit=240,  # 4 minutes soft limit
-    result_expires=3600,  # 1 hour
+    task_time_limit=300,
+    task_soft_time_limit=240,
+    result_expires=3600,
     beat_schedule={
         "enqueue-due-official-source-monitors": {
             "task": "app.tasks.source_monitor_tasks.enqueue_due_source_monitors",
@@ -67,6 +67,11 @@ celery_app.conf.update(
         },
         "compile-discovered-regulatory-candidates": {
             "task": "app.tasks.source_monitor_tasks.compile_discovered_regulatory_candidates_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "run-shadow-regulatory-promotion-policy": {
+            "task": "app.tasks.source_monitor_tasks.run_shadow_promotion_policy_task",
             "schedule": 300.0,
             "args": (100,),
         },
