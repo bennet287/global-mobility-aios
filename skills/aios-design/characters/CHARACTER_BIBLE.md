@@ -51,6 +51,14 @@ but may never redefine canonical:
 - presence
 - semantic state
 
+Registry identity is explicit:
+- exact canonical positions may carry the guaranteed `canonicalPositionKey`
+- role-family presentations must keep `canonicalPositionKey = null` and use a separate presentation-only key
+- neutral/unknown fallbacks must keep `canonicalPositionKey = null`
+- resolver precedence is exact position → supported family fallback → neutral fallback
+
+See `presentation-registry-contract.md` for the binding, immutability, rig/LOD, animation-set and future asset-manifest rules.
+
 ## Required character record
 
 Each character defines:
@@ -125,6 +133,14 @@ Each character defines:
 - desk ↔ Mission ↔ colleague movement
 - case/work objects
 - collaborative stance
+
+## Runtime presentation integrity
+
+Presentation registry records are configuration and must be deeply immutable at runtime. Freezing only the top-level record is insufficient: registration metadata, behavior profiles, cue arrays, accessories, reduced-motion metadata and semantic-capability arrays must also be frozen.
+
+Rig class, LOD class, material profile and animation-set keys are presentation bindings only. They must never become sources of canonical role, presence, authority or semantic state.
+
+Every persistent archetype requires a substantive accessibility description, and all essential organization meaning remains available through structured UI without 3D or motion.
 
 ## Acceptance test
 
