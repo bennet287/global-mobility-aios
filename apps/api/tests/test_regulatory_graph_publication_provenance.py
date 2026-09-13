@@ -94,7 +94,7 @@ def test_ri_a75_accepts_complete_board_delegated_machine_publication_lineage(db_
     authorization = AuditLog(
         action="regulatory_machine_promotion_authorization_assessed",
         entity_type="regulatory_change",
-        entity_id=change.id,
+        entity_id=str(change.id),
         after_state_json="{}",
         actor="pytest",
         source="pytest",
@@ -102,7 +102,7 @@ def test_ri_a75_accepts_complete_board_delegated_machine_publication_lineage(db_
     bridge = AuditLog(
         action="regulatory_machine_authority_bridge_assessed",
         entity_type="regulatory_change",
-        entity_id=change.id,
+        entity_id=str(change.id),
         after_state_json="{}",
         actor="pytest",
         source="pytest",
@@ -138,7 +138,7 @@ def test_ri_a75_accepts_complete_board_delegated_machine_publication_lineage(db_
     publication_audit = AuditLog(
         action=PUBLICATION_ACTION,
         entity_type="regulatory_publication_set",
-        entity_id=publication_set.id,
+        entity_id=str(publication_set.id),
         after_state_json=json.dumps({
             "contract_version": PUBLICATION_CONTRACT_VERSION,
             "publication_set_id": str(publication_set.id),
@@ -166,8 +166,8 @@ def test_ri_a75_accepts_complete_board_delegated_machine_publication_lineage(db_
 
 def test_ri_a75_machine_provenance_fails_closed_on_snapshot_drift(db_session) -> None:
     change, snapshot, rule = _seed(db_session, machine=True)
-    authorization = AuditLog(action="auth", entity_type="regulatory_change", entity_id=change.id, after_state_json="{}", actor="pytest", source="pytest")
-    bridge = AuditLog(action="bridge", entity_type="regulatory_change", entity_id=change.id, after_state_json="{}", actor="pytest", source="pytest")
+    authorization = AuditLog(action="auth", entity_type="regulatory_change", entity_id=str(change.id), after_state_json="{}", actor="pytest", source="pytest")
+    bridge = AuditLog(action="bridge", entity_type="regulatory_change", entity_id=str(change.id), after_state_json="{}", actor="pytest", source="pytest")
     db_session.add(authorization)
     db_session.add(bridge)
     db_session.flush()
