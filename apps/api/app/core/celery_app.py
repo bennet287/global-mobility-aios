@@ -31,12 +31,67 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
     task_track_started=True,
-    task_time_limit=300,  # 5 minutes hard limit
-    task_soft_time_limit=240,  # 4 minutes soft limit
-    result_expires=3600,  # 1 hour
+    task_time_limit=300,
+    task_soft_time_limit=240,
+    result_expires=3600,
     beat_schedule={
         "enqueue-due-official-source-monitors": {
             "task": "app.tasks.source_monitor_tasks.enqueue_due_source_monitors",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "route-pending-regulatory-changes": {
+            "task": "app.tasks.source_monitor_tasks.route_pending_regulatory_changes_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "verify-routed-regulatory-changes": {
+            "task": "app.tasks.source_monitor_tasks.verify_routed_regulatory_changes_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "scan-regulatory-integrity": {
+            "task": "app.tasks.source_monitor_tasks.scan_regulatory_integrity_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "propagate-regulatory-reassessment-impacts": {
+            "task": "app.tasks.source_monitor_tasks.propagate_regulatory_reassessment_impacts_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "discover-new-program-candidates": {
+            "task": "app.tasks.source_monitor_tasks.discover_new_program_candidates_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "compile-discovered-regulatory-candidates": {
+            "task": "app.tasks.source_monitor_tasks.compile_discovered_regulatory_candidates_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "run-shadow-regulatory-promotion-policy": {
+            "task": "app.tasks.source_monitor_tasks.run_shadow_promotion_policy_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "scan-regulatory-freshness": {
+            "task": "app.tasks.source_monitor_tasks.scan_regulatory_freshness_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "generate-machine-promotion-authorization-envelopes": {
+            "task": "app.tasks.source_monitor_tasks.generate_machine_promotion_authorization_envelopes_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "scan-regulatory-authority-bridge": {
+            "task": "app.tasks.source_monitor_tasks.scan_regulatory_authority_bridge_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+        "scan-regulatory-publication-execution-preflight": {
+            "task": "app.tasks.source_monitor_tasks.scan_regulatory_publication_execution_preflight_task",
             "schedule": 300.0,
             "args": (100,),
         },
