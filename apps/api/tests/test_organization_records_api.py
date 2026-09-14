@@ -127,12 +127,9 @@ def _context(
 
 
 def test_authentication_rbac_and_trusted_payload_boundary(raw_client: TestClient) -> None:
-    # Matrix 1-7: authentication, reader GET, mutation RBAC, and spoof resistance.
     assert raw_client.get(f"{BASE}/activities").status_code == 401
     assert raw_client.get(f"{BASE}/activities", headers=_headers("read_only")).status_code == 200
-    assert raw_client.post(
-        f"{BASE}/activities", headers=_headers("read_only"), json=_activity()
-    ).status_code == 403
+    assert raw_client.post(f"{BASE}/activities", headers=_headers("read_only"), json=_activity()).status_code == 403
 
     for field, value in (
         ("actor_id", "forged-human"),
@@ -150,10 +147,7 @@ def test_authentication_rbac_and_trusted_payload_boundary(raw_client: TestClient
         assert response.status_code == 422, (field, response.text)
 
 
-def test_activity_idempotency_actor_lists_filters_and_safe_errors(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 12-16, 53-54, 57: service mutation, replay/conflict and safe output.
+def test_activity_idempotency_actor_lists_filters_and_safe_errors(client: TestClient, db_session: Session) -> None:
     payload = _activity()
     created = client.post(f"{BASE}/activities", json=payload)
     assert created.status_code == 201, created.text
@@ -181,10 +175,7 @@ def test_activity_idempotency_actor_lists_filters_and_safe_errors(
     assert missing.json() == {"detail": "Organization resource not found."}
 
 
-def test_tenant_isolation_is_non_disclosing_for_detail_mutation_and_filter(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 8-11: every lookup/filter remains bound to authenticated tenant.
+def test_tenant_isolation_is_non_disclosing_for_detail_mutation_and_filter(client: TestClient, db_session: Session) -> None:
     other = _context("tenant-b")
     foreign_activity = append_activity(
         db_session,
@@ -215,18 +206,13 @@ def test_tenant_isolation_is_non_disclosing_for_detail_mutation_and_filter(
     assert own.status_code == 201
     assert client.get(f"{BASE}/activities/{own.json()['id']}").status_code == 200
     assert client.get(f"{BASE}/activities/{foreign_activity.id}").status_code == 404
-    assert client.post(
-        f"{BASE}/work-items/records/{foreign_work.id}/start", json={"reason": "probe"}
-    ).status_code == 404
+    assert client.post(f"{BASE}/work-items/records/{foreign_work.id}/start", json={"reason": "probe"}).status_code == 404
     filtered = client.get(f"{BASE}/activities", params={"correlation_key": "shared-filter"}).json()
     assert filtered["total"] == 1
     assert filtered["data"][0]["id"] == own.json()["id"]
 
 
-def test_contribution_source_policy_idempotency_and_append_only_correction(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 17-23: narrow source adapter, replay/conflict, append-only corrections.
+def test_contribution_source_policy_idempotency_and_append_only_correction(client: TestClient, db_session: Session) -> None:
     decision = _approved_decision(client)
     payload = _contribution(decision)
     created = client.post(f"{BASE}/contributions", json=payload)
@@ -241,32 +227,12 @@ def test_contribution_source_policy_idempotency_and_append_only_correction(
     conflict = client.post(f"{BASE}/contributions", json={**payload, "title": "Changed"})
     assert conflict.status_code == 409
 
-    # D4 keeps both the sealed domain adapters and the deferred domain records out of
-    # the generic authenticated Contribution command. Real domain emission must continue
-    # to enter through its reviewed source-owned adapter rather than request-selected
-    # source authority.
     rejected_source_types = (
-        "agent_run",
-        "workflow_run",
-        "audit_log",
-        "ui_interaction",
-        "jurisdiction_source_certification",
-        "initial_rule_assertion",
-        "regulatory_change",
-        "mobility_pathway_version",
-        "jurisdiction_immigration_assessment",
-        "reassessment_acceptance",
-        "external_validation_run",
-        "corporate_compliance_event",
-        "mobility_timeline_milestone",
-        "agency_submission",
-        "authority_appointment",
-        "eligibility_assessment",
-        "pathway_comparison_assessment",
-        "country_ranking_assessment",
-        "external_validation_review",
-        "external_validation_finding",
-        "anything_else",
+        "agent_run", "workflow_run", "audit_log", "ui_interaction", "jurisdiction_source_certification",
+        "initial_rule_assertion", "regulatory_change", "mobility_pathway_version", "jurisdiction_immigration_assessment",
+        "reassessment_acceptance", "external_validation_run", "corporate_compliance_event", "mobility_timeline_milestone",
+        "agency_submission", "authority_appointment", "eligibility_assessment", "pathway_comparison_assessment",
+        "country_ranking_assessment", "external_validation_review", "external_validation_finding", "anything_else",
     )
     for source_type in rejected_source_types:
         rejected = client.post(
@@ -288,9 +254,7 @@ def test_contribution_source_policy_idempotency_and_append_only_correction(
         "effective_at": (NOW + timedelta(minutes=1)).isoformat(),
         "retraction_reason": "Corrected evidence changed the disposition.",
     }
-    correction = client.post(
-        f"{BASE}/contributions/{contribution['id']}/corrections", json=correction_payload
-    )
+    correction = client.post(f"{BASE}/contributions/{contribution['id']}/corrections", json=correction_payload)
     assert correction.status_code == 201, correction.text
     assert correction.json()["id"] != contribution["id"]
     assert correction.json()["supersedes_contribution_id"] == contribution["id"]
@@ -298,70 +262,45 @@ def test_contribution_source_policy_idempotency_and_append_only_correction(
     assert original is not None and original.record_kind.value == "outcome"
 
 
-def test_work_item_lifecycle_is_service_only_and_does_not_emit_contribution(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 24-29 and 55: explicit lifecycle commands, no PATCH bypass/emitter.
+def test_work_item_lifecycle_is_service_only_and_does_not_emit_contribution(client: TestClient, db_session: Session) -> None:
     created = client.post(f"{BASE}/work-items/records", json=_work())
     assert created.status_code == 201, created.text
     work_id = created.json()["id"]
     assert client.get(f"{BASE}/work-items/records/{work_id}").status_code == 200
     assert client.get(f"{BASE}/work-items/records").json()["total"] == 1
 
-    premature = client.post(
-        f"{BASE}/work-items/records/{work_id}/complete", json={"reason": "Too soon"}
-    )
+    premature = client.post(f"{BASE}/work-items/records/{work_id}/complete", json={"reason": "Too soon"})
     assert premature.status_code == 409
     assert premature.json() == {"detail": "Organization resource cannot perform that transition."}
-    started = client.post(
-        f"{BASE}/work-items/records/{work_id}/start", json={"reason": "Authorized start"}
-    )
+    started = client.post(f"{BASE}/work-items/records/{work_id}/start", json={"reason": "Authorized start"})
     assert started.status_code == 200 and started.json()["status"] == "running"
-    completed = client.post(
-        f"{BASE}/work-items/records/{work_id}/complete", json={"reason": "Outcome recorded"}
-    )
+    completed = client.post(f"{BASE}/work-items/records/{work_id}/complete", json={"reason": "Outcome recorded"})
     assert completed.status_code == 200 and completed.json()["status"] == "completed"
     assert db_session.exec(select(func.count()).select_from(OrganizationContribution)).one() == 0
-    assert client.patch(
-        f"{BASE}/work-items/records/{work_id}", json={"status": "queued"}
-    ).status_code == 405
+    assert client.patch(f"{BASE}/work-items/records/{work_id}", json={"status": "queued"}).status_code == 405
 
 
 def test_dependency_commands_and_authority(client: TestClient, raw_client: TestClient) -> None:
-    # Matrix 30-34: create/self/cross-tenant are service guarded; waiver is human-admin only.
     first = client.post(f"{BASE}/work-items/records", json=_work("dep-work-1")).json()
     second = client.post(f"{BASE}/work-items/records", json=_work("dep-work-2")).json()
     self_edge = client.post(
         f"{BASE}/work-item-dependencies",
-        json={
-            "dependency_key": "self-edge",
-            "work_item_id": first["id"],
-            "depends_on_work_item_id": first["id"],
-            "dependency_type": "blocks",
-        },
+        json={"dependency_key": "self-edge", "work_item_id": first["id"], "depends_on_work_item_id": first["id"], "dependency_type": "blocks"},
     )
     assert self_edge.status_code == 409
     dependency = client.post(
         f"{BASE}/work-item-dependencies",
-        json={
-            "dependency_key": "dependency-1",
-            "work_item_id": first["id"],
-            "depends_on_work_item_id": second["id"],
-            "dependency_type": "requires",
-        },
+        json={"dependency_key": "dependency-1", "work_item_id": first["id"], "depends_on_work_item_id": second["id"], "dependency_type": "requires"},
     )
     assert dependency.status_code == 201, dependency.text
     denied = raw_client.post(
         f"{BASE}/work-item-dependencies/{dependency.json()['id']}/waive",
-        headers=_headers("operator"),
-        json={"reason": "Operator cannot waive"},
+        headers=_headers("operator"), json={"reason": "Operator cannot waive"},
     )
     assert denied.status_code == 403
 
     decision = _approved_decision(client, "dependency-decision")
-    contribution = client.post(
-        f"{BASE}/contributions", json=_contribution(decision, "dependency-contribution")
-    ).json()
+    contribution = client.post(f"{BASE}/contributions", json=_contribution(decision, "dependency-contribution")).json()
     satisfied = client.post(
         f"{BASE}/work-item-dependencies/{dependency.json()['id']}/satisfy",
         json={"contribution_id": contribution["id"], "reason": "Authoritative outcome exists"},
@@ -369,56 +308,28 @@ def test_dependency_commands_and_authority(client: TestClient, raw_client: TestC
     assert satisfied.status_code == 200 and satisfied.json()["status"] == "satisfied"
 
 
-def test_dependency_rejects_foreign_tenant_target(
-    client: TestClient, db_session: Session
-) -> None:
+def test_dependency_rejects_foreign_tenant_target(client: TestClient, db_session: Session) -> None:
     local = client.post(f"{BASE}/work-items/records", json=_work("local-dependency-work")).json()
     foreign = create_work_item(
-        db_session,
-        _context("tenant-b"),
-        idempotency_key="foreign-dependency-work",
-        title="Foreign",
-        objective="No cross-tenant edges",
-        department="operations",
-        authority_level="L4",
-        assigned_position_key="board",
+        db_session, _context("tenant-b"), idempotency_key="foreign-dependency-work", title="Foreign",
+        objective="No cross-tenant edges", department="operations", authority_level="L4", assigned_position_key="board",
     )
     response = client.post(
         f"{BASE}/work-item-dependencies",
-        json={
-            "dependency_key": "foreign-edge",
-            "work_item_id": local["id"],
-            "depends_on_work_item_id": str(foreign.id),
-            "dependency_type": "blocks",
-        },
+        json={"dependency_key": "foreign-edge", "work_item_id": local["id"], "depends_on_work_item_id": str(foreign.id), "dependency_type": "blocks"},
     )
     assert response.status_code == 404
 
 
 def test_blocker_commands_authority_and_no_delete(client: TestClient, raw_client: TestClient) -> None:
-    # Matrix 35-38: open/resolve, admin waiver boundary, and no delete transition.
     work = client.post(f"{BASE}/work-items/records", json=_work("blocker-work")).json()
-    payload = {
-        "blocker_key": "blocker-1",
-        "blocker_type": "dependency",
-        "severity": "high",
-        "title": "A governed blocker",
-        "description": "Requires an explicit resolution command.",
-        "work_item_id": work["id"],
-    }
+    payload = {"blocker_key": "blocker-1", "blocker_type": "dependency", "severity": "high", "title": "A governed blocker", "description": "Requires an explicit resolution command.", "work_item_id": work["id"]}
     blocker = client.post(f"{BASE}/blockers", json=payload)
     assert blocker.status_code == 201, blocker.text
     assert client.get(f"{BASE}/blockers/{blocker.json()['id']}").status_code == 200
-    denied = raw_client.post(
-        f"{BASE}/blockers/{blocker.json()['id']}/waive",
-        headers=_headers("operator"),
-        json={"reason": "Operator waiver"},
-    )
+    denied = raw_client.post(f"{BASE}/blockers/{blocker.json()['id']}/waive", headers=_headers("operator"), json={"reason": "Operator waiver"})
     assert denied.status_code == 403
-    resolved = client.post(
-        f"{BASE}/blockers/{blocker.json()['id']}/resolve",
-        json={"reason": "Dependency resolved"},
-    )
+    resolved = client.post(f"{BASE}/blockers/{blocker.json()['id']}/resolve", json={"reason": "Dependency resolved"})
     assert resolved.status_code == 200 and resolved.json()["status"] == "resolved"
     predecessor = client.post(f"{BASE}/blockers", json={**payload, "blocker_key": "blocker-2"})
     replacement = client.post(
@@ -431,40 +342,21 @@ def test_blocker_commands_authority_and_no_delete(client: TestClient, raw_client
     assert client.delete(f"{BASE}/blockers/{blocker.json()['id']}").status_code == 405
 
 
-def test_human_action_request_read_preserves_dependency_source_provenance(
-    client: TestClient,
-) -> None:
-    downstream = client.post(
-        f"{BASE}/work-items/records",
-        json=_work("har-provenance-downstream"),
-    ).json()
-    upstream = client.post(
-        f"{BASE}/work-items/records",
-        json=_work("har-provenance-upstream"),
-    ).json()
+def test_human_action_request_read_preserves_dependency_source_provenance(client: TestClient) -> None:
+    downstream = client.post(f"{BASE}/work-items/records", json=_work("har-provenance-downstream")).json()
+    upstream = client.post(f"{BASE}/work-items/records", json=_work("har-provenance-upstream")).json()
     dependency = client.post(
         f"{BASE}/work-item-dependencies",
-        json={
-            "dependency_key": "har-provenance-dependency",
-            "work_item_id": downstream["id"],
-            "depends_on_work_item_id": upstream["id"],
-            "dependency_type": "requires",
-        },
+        json={"dependency_key": "har-provenance-dependency", "work_item_id": downstream["id"], "depends_on_work_item_id": upstream["id"], "dependency_type": "requires"},
     )
     assert dependency.status_code == 201, dependency.text
     dependency_row = dependency.json()
 
     payload = {
-        "request_key": "har-provenance-request",
-        "request_type": "review",
-        "title": "Dependency provenance review",
-        "instructions": "Review the exact dependency edge without losing source provenance.",
-        "required_role": "reviewer",
-        "priority": "high",
-        "work_item_id": downstream["id"],
-        "source_object_type": "organization_work_item_dependency",
-        "source_object_id": dependency_row["id"],
-        "source_object_version": "v1",
+        "request_key": "har-provenance-request", "request_type": "review", "title": "Dependency provenance review",
+        "instructions": "Review the exact dependency edge without losing source provenance.", "required_role": "reviewer",
+        "priority": "high", "work_item_id": downstream["id"], "source_object_type": "organization_work_item_dependency",
+        "source_object_id": dependency_row["id"], "source_object_version": "v1",
     }
     created = client.post(f"{BASE}/human-action-requests", json=payload)
     assert created.status_code == 201, created.text
@@ -490,79 +382,37 @@ def test_human_action_request_read_preserves_dependency_source_provenance(
     assert listed["source_object_version"] == "v1"
 
 
-def test_human_action_request_completion_is_human_only_idempotent_and_not_contribution(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 39-45: governed request/action, human-only context, replay and no emitter.
+def test_human_action_request_completion_is_human_only_idempotent_and_not_contribution(client: TestClient, db_session: Session) -> None:
     work = client.post(f"{BASE}/work-items/records", json=_work("human-action-work")).json()
-    request_payload = {
-        "request_key": "human-request-1",
-        "request_type": "attestation",
-        "title": "Human attestation required",
-        "instructions": "Review and attest the bounded outcome.",
-        "required_role": "admin",
-        "assigned_human_id": "pytest-admin",
-        "work_item_id": work["id"],
-    }
+    request_payload = {"request_key": "human-request-1", "request_type": "attestation", "title": "Human attestation required", "instructions": "Review and attest the bounded outcome.", "required_role": "admin", "assigned_human_id": "pytest-admin", "work_item_id": work["id"]}
     request = client.post(f"{BASE}/human-action-requests", json=request_payload)
     assert request.status_code == 201, request.text
-    completion_payload = {
-        "action_key": "human-action-1",
-        "action_type": "attested",
-        "outcome": "Attested by the authenticated internal human.",
-        "occurred_at": NOW.isoformat(),
-        "reason": "Reviewed evidence",
-        "completion_notes": "Bounded API test",
-    }
-    completed = client.post(
-        f"{BASE}/human-action-requests/{request.json()['id']}/complete", json=completion_payload
-    )
+    completion_payload = {"action_key": "human-action-1", "action_type": "attested", "outcome": "Attested by the authenticated internal human.", "occurred_at": NOW.isoformat(), "reason": "Reviewed evidence", "completion_notes": "Bounded API test"}
+    completed = client.post(f"{BASE}/human-action-requests/{request.json()['id']}/complete", json=completion_payload)
     assert completed.status_code == 200, completed.text
     action_id = completed.json()["action"]["id"]
     assert completed.json()["action"]["human_actor_id"] == "pytest-admin"
     assert client.get(f"{BASE}/human-actions/{action_id}").status_code == 200
     assert client.get(f"{BASE}/human-actions").json()["total"] == 1
     audit_count = db_session.exec(select(func.count()).select_from(AuditLog)).one()
-    replay = client.post(
-        f"{BASE}/human-action-requests/{request.json()['id']}/complete", json=completion_payload
-    )
+    replay = client.post(f"{BASE}/human-action-requests/{request.json()['id']}/complete", json=completion_payload)
     assert replay.status_code == 200 and replay.json()["action"]["id"] == action_id
     assert db_session.exec(select(func.count()).select_from(AuditLog)).one() == audit_count
     assert db_session.exec(select(func.count()).select_from(OrganizationContribution)).one() == 0
 
 
-@pytest.mark.parametrize(
-    "actor_type", [OrganizationActorType.agent, OrganizationActorType.worker, OrganizationActorType.system, OrganizationActorType.external_human]
-)
-def test_non_human_trusted_context_cannot_complete_human_action(
-    client: TestClient, actor_type: OrganizationActorType
-) -> None:
-    # Dependency overrides simulate a future trusted machine identity provider;
-    # request-body identity fields remain impossible regardless.
+@pytest.mark.parametrize("actor_type", [OrganizationActorType.agent, OrganizationActorType.worker, OrganizationActorType.system, OrganizationActorType.external_human])
+def test_non_human_trusted_context_cannot_complete_human_action(client: TestClient, actor_type: OrganizationActorType) -> None:
     work = client.post(f"{BASE}/work-items/records", json=_work(f"human-denied-{actor_type.value}")).json()
     request = client.post(
         f"{BASE}/human-action-requests",
-        json={
-            "request_key": f"request-denied-{actor_type.value}",
-            "request_type": "review",
-            "title": "Internal human review",
-            "instructions": "Only a human may complete this.",
-            "required_role": "admin",
-            "work_item_id": work["id"],
-        },
+        json={"request_key": f"request-denied-{actor_type.value}", "request_type": "review", "title": "Internal human review", "instructions": "Only a human may complete this.", "required_role": "admin", "work_item_id": work["id"]},
     ).json()
-    app.dependency_overrides[organization_command_context] = lambda: _context(
-        "default", actor_id=f"trusted-{actor_type.value}", actor_type=actor_type
-    )
+    app.dependency_overrides[organization_command_context] = lambda: _context("default", actor_id=f"trusted-{actor_type.value}", actor_type=actor_type)
     try:
         response = client.post(
             f"{BASE}/human-action-requests/{request['id']}/complete",
-            json={
-                "action_key": f"action-denied-{actor_type.value}",
-                "action_type": "reviewed",
-                "outcome": "Attempted machine completion",
-                "occurred_at": NOW.isoformat(),
-            },
+            json={"action_key": f"action-denied-{actor_type.value}", "action_type": "reviewed", "outcome": "Attempted machine completion", "occurred_at": NOW.isoformat()},
         )
     finally:
         app.dependency_overrides.pop(organization_command_context, None)
@@ -570,26 +420,13 @@ def test_non_human_trusted_context_cannot_complete_human_action(
     assert response.json() == {"detail": "Organization action is not permitted."}
 
 
-def test_decision_authority_outcome_and_supersession(
-    client: TestClient, raw_client: TestClient, db_session: Session
-) -> None:
-    # Matrix 46-48, 56: operator cannot forge Board authority; original stays immutable.
-    denied = raw_client.post(
-        f"{BASE}/decisions/records",
-        headers=_headers("operator", "ordinary-operator"),
-        json=_decision("forged-board", "board_reserved"),
-    )
+def test_decision_authority_outcome_and_supersession(client: TestClient, raw_client: TestClient, db_session: Session) -> None:
+    denied = raw_client.post(f"{BASE}/decisions/records", headers=_headers("operator", "ordinary-operator"), json=_decision("forged-board", "board_reserved"))
     assert denied.status_code == 403
     original = _approved_decision(client, "board-authorized")
     superseded = client.post(
         f"{BASE}/decisions/records/{original['id']}/supersede",
-        json={
-            "new_decision_key": "board-authorized-v2",
-            "title": "Replacement decision",
-            "question": "Should the revised outcome be accepted?",
-            "recommendation": "Review the revised evidence.",
-            "reason": "New evidence requires a new append-only version.",
-        },
+        json={"new_decision_key": "board-authorized-v2", "title": "Replacement decision", "question": "Should the revised outcome be accepted?", "recommendation": "Review the revised evidence.", "reason": "New evidence requires a new append-only version."},
     )
     assert superseded.status_code == 201, superseded.text
     assert superseded.json()["supersedes_decision_id"] == original["id"]
@@ -598,20 +435,11 @@ def test_decision_authority_outcome_and_supersession(
     assert persisted_original["supersedes_decision_id"] is None
 
 
-def test_decision_explorer_read_only_filters_and_supersession_lineage(
-    client: TestClient, db_session: Session
-) -> None:
-    # M.1: Decision Explorer exposes canonical decisions with lineage and filters.
+def test_decision_explorer_read_only_filters_and_supersession_lineage(client: TestClient, db_session: Session) -> None:
     original = _approved_decision(client, "explorer-superseded")
     successor = client.post(
         f"{BASE}/decisions/records/{original['id']}/supersede",
-        json={
-            "new_decision_key": "explorer-superseded-v2",
-            "title": "Replacement decision",
-            "question": "Should the revised outcome be accepted?",
-            "recommendation": "Review the revised evidence.",
-            "reason": "New evidence requires a new append-only version.",
-        },
+        json={"new_decision_key": "explorer-superseded-v2", "title": "Replacement decision", "question": "Should the revised outcome be accepted?", "recommendation": "Review the revised evidence.", "reason": "New evidence requires a new append-only version."},
     )
     assert successor.status_code == 201, successor.text
     successor_id = successor.json()["id"]
@@ -634,147 +462,72 @@ def test_decision_explorer_read_only_filters_and_supersession_lineage(
     assert successor_row["supersedes_decision_id"] == original["id"]
     assert successor_row["is_current"] is True
 
-    authority_filter = client.get(
-        f"{BASE}/decisions/records", params={"authority_level": original["authority_level"]}
-    ).json()
+    authority_filter = client.get(f"{BASE}/decisions/records", params={"authority_level": original["authority_level"]}).json()
     assert all(row["authority_level"] == original["authority_level"] for row in authority_filter["data"])
 
-    owner_filter = client.get(
-        f"{BASE}/decisions/records", params={"decision_owner_position": original["decision_owner_position"]}
-    ).json()
-    assert all(
-        row["decision_owner_position"] == original["decision_owner_position"] for row in owner_filter["data"]
-    )
+    owner_filter = client.get(f"{BASE}/decisions/records", params={"decision_owner_position": original["decision_owner_position"]}).json()
+    assert all(row["decision_owner_position"] == original["decision_owner_position"] for row in owner_filter["data"])
 
     status_filter = client.get(f"{BASE}/decisions/records", params={"status": "approved"}).json()
     assert all(row["status"] == "approved" for row in status_filter["data"])
 
 
-def test_record_reference_validation_and_tenant_safe_owner(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 49-52: allowlisted/existent target plus exactly-one tenant-safe owner.
-    lead = Lead(
-        full_name="Reference Target",
-        email="reference.target@example.com",
-        intent=LeadIntent.visa,
-        target_country="Austria",
-        source="pytest",
-    )
+def test_record_reference_validation_and_tenant_safe_owner(client: TestClient, db_session: Session) -> None:
+    lead = Lead(full_name="Reference Target", email="reference.target@example.com", intent=LeadIntent.visa, target_country="Austria", source="pytest")
     db_session.add(lead)
     db_session.commit()
     db_session.refresh(lead)
     work = client.post(f"{BASE}/work-items/records", json=_work("reference-work")).json()
-    payload = {
-        "reference_key": "reference-1",
-        "reference_role": "evidence",
-        "target_type": "lead",
-        "target_id": str(lead.id),
-        "work_item_id": work["id"],
-        "label": "Validated lead evidence",
-    }
+    payload = {"reference_key": "reference-1", "reference_role": "evidence", "target_type": "lead", "target_id": str(lead.id), "work_item_id": work["id"], "label": "Validated lead evidence"}
     accepted = client.post(f"{BASE}/record-references", json=payload)
     assert accepted.status_code == 201, accepted.text
     assert client.get(f"{BASE}/record-references/{accepted.json()['id']}").status_code == 200
     assert client.get(f"{BASE}/record-references").json()["total"] == 1
 
-    work_filtered = client.get(
-        f"{BASE}/record-references",
-        params={"work_item_id": work["id"], "reference_role": "evidence"},
-    )
+    work_filtered = client.get(f"{BASE}/record-references", params={"work_item_id": work["id"], "reference_role": "evidence"})
     assert work_filtered.status_code == 200, work_filtered.text
     assert [row["id"] for row in work_filtered.json()["data"]] == [accepted.json()["id"]]
 
     decision = _approved_decision(client, "reference-decision")
     decision_reference = client.post(
         f"{BASE}/record-references",
-        json={
-            "reference_key": "reference-decision-evidence",
-            "reference_role": "supports",
-            "target_type": "lead",
-            "target_id": str(lead.id),
-            "decision_id": decision["id"],
-            "label": "Decision support provenance",
-        },
+        json={"reference_key": "reference-decision-evidence", "reference_role": "supports", "target_type": "lead", "target_id": str(lead.id), "decision_id": decision["id"], "label": "Decision support provenance"},
     )
     assert decision_reference.status_code == 201, decision_reference.text
 
-    decision_filtered = client.get(
-        f"{BASE}/record-references",
-        params={"decision_id": decision["id"]},
-    )
+    decision_filtered = client.get(f"{BASE}/record-references", params={"decision_id": decision["id"]})
     assert decision_filtered.status_code == 200, decision_filtered.text
-    assert [row["id"] for row in decision_filtered.json()["data"]] == [
-        decision_reference.json()["id"]
-    ]
+    assert [row["id"] for row in decision_filtered.json()["data"]] == [decision_reference.json()["id"]]
 
-    invalid_role = client.get(
-        f"{BASE}/record-references",
-        params={"reference_role": "invented-role"},
-    )
+    invalid_role = client.get(f"{BASE}/record-references", params={"reference_role": "invented-role"})
     assert invalid_role.status_code == 422
-
-    invalid_type = client.post(
-        f"{BASE}/record-references", json={**payload, "reference_key": "bad-type", "target_type": "work_item"}
-    )
+    invalid_type = client.post(f"{BASE}/record-references", json={**payload, "reference_key": "bad-type", "target_type": "work_item"})
     assert invalid_type.status_code == 422
-    nonexistent = client.post(
-        f"{BASE}/record-references",
-        json={**payload, "reference_key": "missing-target", "target_id": str(uuid4())},
-    )
+    nonexistent = client.post(f"{BASE}/record-references", json={**payload, "reference_key": "missing-target", "target_id": str(uuid4())})
     assert nonexistent.status_code == 422
 
     foreign_owner = create_work_item(
-        db_session,
-        _context("tenant-b"),
-        idempotency_key="foreign-reference-owner",
-        title="Foreign reference owner",
-        objective="Must not be disclosed",
-        department="operations",
-        authority_level="L4",
-        assigned_position_key="board",
+        db_session, _context("tenant-b"), idempotency_key="foreign-reference-owner", title="Foreign reference owner",
+        objective="Must not be disclosed", department="operations", authority_level="L4", assigned_position_key="board",
     )
-    wrong_tenant = client.post(
-        f"{BASE}/record-references",
-        json={**payload, "reference_key": "foreign-owner", "work_item_id": str(foreign_owner.id)},
-    )
+    wrong_tenant = client.post(f"{BASE}/record-references", json={**payload, "reference_key": "foreign-owner", "work_item_id": str(foreign_owner.id)})
     assert wrong_tenant.status_code == 404
 
 
-def test_pagination_is_bounded_stable_and_tenant_scoped(
-    client: TestClient, db_session: Session
-) -> None:
-    # Matrix 58-60: maximum size, deterministic newest-first order and tenant scope.
+def test_pagination_is_bounded_stable_and_tenant_scoped(client: TestClient, db_session: Session) -> None:
     for index in range(3):
         response = client.post(
             f"{BASE}/activities",
-            json=_activity(
-                f"page-{index}",
-                occurred_at=(NOW + timedelta(minutes=index)).isoformat(),
-                correlation_key="page-scope",
-            ),
+            json=_activity(f"page-{index}", occurred_at=(NOW + timedelta(minutes=index)).isoformat(), correlation_key="page-scope"),
         )
         assert response.status_code == 201
     append_activity(
-        db_session,
-        _context("tenant-b"),
-        activity_key="foreign-page",
-        stream_key="foreign-page-stream",
-        activity_class="operational",
-        activity_type="page_test",
-        title="Foreign page row",
-        summary="Must remain tenant-scoped.",
-        source_object_type="api_test",
-        source_object_id="foreign-page",
-        occurred_at=NOW + timedelta(hours=1),
-        correlation_key="page-scope",
+        db_session, _context("tenant-b"), activity_key="foreign-page", stream_key="foreign-page-stream",
+        activity_class="operational", activity_type="page_test", title="Foreign page row", summary="Must remain tenant-scoped.",
+        source_object_type="api_test", source_object_id="foreign-page", occurred_at=NOW + timedelta(hours=1), correlation_key="page-scope",
     )
-    first = client.get(
-        f"{BASE}/activities", params={"page": 1, "page_size": 2, "correlation_key": "page-scope"}
-    ).json()
-    second = client.get(
-        f"{BASE}/activities", params={"page": 2, "page_size": 2, "correlation_key": "page-scope"}
-    ).json()
+    first = client.get(f"{BASE}/activities", params={"page": 1, "page_size": 2, "correlation_key": "page-scope"}).json()
+    second = client.get(f"{BASE}/activities", params={"page": 2, "page_size": 2, "correlation_key": "page-scope"}).json()
     assert first["total"] == 3 and first["total_pages"] == 2
     assert [row["activity_key"] for row in first["data"]] == ["page-2", "page-1"]
     assert {row["id"] for row in first["data"]}.isdisjoint({row["id"] for row in second["data"]})
@@ -782,8 +535,6 @@ def test_pagination_is_bounded_stable_and_tenant_scoped(
 
 
 def test_openapi_and_phase_architecture_boundaries() -> None:
-    # Matrix 61-64 plus schema/OpenAPI contract checks. E1 permits only the
-    # bounded GET-only Observatory read surface defined by the reconciliation contract.
     schema = app.openapi()
     paths = schema["paths"]
     organization_paths = [path for path in paths if path.startswith(BASE)]
@@ -793,22 +544,16 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
         f"{BASE}/observatory/departments",
         f"{BASE}/observatory/contribution-reconciliation",
     }
-    observatory_paths = {
-        path for path in organization_paths if path.startswith(f"{BASE}/observatory")
-    }
+    observatory_paths = {path for path in organization_paths if path.startswith(f"{BASE}/observatory")}
     assert observatory_paths == allowed_observatory_paths
 
     http_methods = {"get", "post", "put", "patch", "delete"}
     for path in allowed_observatory_paths:
         assert {method for method in paths[path] if method in http_methods} == {"get"}
 
-    # Keep the pre-E1 prohibition everywhere except the explicitly approved E1 summary.
     forbidden_suffixes = ("/observatory", "/dashboard", "/metrics")
     assert not any(path.endswith(forbidden_suffixes) for path in organization_paths)
-    assert not any(
-        path.endswith("/summary") and path not in allowed_observatory_paths
-        for path in organization_paths
-    )
+    assert not any(path.endswith("/summary") and path not in allowed_observatory_paths for path in organization_paths)
 
     operation_ids = [
         operation["operationId"]
@@ -819,14 +564,8 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
     assert len(operation_ids) == len(set(operation_ids))
     trusted_fields = {"actor_id", "actor_type", "authenticated_user_id", "role", "authority", "authority_level", "tenant_key"}
     for name in (
-        "ActivityCreate",
-        "ContributionCreate",
-        "app__schemas_organization_records__WorkItemCreate",
-        "BlockerCreate",
-        "HumanActionRequestCreate",
-        "HumanActionCreate",
-        "DecisionCreate",
-        "ReferenceCreate",
+        "ActivityCreate", "ContributionCreate", "app__schemas_organization_records__WorkItemCreate", "BlockerCreate",
+        "HumanActionRequestCreate", "HumanActionCreate", "DecisionCreate", "ReferenceCreate",
     ):
         properties = set(schema["components"]["schemas"][name].get("properties", {}))
         assert properties.isdisjoint(trusted_fields), (name, properties & trusted_fields)
@@ -843,10 +582,8 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
     assert "0080_capability_autonomy_promotion_policy_foundation.py" in migration_names
     assert "0081_capability_autonomy_evidence_evaluation_policy.py" in migration_names
     assert "0082_regulatory_machine_publication_contract.py" in migration_names
-    assert not any(
-        name[:4].isdigit() and int(name[:4]) > 82
-        for name in migration_names
-    )
+    assert "0083_native_skill_registry.py" in migration_names
+    assert not any(name[:4].isdigit() and int(name[:4]) > 83 for name in migration_names)
     migration_text = (repo_root / "apps/api/alembic/versions/0074_durable_contribution_activity_model.py").read_text(encoding="utf-8")
     assert 'revision = "0074_durable_contribution_activity_model"' in migration_text
     router_text = (repo_root / "apps/api/app/routers/organization_records.py").read_text(encoding="utf-8")
