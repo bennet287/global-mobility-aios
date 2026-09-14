@@ -80,6 +80,11 @@ celery_app.conf.update(
             "schedule": 300.0,
             "args": (100,),
         },
+        "scan-machine-publication-recovery": {
+            "task": "app.tasks.source_monitor_tasks.scan_machine_publication_recovery_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
         "generate-machine-promotion-authorization-envelopes": {
             "task": "app.tasks.source_monitor_tasks.generate_machine_promotion_authorization_envelopes_task",
             "schedule": 300.0,
