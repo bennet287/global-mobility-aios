@@ -269,13 +269,13 @@ def test_ri_a75_machine_provenance_rejects_partial_review_disposition_coverage(d
     assert "machine_review_disposition_coverage_incomplete" in result.reasons
 
 
-def test_ri_a75_machine_provenance_rejects_wrong_disposition_publication_set(db_session) -> None:
+def test_ri_a75_machine_provenance_rejects_wrong_disposition_bridge(db_session) -> None:
     change, snapshot, rule = _seed(db_session, machine=True)
-    _, _, publication_set, reviews = _machine_lineage(db_session, change, snapshot, rule)
+    authorization, _, publication_set, reviews = _machine_lineage(db_session, change, snapshot, rule)
     disposition = db_session.query(RegulatoryReviewDisposition).filter(
         RegulatoryReviewDisposition.human_review_id == reviews[0].id
     ).one()
-    disposition.publication_set_id = None
+    disposition.authority_bridge_audit_id = authorization.id
     db_session.add(disposition)
     db_session.commit()
 
