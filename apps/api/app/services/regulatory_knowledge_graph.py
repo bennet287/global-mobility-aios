@@ -21,6 +21,7 @@ from app.models.domain import (
     now_utc,
 )
 from app.services.audit_log import record_audit
+from app.services.regulatory_graph_publication_provenance import assess_graph_publication_provenance
 
 
 PROJECTION_VERSION = "regulatory-graph-v1"
@@ -42,7 +43,7 @@ def _load(value: Optional[str]) -> dict[str, Any]:
 
 def _published_context(session: Session, rule: VerifiedRule) -> dict[str, Any]:
     if not rule.approved_by or not rule.published_at:
-        raise ValueError("Only a human-published verified rule can update the regulatory graph")
+        raise ValueError("Only a published verified rule can update the regulatory graph")
     if not rule.jurisdiction_id or not rule.official_source_id or not rule.source_snapshot_id:
         raise ValueError("Published rule provenance is incomplete")
     if bool(rule.regulatory_change_id) == bool(rule.initial_rule_assertion_id):
@@ -58,16 +59,26 @@ def _published_context(session: Session, rule: VerifiedRule) -> dict[str, Any]:
 
     change: Optional[RegulatoryChange] = None
     assertion: Optional[InitialRuleAssertion] = None
+    publication_provenance = "human_reviewed"
+    publication_set_id: str | None = None
     if rule.regulatory_change_id:
         change = session.get(RegulatoryChange, rule.regulatory_change_id)
         if not change:
             raise ValueError("Published regulatory change could not be resolved")
-        if change.status != "published" or not change.reviewed_by or not change.reviewed_at:
-            raise ValueError("Regulatory change has not completed human review and publication")
         if change.current_snapshot_id != snapshot.id:
             raise ValueError("Published rule snapshot provenance does not match its source change")
         if change.official_source_id != source.id or change.jurisdiction_id != jurisdiction.id:
             raise ValueError("Published rule source or jurisdiction provenance is inconsistent")
+        provenance = assess_graph_publication_provenance(session, rule, change, snapshot)
+        if not provenance.complete:
+            raise ValueError(
+                "Regulatory change publication provenance is incomplete: "
+                + ",".join(provenance.reasons)
+            )
+        publication_provenance = (
+            "board_delegated_machine" if provenance.board_delegated_machine else "human_reviewed"
+        )
+        publication_set_id = provenance.publication_set_id
     else:
         assertion = session.get(InitialRuleAssertion, rule.initial_rule_assertion_id)
         if not assertion:
@@ -96,6 +107,8 @@ def _published_context(session: Session, rule: VerifiedRule) -> dict[str, Any]:
         "change": change,
         "assertion": assertion,
         "provenance_type": "regulatory_change" if change else "initial_rule_assertion",
+        "publication_provenance": publication_provenance,
+        "publication_set_id": publication_set_id,
         "authority": authority,
     }
 
@@ -257,6 +270,8 @@ def project_verified_rule(
     change: Optional[RegulatoryChange] = context["change"]
     assertion: Optional[InitialRuleAssertion] = context["assertion"]
     authority: Optional[RegulatoryAuthority] = context["authority"]
+    publication_provenance: str = context["publication_provenance"]
+    publication_set_id: str | None = context["publication_set_id"]
 
     nodes: dict[str, RegulatoryKnowledgeNode] = {}
     nodes["jurisdiction"] = _upsert_node(
@@ -318,6 +333,8 @@ def project_verified_rule(
                 "materiality": change.materiality,
                 "reviewed_by": change.reviewed_by,
                 "reviewed_at": change.reviewed_at,
+                "publication_provenance": publication_provenance,
+                "publication_set_id": publication_set_id,
             },
             rule=rule,
         )
@@ -336,6 +353,7 @@ def project_verified_rule(
                 "published_by": assertion.published_by,
                 "published_at": assertion.published_at,
                 "source_change_claimed": False,
+                "publication_provenance": "human_reviewed",
             },
             rule=rule,
         )
@@ -353,6 +371,8 @@ def project_verified_rule(
             "published_at": rule.published_at,
             "effective_from": rule.effective_from,
             "effective_to": rule.effective_to,
+            "publication_provenance": publication_provenance,
+            "publication_set_id": publication_set_id,
         },
         rule=rule,
     )
@@ -442,6 +462,8 @@ def project_verified_rule(
                 "source_snapshot_id": rule.source_snapshot_id,
                 "regulatory_change_id": rule.regulatory_change_id,
                 "initial_rule_assertion_id": rule.initial_rule_assertion_id,
+                "publication_provenance": publication_provenance,
+                "publication_set_id": publication_set_id,
                 "pathway_impacts_created": impact_result["created"],
             },
             actor=actor,
@@ -516,6 +538,7 @@ def knowledge_graph_payload(
             return {
                 "projection_version": PROJECTION_VERSION,
                 "human_published_only": True,
+                "publication_provenance_counts": {"human_reviewed": 0, "board_delegated_machine": 0},
                 "provenance_complete": True,
                 "counts": {"nodes": 0, "edges": 0, "verified_rules": 0},
                 "nodes": [],
@@ -536,57 +559,66 @@ def knowledge_graph_payload(
         select(VerifiedRule).where(VerifiedRule.id.in_(rule_ids))
     ).all()) if rule_ids else []
     rules_by_id = {rule.id: rule for rule in rules}
-    change_ids = {edge.regulatory_change_id for edge in edges if edge.regulatory_change_id}
-    changes = list(session.exec(
-        select(RegulatoryChange).where(RegulatoryChange.id.in_(change_ids))
-    ).all()) if change_ids else []
-    changes_by_id = {change.id: change for change in changes}
-    assertion_ids = {edge.initial_rule_assertion_id for edge in edges if edge.initial_rule_assertion_id}
-    assertions = list(session.exec(
-        select(InitialRuleAssertion).where(InitialRuleAssertion.id.in_(assertion_ids))
-    ).all()) if assertion_ids else []
-    assertions_by_id = {assertion.id: assertion for assertion in assertions}
     snapshot_ids = {edge.source_snapshot_id for edge in edges}
     snapshots = list(session.exec(
         select(SourceSnapshot).where(SourceSnapshot.id.in_(snapshot_ids))
     ).all()) if snapshot_ids else []
-    snapshot_id_set = {snapshot.id for snapshot in snapshots}
-    human_published_only = len(rules_by_id) == len(rule_ids) and all(
-        rule.approved_by and rule.published_at for rule in rules_by_id.values()
-    )
-    provenance_complete = all(
+    snapshots_by_id = {snapshot.id: snapshot for snapshot in snapshots}
+
+    publication_modes: dict[UUID, str] = {}
+    provenance_complete = True
+    for rule in rules:
+        snapshot = snapshots_by_id.get(rule.source_snapshot_id)
+        if snapshot is None:
+            provenance_complete = False
+            continue
+        if rule.regulatory_change_id:
+            change = session.get(RegulatoryChange, rule.regulatory_change_id)
+            if change is None:
+                provenance_complete = False
+                continue
+            provenance = assess_graph_publication_provenance(session, rule, change, snapshot)
+            if not provenance.complete:
+                provenance_complete = False
+                continue
+            publication_modes[rule.id] = (
+                "board_delegated_machine" if provenance.board_delegated_machine else "human_reviewed"
+            )
+        elif rule.initial_rule_assertion_id:
+            assertion = session.get(InitialRuleAssertion, rule.initial_rule_assertion_id)
+            if not assertion or (
+                assertion.status != "published"
+                or not assertion.reviewed_by
+                or not assertion.reviewed_at
+                or not assertion.published_by
+                or not assertion.published_at
+            ):
+                provenance_complete = False
+                continue
+            publication_modes[rule.id] = "human_reviewed"
+        else:
+            provenance_complete = False
+
+    provenance_complete = provenance_complete and all(
         (rule := rules_by_id.get(edge.verified_rule_id)) is not None
         and rule.source_snapshot_id == edge.source_snapshot_id
         and rule.regulatory_change_id == edge.regulatory_change_id
         and rule.initial_rule_assertion_id == edge.initial_rule_assertion_id
-        and edge.source_snapshot_id in snapshot_id_set
-        and (
-            (
-                edge.regulatory_change_id is not None
-                and edge.initial_rule_assertion_id is None
-                and (change := changes_by_id.get(edge.regulatory_change_id)) is not None
-                and change.status == "published"
-                and change.reviewed_by is not None
-                and change.reviewed_at is not None
-            )
-            or
-            (
-                edge.initial_rule_assertion_id is not None
-                and edge.regulatory_change_id is None
-                and (assertion := assertions_by_id.get(edge.initial_rule_assertion_id)) is not None
-                and assertion.status == "published"
-                and assertion.reviewed_by is not None
-                and assertion.reviewed_at is not None
-                and assertion.published_by is not None
-                and assertion.published_at is not None
-            )
-        )
+        and edge.source_snapshot_id in snapshots_by_id
+        and rule.id in publication_modes
         for edge in edges
     )
+    human_count = sum(1 for mode in publication_modes.values() if mode == "human_reviewed")
+    machine_count = sum(1 for mode in publication_modes.values() if mode == "board_delegated_machine")
+    human_published_only = machine_count == 0 and len(publication_modes) == len(rules_by_id)
     return {
         "projection_version": PROJECTION_VERSION,
         "generated_at": now_utc(),
         "human_published_only": human_published_only,
+        "publication_provenance_counts": {
+            "human_reviewed": human_count,
+            "board_delegated_machine": machine_count,
+        },
         "provenance_complete": provenance_complete,
         "counts": {"nodes": len(nodes), "edges": len(edges), "verified_rules": len(rules_by_id)},
         "nodes": [{
