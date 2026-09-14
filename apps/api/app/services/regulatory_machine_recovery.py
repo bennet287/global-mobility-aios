@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import RegulatoryChange, SourceSnapshot, VerifiedRule, now_utc
+from app.models.domain import AuditLog, OfficialSource, RegulatoryChange, SourceSnapshot, VerifiedRule, now_utc
 from app.models.regulatory_publication import RegulatoryPublicationSet
 from app.services.audit_log import record_audit
 from app.services.regulatory_graph_publication_provenance import assess_graph_publication_provenance
@@ -16,6 +16,7 @@ from app.services.regulatory_knowledge_graph import deactivate_rule_projection
 
 RECOVERY_VERSION = "regulatory-machine-publication-recovery-v1"
 RECOVERY_ACTION = "regulatory_machine_publication_emergency_quarantined"
+RECOVERY_REQUIRED_ACTION = "regulatory_machine_publication_recovery_required"
 MACHINE_PUBLICATION_RECOVERY_ENABLED = False
 MAX_RECOVERY_RULES = 100
 
@@ -39,6 +40,25 @@ class RegulatoryMachineRecoveryResult:
     def payload(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["retired_rule_ids"] = list(self.retired_rule_ids)
+        payload["reasons"] = list(self.reasons)
+        return payload
+
+
+@dataclass(frozen=True)
+class MachinePublicationRecoveryAssessment:
+    publication_set_id: str
+    regulatory_change_id: str
+    source_snapshot_id: str
+    source_snapshot_hash: str
+    latest_snapshot_id: str | None
+    latest_snapshot_hash: str | None
+    source_active: bool | None
+    recovery_required: bool
+    recovery_enabled: bool
+    reasons: tuple[str, ...]
+
+    def payload(self) -> dict[str, Any]:
+        payload = asdict(self)
         payload["reasons"] = list(self.reasons)
         return payload
 
@@ -71,14 +91,75 @@ def _publication_rules(
         .where(VerifiedRule.regulatory_change_id == publication_set.regulatory_change_id)
         .order_by(VerifiedRule.rule_key, VerifiedRule.id)
     ).all()
-    manifest_ids = {
-        str(item.get("verified_rule_id") or "").strip()
-        for item in manifest
-    }
+    manifest_ids = {str(item.get("verified_rule_id") or "").strip() for item in manifest}
     rule_ids = {str(rule.id) for rule in rules}
     if "" in manifest_ids or manifest_ids != rule_ids:
         raise RegulatoryMachineRecoveryError("Machine publication manifest does not match canonical rules")
     return rules, manifest
+
+
+def assess_machine_publication_recovery(
+    session: Session,
+    publication_set: RegulatoryPublicationSet,
+    *,
+    recovery_enabled: bool | None = None,
+) -> MachinePublicationRecoveryAssessment:
+    enabled = MACHINE_PUBLICATION_RECOVERY_ENABLED if recovery_enabled is None else recovery_enabled
+    reasons: list[str] = []
+
+    snapshot = session.get(SourceSnapshot, publication_set.source_snapshot_id)
+    if snapshot is None:
+        reasons.append("publication_snapshot_missing")
+        source = None
+        latest = None
+    else:
+        if snapshot.content_hash != publication_set.source_snapshot_hash:
+            reasons.append("publication_snapshot_hash_drift")
+        source = session.get(OfficialSource, snapshot.official_source_id)
+        latest = session.exec(
+            select(SourceSnapshot)
+            .where(SourceSnapshot.official_source_id == snapshot.official_source_id)
+            .order_by(SourceSnapshot.captured_at.desc())
+        ).first()
+
+    if source is None:
+        reasons.append("official_source_missing")
+        source_active: bool | None = None
+    else:
+        source_active = bool(source.active)
+        if not source_active:
+            reasons.append("official_source_inactive")
+
+    if latest is None:
+        reasons.append("latest_source_snapshot_missing")
+    else:
+        if not latest.content_hash:
+            reasons.append("latest_source_snapshot_hash_missing")
+        elif snapshot is not None and latest.id != snapshot.id and latest.content_hash != publication_set.source_snapshot_hash:
+            reasons.append("newer_snapshot_content_drift")
+
+    change = session.get(RegulatoryChange, publication_set.regulatory_change_id)
+    if change is None:
+        reasons.append("regulatory_change_missing")
+    else:
+        if change.status != "published":
+            reasons.append("regulatory_change_not_published")
+        if change.official_source_id != (snapshot.official_source_id if snapshot else None):
+            reasons.append("regulatory_change_source_mismatch")
+
+    unique_reasons = tuple(sorted(set(reasons)))
+    return MachinePublicationRecoveryAssessment(
+        publication_set_id=str(publication_set.id),
+        regulatory_change_id=str(publication_set.regulatory_change_id),
+        source_snapshot_id=str(publication_set.source_snapshot_id),
+        source_snapshot_hash=publication_set.source_snapshot_hash,
+        latest_snapshot_id=str(latest.id) if latest else None,
+        latest_snapshot_hash=latest.content_hash if latest else None,
+        source_active=source_active,
+        recovery_required=bool(unique_reasons),
+        recovery_enabled=enabled,
+        reasons=unique_reasons,
+    )
 
 
 def quarantine_board_delegated_machine_publication_set(
@@ -144,12 +225,7 @@ def quarantine_board_delegated_machine_publication_set(
         snapshot = session.get(SourceSnapshot, rule.source_snapshot_id) if rule.source_snapshot_id else None
         if snapshot is None:
             raise RegulatoryMachineRecoveryError("Machine publication rule snapshot could not be resolved")
-        provenance = assess_graph_publication_provenance(
-            session,
-            rule,
-            change,
-            snapshot,
-        )
+        provenance = assess_graph_publication_provenance(session, rule, change, snapshot)
         if not provenance.complete or not provenance.board_delegated_machine:
             raise RegulatoryMachineRecoveryError(
                 "Machine publication provenance is not complete enough for atomic recovery: "
@@ -218,3 +294,87 @@ def quarantine_board_delegated_machine_publication_set(
     except Exception:
         session.rollback()
         raise
+
+
+def scan_machine_publication_recovery(
+    session: Session,
+    *,
+    limit: int = 100,
+    actor: str = "regulatory-recovery-watchdog",
+    recovery_enabled: bool | None = None,
+) -> dict[str, Any]:
+    """Watch published machine sets for post-publication drift and fail closed.
+
+    With the production recovery switch disabled this writes only deduplicated
+    recovery-required audits. If the switch is explicitly enabled, the same detected
+    condition invokes the already-governed atomic quarantine primitive.
+    """
+
+    enabled = MACHINE_PUBLICATION_RECOVERY_ENABLED if recovery_enabled is None else recovery_enabled
+    publication_sets = session.exec(
+        select(RegulatoryPublicationSet)
+        .where(RegulatoryPublicationSet.status == "published")
+        .where(RegulatoryPublicationSet.publication_mode == "board_delegated_machine")
+        .order_by(RegulatoryPublicationSet.published_at)
+        .limit(min(max(limit, 1), 500))
+    ).all()
+
+    assessments: list[MachinePublicationRecoveryAssessment] = []
+    audit_writes = 0
+    quarantined = 0
+    for publication_set in publication_sets:
+        assessment = assess_machine_publication_recovery(
+            session,
+            publication_set,
+            recovery_enabled=enabled,
+        )
+        assessments.append(assessment)
+        if not assessment.recovery_required:
+            continue
+
+        if enabled:
+            quarantine_board_delegated_machine_publication_set(
+                session,
+                publication_set.id,
+                reason=";".join(assessment.reasons),
+                actor=actor,
+                recovery_enabled=True,
+            )
+            quarantined += 1
+            continue
+
+        payload = assessment.payload()
+        previous = session.exec(
+            select(AuditLog)
+            .where(AuditLog.action == RECOVERY_REQUIRED_ACTION)
+            .where(AuditLog.entity_type == "regulatory_publication_set")
+            .where(AuditLog.entity_id == str(publication_set.id))
+            .order_by(AuditLog.created_at.desc())
+        ).first()
+        previous_payload = _load_json(previous.after_state_json if previous else None, {})
+        if previous_payload == payload:
+            continue
+        record_audit(
+            session,
+            action=RECOVERY_REQUIRED_ACTION,
+            entity_type="regulatory_publication_set",
+            entity_id=publication_set.id,
+            after_state=payload,
+            reason="Post-publication source drift requires fail-closed machine-publication recovery.",
+            actor=actor,
+            source=RECOVERY_VERSION,
+        )
+        audit_writes += 1
+
+    if not enabled:
+        session.commit()
+    return {
+        "recovery_version": RECOVERY_VERSION,
+        "scanned": len(publication_sets),
+        "recovery_required": sum(1 for item in assessments if item.recovery_required),
+        "recovery_enabled": enabled,
+        "quarantined": quarantined,
+        "canonical_writes": quarantined,
+        "audit_writes": audit_writes,
+        "assessments": [item.payload() for item in assessments],
+    }
