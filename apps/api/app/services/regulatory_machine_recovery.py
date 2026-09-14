@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import AuditLog, RegulatoryChange, VerifiedRule, now_utc
+from app.models.domain import RegulatoryChange, SourceSnapshot, VerifiedRule, now_utc
 from app.models.regulatory_publication import RegulatoryPublicationSet
 from app.services.audit_log import record_audit
 from app.services.regulatory_graph_publication_provenance import assess_graph_publication_provenance
@@ -141,11 +141,14 @@ def quarantine_board_delegated_machine_publication_set(
     for rule in rules:
         if not rule.active or rule.retired_at is not None:
             raise RegulatoryMachineRecoveryError("Machine publication set contains a partially retired rule")
+        snapshot = session.get(SourceSnapshot, rule.source_snapshot_id) if rule.source_snapshot_id else None
+        if snapshot is None:
+            raise RegulatoryMachineRecoveryError("Machine publication rule snapshot could not be resolved")
         provenance = assess_graph_publication_provenance(
             session,
             rule,
             change,
-            session.get(type(change).__mro__[0], change.id) if False else session.get(__import__("app.models.domain", fromlist=["SourceSnapshot"]).SourceSnapshot, rule.source_snapshot_id),
+            snapshot,
         )
         if not provenance.complete or not provenance.board_delegated_machine:
             raise RegulatoryMachineRecoveryError(
