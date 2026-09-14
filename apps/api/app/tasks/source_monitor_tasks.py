@@ -12,6 +12,7 @@ from app.services.regulatory_authority_bridge import scan_regulatory_authority_b
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
 from app.services.regulatory_freshness_guard import scan_regulatory_freshness
 from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
+from app.services.regulatory_machine_recovery import scan_machine_publication_recovery
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
 from app.services.regulatory_program_discovery import discover_new_program_candidates
 from app.services.regulatory_promotion_authorization import generate_machine_promotion_authorization_envelopes
@@ -112,10 +113,18 @@ def run_shadow_promotion_policy_task(limit: int = 100) -> dict:
 
 @celery_app.task
 def scan_regulatory_freshness_task(limit: int = 100) -> dict:
-    """Evaluate RI.A8 freshness/quarantine state without canonical rollback writes."""
+    """Evaluate RI.A8 shadow-candidate freshness without canonical rollback writes."""
 
     with Session(db_module.engine) as session:
         return scan_regulatory_freshness(session, limit=limit)
+
+
+@celery_app.task
+def scan_machine_publication_recovery_task(limit: int = 100) -> dict:
+    """Watch published machine rule sets for post-publication drift and fail closed."""
+
+    with Session(db_module.engine) as session:
+        return scan_machine_publication_recovery(session, limit=limit)
 
 
 @celery_app.task
