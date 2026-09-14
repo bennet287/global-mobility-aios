@@ -117,12 +117,11 @@ def publish_board_delegated_machine_rule_set(
     *,
     actor_key: str = "regulatory-publication-agent",
 ) -> tuple[RegulatoryPublicationSet, tuple[VerifiedRule, ...]]:
-    """Persist one Board-delegated deterministic publication set atomically.
+    """Persist and project one Board-delegated deterministic rule set atomically.
 
-    Production execution is deliberately disabled. Tests may enable the module-level
-    kill switch to prove transaction semantics, review-disposition truth, idempotency,
-    and rollback behavior before the derived regulatory graph is adapted to consume
-    this non-human publication provenance.
+    Production execution remains deliberately disabled. Tests may enable the module-level
+    kill switch to prove publication, review-disposition, graph-projection, impact-linkage,
+    idempotency, and rollback semantics before production authority is enabled.
     """
 
     change = session.get(RegulatoryChange, change_id)
@@ -339,6 +338,17 @@ def publish_board_delegated_machine_rule_set(
                 reason=change.review_notes,
                 actor=f"agent:{actor_key}",
                 source=PUBLICATION_CONTRACT_VERSION,
+            )
+        session.flush()
+
+        from app.services.regulatory_knowledge_graph import project_verified_rule
+
+        for rule in rules:
+            project_verified_rule(
+                session,
+                rule,
+                actor=f"agent:{actor_key}",
+                audit=True,
             )
 
         session.commit()
