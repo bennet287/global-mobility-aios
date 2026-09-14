@@ -4,7 +4,6 @@ import hashlib
 import json
 from dataclasses import dataclass
 from typing import Any
-from uuid import UUID
 
 from sqlmodel import Session, select
 
@@ -119,7 +118,7 @@ def _machine_regulatory_change_provenance(
     publication_audit = session.exec(
         select(AuditLog)
         .where(AuditLog.action == PUBLICATION_ACTION)
-        .where(AuditLog.entity_id == publication_set.id)
+        .where(AuditLog.entity_id == str(publication_set.id))
     ).first()
     if publication_audit is None:
         reasons.append("machine_publication_audit_missing")
