@@ -12,6 +12,8 @@ from app.models.domain import (
     Jurisdiction,
     OfficialSource,
     RegulatoryChange,
+    RegulatoryKnowledgeEdge,
+    RegulatoryKnowledgeNode,
     ReviewStatus,
     SourceSnapshot,
     VerifiedRule,
@@ -233,6 +235,8 @@ def test_ri_a74_persists_multi_rule_set_and_truthful_review_waiver_atomically(
     manifest = json.loads(publication_set.published_rules_json)
     assert {item["verified_rule_id"] for item in manifest} == {str(rule.id) for rule in rules}
     assert len(db_session.exec(select(AuditLog).where(AuditLog.action == PUBLICATION_ACTION)).all()) == 1
+    assert len(db_session.exec(select(RegulatoryKnowledgeNode)).all()) > 0
+    assert len(db_session.exec(select(RegulatoryKnowledgeEdge)).all()) > 0
 
 
 def test_ri_a74_replay_is_idempotent_after_atomic_commit(db_session, monkeypatch) -> None:
@@ -265,6 +269,45 @@ def test_ri_a74_duplicate_rule_failure_rolls_back_entire_set(db_session, monkeyp
     assert db_session.exec(select(RegulatoryPublicationSet)).all() == []
     assert db_session.exec(select(RegulatoryReviewDisposition)).all() == []
     assert db_session.exec(select(VerifiedRule)).all() == []
+    assert db_session.exec(select(RegulatoryKnowledgeNode)).all() == []
+    assert db_session.exec(select(RegulatoryKnowledgeEdge)).all() == []
+    db_session.refresh(review)
+    db_session.refresh(change)
+    assert review.status == ReviewStatus.pending
+    assert change.status == "pending_review"
+    assert change.published_at is None
+
+
+def test_ri_a75_graph_projection_failure_rolls_back_entire_machine_publication(
+    db_session,
+    monkeypatch,
+) -> None:
+    change, _, _, review = _seed(db_session, rule_count=2)
+    _enable(monkeypatch)
+
+    from app.services import regulatory_knowledge_graph
+
+    original = regulatory_knowledge_graph.project_verified_rule
+    calls = {"count": 0}
+
+    def fail_second_projection(*args, **kwargs):
+        calls["count"] += 1
+        if calls["count"] == 2:
+            raise RuntimeError("synthetic graph projection failure")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(regulatory_knowledge_graph, "project_verified_rule", fail_second_projection)
+
+    with pytest.raises(RuntimeError, match="synthetic graph projection failure"):
+        publish_board_delegated_machine_rule_set(db_session, change.id)
+
+    assert calls["count"] == 2
+    assert db_session.exec(select(RegulatoryPublicationSet)).all() == []
+    assert db_session.exec(select(RegulatoryReviewDisposition)).all() == []
+    assert db_session.exec(select(VerifiedRule)).all() == []
+    assert db_session.exec(select(RegulatoryKnowledgeNode)).all() == []
+    assert db_session.exec(select(RegulatoryKnowledgeEdge)).all() == []
+    assert db_session.exec(select(AuditLog).where(AuditLog.action == PUBLICATION_ACTION)).all() == []
     db_session.refresh(review)
     db_session.refresh(change)
     assert review.status == ReviewStatus.pending
