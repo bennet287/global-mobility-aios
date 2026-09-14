@@ -155,6 +155,10 @@ def register_models() -> None:
         RegulatoryPublicationSet,
         RegulatoryReviewDisposition,
     )
+    from app.models.skill_registry import (  # noqa: F401
+        OrganizationPositionSkill,
+        OrganizationSkill,
+    )
 
     _register_legacy_metadata_constraints()
 
