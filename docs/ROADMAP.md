@@ -4,11 +4,11 @@
 **Date:** 2026-09-12
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
-**Active programme:** Autonomous Global Regulatory Intelligence — RI.A1 verification routing
-**Active implementation:** Draft PR #148 — `feature/autonomous-global-regulatory-intelligence`
-**Code migration head:** `0082_regulatory_machine_publication_contract`
+**Active programme:** Phase 14 — AIOS Native Skills Registry
+**Active implementation:** Draft PR #149 — `feature/phase-14-native-skills-registry`
+**Code migration head:** `0083_native_skill_registry`
 
-<!-- CURRENT_MIGRATION_HEAD: 0082_regulatory_machine_publication_contract -->
+<!-- CURRENT_MIGRATION_HEAD: 0083_native_skill_registry -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
@@ -160,7 +160,7 @@ locomotionAllowed = false
 
 Canonical handoffs/conversations/governance events may drive presentation only when their durable records exist. Character placement does not assert physical presence. Room presentation does not assert occupancy. Selection remains view state. Living HQ does not create work, evidence, authority or decisions.
 
-The active programme is now **Autonomous Global Regulatory Intelligence**. Draft PR #148 begins RI.A1 by continuously routing detected regulatory changes into `machine_verification_candidate` or `human_exception` while explicitly preserving `canonical_write_allowed = false`.
+Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. The active programme is now **Phase 14 — AIOS Native Skills Registry** on Draft PR #149, beginning with a versioned native skill registry and exact position-to-skill bindings while preserving the permanent rule that skills model capability and never grant authority.
 
 ---
 
@@ -188,7 +188,7 @@ The architectural/live-world implementation changes presentation, not canonical 
 
 ---
 
-## 8. Active programme — Autonomous Global Regulatory Intelligence and Safe AIOS Automation
+## 8. Autonomous Global Regulatory Intelligence and Safe AIOS Automation — RI.A1–RI.A8 SEALED
 
 ### 8.1 Programme outcome
 
@@ -316,67 +316,9 @@ Autonomy is assigned per capability, not per employee or globally.
 
 Promotion between levels requires measured evidence and a revocation path. There is no global “autonomous mode.”
 
-### 8.4 Regulatory Intelligence execution plan
+### 8.4 Regulatory Intelligence execution plan — SEALED
 
-#### RI.A1 — Evidence-aware verification routing — ACTIVE / DRAFT PR #148
-
-Continuously evaluate pending `RegulatoryChange` records and route them into `machine_verification_candidate` or `human_exception` using existing source certification, jurisdiction/authority consistency, immutable snapshot provenance, structured-program evidence, deterministic classification evidence and materiality.
-
-Permanent RI.A1 boundary: `canonical_write_allowed = false`. RI.A1 cannot approve changes, publish/supersede `VerifiedRule`, mutate pathways or rewrite client assessments.
-
-**Exit gate:** deterministic routing tests; idempotent audit behavior; no canonical-write path; exact-head Repository Policy + backend/PostgreSQL regression + V12 production proof.
-
-#### RI.A2 — Independent machine verification and falsification
-
-For RI.A1 candidates, construct a machine-verification packet from evidence stronger than the proposer: secondary authoritative source where available, independent extraction/pass, effective-date checks, numeric/date/currency/unit validation, source-scope/domain match, contradictory active-rule search and adversarial “what would make this interpretation wrong?” checks.
-
-The verifier must not share an unexamined free-form conclusion with the proposer. Shared raw evidence is allowed; shared reasoning is not treated as independent proof.
-
-**Exit gate:** known positive/negative/contradictory fixtures; evidence packet is reproducible; unresolved disagreement routes to human exception; no automatic publication yet.
-
-#### RI.A3 — Temporal rule lifecycle and contradiction watchdog
-
-Continuously detect overlapping effective periods, multiple active rules for the same semantic key, superseded rules still referenced, future-effective changes, retired programmes, broken provenance, unavailable trust roots and source hierarchy conflicts.
-
-Create a durable regulatory-integrity incident rather than silently selecting a winner.
-
-**Exit gate:** contradiction fixtures cannot silently resolve; temporal replay can explain what rule was authoritative at a historical timestamp.
-
-#### RI.A4 — Dependency impact propagation and reassessment orchestration
-
-Connect published/superseded regulatory truth to affected `MobilityPathwayVersion`, document requirements, eligibility/comparison assessments, timelines and active cases. Preserve historical outputs; create explicit reassessment candidates and prioritized WorkItems instead of rewriting old results.
-
-Priority should account for submission/expiry deadline, regulatory materiality, client impact and evidence confidence.
-
-**Exit gate:** every test rule change produces a complete affected-object inventory with zero silent historical mutation.
-
-#### RI.A5 — New-program discovery and pathway incubation
-
-Monitor complete authority catalogues, sitemaps/APIs/gazettes and certified page families for programmes absent from AIOS. Build a candidate programme dossier: authority, source, start/effective dates, target population, requirements, fees, quota/closure state, evidence and unresolved fields.
-
-New programme discovery is not publication. AIOS must prove the programme exists and that the evidence is within a certified scope before pathway compilation.
-
-**Exit gate:** known new/renamed/retired programme fixtures; duplicate programme suppression; uncertain identity routes to exception.
-
-#### RI.A6 — Structured rule/pathway compiler
-
-Compile verified assertions into typed rules/pathway-version proposals rather than embedding free-form model prose in business logic. Validate schema, units, threshold semantics, conditions/exceptions, document dependencies and temporal scope.
-
-**Exit gate:** deterministic compiler tests and round-trip explanation from structured rule back to exact evidence anchors.
-
-#### RI.A7 — Controlled machine promotion pilot
-
-Only after RI.A1–A6 evidence exists, permit a very narrow class of low-ambiguity changes to reach L4: e.g. deterministic fee/threshold/date/program-status changes where certified authoritative evidence agrees, no contradiction exists, parser confidence is high, effective date is explicit, downstream regression passes and rollback is defined.
-
-No interpretive legal rule starts here.
-
-**Exit gate:** shadow-mode comparison against human decisions; predefined minimum sample; zero critical false promotions; automatic demotion/kill-switch; complete audit/replay.
-
-#### RI.A8 — Continuous freshness, drift, quarantine and rollback
-
-Establish source/fact freshness SLAs, parser-drift detection, schema-change detection, source disappearance handling, confidence decay, quarantine states and recovery workflows. Machine-promoted truth must be reversible through governed supersession/rollback rather than destructive history edits.
-
-**Exit gate:** stale/unreachable/parser-broken fixtures visibly degrade authority and cannot continue as silently “fresh.”
+RI.A1 through RI.A8 are implemented and merged as the governed regulatory-intelligence baseline at `341ec1f0268cf483e868e85660978a4fbaac3e15`. The permanent operational boundary remains that machine publication and machine recovery execution stay OFF in production until separately earned and authorized.
 
 ### 8.5 Cross-project automation programme
 
@@ -511,9 +453,11 @@ The programme should track at least:
 
 ## 9. Platform capability expansion
 
-### Phase 14 — AIOS Native Skills Registry
+### Phase 14 — AIOS Native Skills Registry — ACTIVE
 
 Portable skill definitions, validation, discovery metadata, curated role bundles and workflow recipes with durable ID/version, compatible roles, allowed/denied tools, mutation classification, authority tier, evidence behavior, risk, budget, output contract, tests and revocation. Learned/imported capability never implies authority acquisition.
+
+Phase 14.1 establishes the smallest durable registry contract: versioned `OrganizationSkill` records and exact `OrganizationPositionSkill` bindings to immutable position versions. Skill records may declare tool and permission requirements but cannot grant credentials, permissions, authority or autonomy.
 
 ### Phase 15 — Agent Lifecycle Governance Hooks
 
@@ -606,21 +550,17 @@ We also do not optimize for “maximum autonomy” as a vanity metric. We do not
 ## 14. Immediate order of work
 
 ```text
-1. RI.A1 — finish verification-routing proof on Draft PR #148; keep canonical_write_allowed=false.
-2. Fix only concrete RI.A1 regressions; obtain exact-head Repository Policy + V12/backend/PostgreSQL proof.
-3. Seal RI.A1 before adding publication authority or broad source discovery.
-4. RI.A2 — build independent machine verification/falsification packets.
-5. RI.A3 — build temporal contradiction/provenance/freshness watchdog.
-6. RI.A4 — close the loop from verified rule change to pathway/case reassessment WorkItems.
-7. RI.A5 — add new-program/source-family discovery while preserving human-controlled trust-root certification.
-8. RI.A6 — compile verified evidence into typed rule/pathway proposals with deterministic regression.
-9. Run RI.A7 controlled machine-promotion only in shadow mode first; promote a narrow low-ambiguity class only after measured evidence.
-10. RI.A8 — complete freshness/quarantine/rollback lifecycle.
-11. In parallel only where dependencies are already mature, begin AUTO.DOC deterministic document routing and AUTO.QA failure classification; do not create competing canonical stores.
-12. Build Phase 14–17 platform controls as demanded by the automation slices: skills registry, lifecycle hooks, runtime reliability/cost and security assurance.
-13. Expand to AUTO.CASE, AUTO.COMMS, AUTO.ORG and AUTO.OPS after evidence/reconciliation/queue controls are proven.
-14. Use Phase 19/20 metrics to earn higher autonomy capability-by-capability; demote automatically when quality degrades.
-15. Add interoperability and production scale only when measured bottlenecks justify them.
+1. Phase 14.1 — prove the native skill-registry schema and exact position→skill binding contract.
+2. Add read/write registry services and APIs only after the migration/model contract is green.
+3. Add deterministic skill applicability/selection with explicit tool/permission requirement checks; never grant authority from a skill match.
+4. Add imported-skill provenance/licensing/fingerprint ingestion behind quarantine/validation.
+5. Add learned-skill generation only after recurrence/extraction/validation contracts exist; learned capability must remain inside pre-existing authority/credential ceilings.
+6. Integrate skill visibility into employee inspection and Living HQ only from canonical registry state.
+7. Proceed to Phase 15 lifecycle governance hooks once Phase 14 skill execution boundaries are sealed.
+8. Build Phase 16 runtime reliability/cost and Phase 17 security assurance before materially increasing autonomous execution.
+9. Expand AUTO.DOC, AUTO.CASE, AUTO.COMMS, AUTO.ORG and AUTO.OPS only where their evidence/reconciliation/queue controls are proven.
+10. Use Phase 19/20 metrics to earn higher autonomy capability-by-capability; demote automatically when quality degrades.
+11. Add interoperability and production scale only when measured bottlenecks justify them.
 ```
 
 ### Workstream parallelization rule
