@@ -16,6 +16,7 @@ from app.models.domain import (
     PathwayRegulatoryImpact,
     RegulatoryChange,
     RegulatoryKnowledgeNode,
+    SourceSnapshot,
     VerifiedRule,
     now_utc,
 )
@@ -25,6 +26,7 @@ from app.services.pathway_evidence import (
     pathway_version_evidence_snapshot_ids,
     pathway_version_evidence_source_ids,
 )
+from app.services.regulatory_graph_publication_provenance import assess_graph_publication_provenance
 
 
 GRAPH_PROJECTION_VERSION = "regulatory-graph-v1"
@@ -159,8 +161,15 @@ def link_rule_to_affected_pathways(
     if not rule.regulatory_change_id or not rule.source_snapshot_id:
         return {"created": 0, "existing": 0}
     change = session.get(RegulatoryChange, rule.regulatory_change_id)
-    if change is None or change.status != "published" or not change.reviewed_by:
+    snapshot = session.get(SourceSnapshot, rule.source_snapshot_id)
+    if change is None or snapshot is None or change.status != "published":
         return {"created": 0, "existing": 0}
+    provenance = assess_graph_publication_provenance(session, rule, change, snapshot)
+    if not provenance.complete:
+        return {"created": 0, "existing": 0}
+    publication_provenance = (
+        "board_delegated_machine" if provenance.board_delegated_machine else "human_reviewed"
+    )
 
     impact_type = _event_type(rule)
     event_at = _event_at(rule)
@@ -221,6 +230,8 @@ def link_rule_to_affected_pathways(
                 "change_type": change.change_type,
                 "change_title": change.title,
                 "change_summary": change.summary,
+                "publication_provenance": publication_provenance,
+                "publication_set_id": provenance.publication_set_id,
             }),
             client_assessment_count_at_detection=assessment_count,
             timeline_count_at_detection=timeline_count,
@@ -242,8 +253,10 @@ def link_rule_to_affected_pathways(
                 "created": created,
                 "existing": existing,
                 "graph_projection_version": GRAPH_PROJECTION_VERSION,
+                "publication_provenance": publication_provenance,
+                "publication_set_id": provenance.publication_set_id,
             },
-            reason="Linked a human-published regulatory graph update to exact published pathway versions",
+            reason="Linked a provenance-validated regulatory graph update to exact published pathway versions",
             actor=actor,
             source="pathway_regulatory_impacts_v10_6",
         )
