@@ -13,6 +13,7 @@ from app.services.organization_skill_registry import (
     bind_skill_to_position,
     evaluate_skill_applicability,
     list_active_skills,
+    validate_native_skill_contract,
 )
 
 
@@ -44,6 +45,34 @@ def _require_admin(request: Request) -> None:
 @router.get("")
 def get_active_skills(session: Session = Depends(get_session)) -> list[OrganizationSkill]:
     return list_active_skills(session)
+
+
+@router.post("/{skill_id}/validate")
+def validate_native_skill(
+    skill_id: UUID,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    _require_admin(request)
+    try:
+        result = validate_native_skill_contract(session, skill_id=skill_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    session.commit()
+    return {
+        "skill_id": result.skill_id,
+        "skill_key": result.skill_key,
+        "version": result.version,
+        "validation_status": "passed" if result.passed else "failed",
+        "validator": result.validator,
+        "checks": list(result.checks),
+        "failures": list(result.failures),
+        "content_sha256": result.content_sha256,
+        "authority_granted": False,
+        "permissions_granted": False,
+        "credentials_granted": False,
+        "autonomy_granted": False,
+    }
 
 
 @router.post("/{skill_id}/bindings", status_code=201)
