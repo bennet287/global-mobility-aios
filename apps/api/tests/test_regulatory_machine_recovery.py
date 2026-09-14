@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -25,8 +26,10 @@ from app.services.regulatory_knowledge_graph import project_verified_rule
 from app.services.regulatory_machine_publication import PUBLICATION_ACTION, PUBLICATION_CONTRACT_VERSION
 from app.services.regulatory_machine_recovery import (
     RECOVERY_ACTION,
+    RECOVERY_REQUIRED_ACTION,
     RegulatoryMachineRecoveryError,
     quarantine_board_delegated_machine_publication_set,
+    scan_machine_publication_recovery,
 )
 from app.services.regulatory_promotion_authorization import AUTHORIZATION_ACTION, AUTHORIZATION_VERSION
 
@@ -228,6 +231,24 @@ def _seed_machine_publication(db_session, *, rule_count: int = 2):
     return publication_set, rules
 
 
+def _add_newer_snapshot(db_session, publication_set, *, content_hash: str) -> SourceSnapshot:
+    published_snapshot = db_session.get(SourceSnapshot, publication_set.source_snapshot_id)
+    assert published_snapshot is not None
+    newer = SourceSnapshot(
+        official_source_id=published_snapshot.official_source_id,
+        url=published_snapshot.url,
+        content_hash=content_hash,
+        status="changed",
+        parser_version=published_snapshot.parser_version,
+        metadata_json="{}",
+        captured_at=now_utc() + timedelta(seconds=1),
+    )
+    db_session.add(newer)
+    db_session.commit()
+    db_session.refresh(newer)
+    return newer
+
+
 def test_ri_a8_recovery_kill_switch_blocks_canonical_changes(db_session) -> None:
     publication_set, rules = _seed_machine_publication(db_session)
 
@@ -242,6 +263,67 @@ def test_ri_a8_recovery_kill_switch_blocks_canonical_changes(db_session) -> None
     assert publication_set.status == "published"
     assert all(rule.active for rule in rules)
     assert all(rule.retired_at is None for rule in rules)
+
+
+def test_ri_a8_recovery_watchdog_ignores_equivalent_newer_snapshot(db_session) -> None:
+    publication_set, rules = _seed_machine_publication(db_session, rule_count=1)
+    _add_newer_snapshot(db_session, publication_set, content_hash=publication_set.source_snapshot_hash)
+
+    result = scan_machine_publication_recovery(db_session)
+
+    db_session.refresh(publication_set)
+    db_session.refresh(rules[0])
+    assert result["scanned"] == 1
+    assert result["recovery_required"] == 0
+    assert result["quarantined"] == 0
+    assert result["canonical_writes"] == 0
+    assert publication_set.status == "published"
+    assert rules[0].active is True
+    assert db_session.exec(select(AuditLog).where(AuditLog.action == RECOVERY_REQUIRED_ACTION)).all() == []
+
+
+def test_ri_a8_recovery_watchdog_records_drift_once_while_locked(db_session) -> None:
+    publication_set, rules = _seed_machine_publication(db_session, rule_count=1)
+    newer = _add_newer_snapshot(db_session, publication_set, content_hash="7" * 64)
+
+    first = scan_machine_publication_recovery(db_session)
+    second = scan_machine_publication_recovery(db_session)
+
+    db_session.refresh(publication_set)
+    db_session.refresh(rules[0])
+    audits = db_session.exec(select(AuditLog).where(AuditLog.action == RECOVERY_REQUIRED_ACTION)).all()
+    assert first["recovery_required"] == 1
+    assert first["recovery_enabled"] is False
+    assert first["quarantined"] == 0
+    assert first["canonical_writes"] == 0
+    assert first["audit_writes"] == 1
+    assert first["assessments"][0]["latest_snapshot_id"] == str(newer.id)
+    assert "newer_snapshot_content_drift" in first["assessments"][0]["reasons"]
+    assert second["audit_writes"] == 0
+    assert len(audits) == 1
+    assert publication_set.status == "published"
+    assert rules[0].active is True
+    assert rules[0].retired_at is None
+
+
+def test_ri_a8_recovery_watchdog_quarantines_drift_only_when_explicitly_enabled(db_session) -> None:
+    publication_set, rules = _seed_machine_publication(db_session, rule_count=1)
+    _add_newer_snapshot(db_session, publication_set, content_hash="8" * 64)
+
+    result = scan_machine_publication_recovery(db_session, recovery_enabled=True)
+
+    db_session.refresh(publication_set)
+    db_session.refresh(rules[0])
+    edges = db_session.exec(select(RegulatoryKnowledgeEdge)).all()
+    assert result["recovery_required"] == 1
+    assert result["recovery_enabled"] is True
+    assert result["quarantined"] == 1
+    assert result["canonical_writes"] == 1
+    assert publication_set.status == "quarantined"
+    assert rules[0].active is False
+    assert rules[0].retired_at is not None
+    assert edges and all(edge.active is False for edge in edges)
+    assert len(db_session.exec(select(AuditLog).where(AuditLog.action == RECOVERY_ACTION)).all()) == 1
 
 
 def test_ri_a8_recovery_atomically_quarantines_set_and_deactivates_graph(db_session) -> None:
