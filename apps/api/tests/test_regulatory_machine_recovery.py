@@ -4,6 +4,7 @@ import hashlib
 import json
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlmodel import select
 
 from app.models.domain import (
@@ -11,6 +12,7 @@ from app.models.domain import (
     HumanReview,
     Jurisdiction,
     OfficialSource,
+    PathwayRegulatoryImpact,
     RegulatoryChange,
     RegulatoryKnowledgeEdge,
     ReviewStatus,
@@ -269,6 +271,64 @@ def test_ri_a8_recovery_atomically_quarantines_set_and_deactivates_graph(db_sess
     assert all(rule.retired_by == "regulatory-emergency-recovery-agent" for rule in rules)
     assert edges and all(edge.active is False for edge in edges)
     assert len(db_session.exec(select(AuditLog).where(AuditLog.action == RECOVERY_ACTION)).all()) == 1
+
+
+def test_ri_a8_machine_recovery_propagates_retirement_to_pathway_impacts(
+    client: TestClient,
+    db_session,
+) -> None:
+    publication_set, rules = _seed_machine_publication(db_session, rule_count=1)
+    rule = rules[0]
+
+    created = client.post(
+        "/api/v1/pathways",
+        json={
+            "pathway_key": "at-ria8-machine-recovery-impact",
+            "name": "Austria RI.A8 Machine Recovery Impact",
+            "country": "Austria",
+            "domain": "work",
+            "jurisdiction_id": str(rule.jurisdiction_id),
+            "description": "Published pathway used to prove machine-rule emergency retirement propagation.",
+            "official_source_id": str(rule.official_source_id),
+            "source_snapshot_id": str(rule.source_snapshot_id),
+            "verified_rule_ids": [str(rule.id)],
+            "eligibility_criteria": {"machine_recovery_fixture": True},
+            "required_documents": ["passport"],
+            "costs": {"currency": "EUR", "government_fee": 1},
+            "processing_time": {"minimum_weeks": 1, "maximum_weeks": 2},
+            "benefits": ["Recovery propagation fixture"],
+            "risks": ["Synthetic test only"],
+        },
+    )
+    assert created.status_code == 201, created.text
+    version_id = created.json()["current_version"]["id"]
+    published = client.post(
+        f"/api/v1/pathways/versions/{version_id}/publish",
+        json={"review_notes": "Published test pathway before emergency machine-rule retirement."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-ria8-pathway-reviewer"},
+    )
+    assert published.status_code == 200, published.text
+
+    result = quarantine_board_delegated_machine_publication_set(
+        db_session,
+        publication_set.id,
+        reason="Machine publication freshness failure requires pathway impact propagation",
+        actor="regulatory-emergency-recovery-agent",
+        recovery_enabled=True,
+    )
+    assert result.recovery_state == "quarantined"
+
+    impacts = db_session.exec(
+        select(PathwayRegulatoryImpact)
+        .where(PathwayRegulatoryImpact.verified_rule_id == rule.id)
+        .where(PathwayRegulatoryImpact.impact_type == "rule_retired")
+    ).all()
+    assert len(impacts) == 1
+    context = json.loads(impacts[0].impact_context_json)
+    assert context["publication_provenance"] == "board_delegated_machine"
+    assert context["publication_set_id"] == str(publication_set.id)
+    assert context["rule_active_at_detection"] is False
+    assert impacts[0].human_review_required is True
 
 
 def test_ri_a8_recovery_replay_is_idempotent(db_session) -> None:
