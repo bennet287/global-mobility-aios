@@ -9,6 +9,11 @@ from sqlmodel import Session
 from app.core.db import get_session
 from app.models.domain import OrganizationPosition
 from app.models.skill_registry import OrganizationSkill
+from app.services.organization_skill_audit import (
+    binding_audit_state,
+    record_skill_mutation,
+    skill_audit_state,
+)
 from app.services.organization_skill_lifecycle import (
     NativeSkillDefinition,
     create_native_skill,
@@ -106,8 +111,18 @@ def create_native_skill_definition(
     session: Session = Depends(get_session),
 ) -> dict:
     _require_admin(request)
+    actor = _actor(request)
     try:
-        skill = create_native_skill(session, definition=payload.to_definition(), actor=_actor(request))
+        skill = create_native_skill(session, definition=payload.to_definition(), actor=actor)
+        record_skill_mutation(
+            session,
+            action="organization_skill.created",
+            actor=actor,
+            entity_type="organization_skill",
+            entity_id=skill.id,
+            after_state=skill_audit_state(skill),
+            reason="native skill created through governed registry API",
+        )
         session.commit()
         session.refresh(skill)
     except ValueError as exc:
@@ -124,12 +139,24 @@ def create_native_skill_successor(
     session: Session = Depends(get_session),
 ) -> dict:
     _require_admin(request)
+    actor = _actor(request)
+    before_state = skill_audit_state(session.get(OrganizationSkill, skill_id))
     try:
         skill = create_native_skill_version(
             session,
             skill_id=skill_id,
             definition=payload.to_definition(),
-            actor=_actor(request),
+            actor=actor,
+        )
+        record_skill_mutation(
+            session,
+            action="organization_skill.versioned",
+            actor=actor,
+            entity_type="organization_skill",
+            entity_id=skill.id,
+            before_state=before_state,
+            after_state=skill_audit_state(skill),
+            reason="native skill successor created through governed registry API",
         )
         session.commit()
         session.refresh(skill)
@@ -146,8 +173,20 @@ def deprecate_native_skill_definition(
     session: Session = Depends(get_session),
 ) -> dict:
     _require_admin(request)
+    actor = _actor(request)
+    before_state = skill_audit_state(session.get(OrganizationSkill, skill_id))
     try:
         skill = deprecate_native_skill(session, skill_id=skill_id)
+        record_skill_mutation(
+            session,
+            action="organization_skill.deprecated",
+            actor=actor,
+            entity_type="organization_skill",
+            entity_id=skill.id,
+            before_state=before_state,
+            after_state=skill_audit_state(skill),
+            reason="native skill deprecated through governed registry API",
+        )
         session.commit()
         session.refresh(skill)
     except ValueError as exc:
@@ -163,11 +202,25 @@ def validate_native_skill(
     session: Session = Depends(get_session),
 ) -> dict:
     _require_admin(request)
+    actor = _actor(request)
+    before_state = skill_audit_state(session.get(OrganizationSkill, skill_id))
     try:
         result = validate_native_skill_contract(session, skill_id=skill_id)
+        skill = session.get(OrganizationSkill, skill_id)
+        record_skill_mutation(
+            session,
+            action="organization_skill.validated",
+            actor=actor,
+            entity_type="organization_skill",
+            entity_id=result.skill_id,
+            before_state=before_state,
+            after_state=skill_audit_state(skill),
+            reason=f"{result.validator}:{'passed' if result.passed else 'failed'}",
+        )
+        session.commit()
     except ValueError as exc:
+        session.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    session.commit()
     return {
         "skill_id": result.skill_id,
         "skill_key": result.skill_key,
@@ -192,18 +245,29 @@ def create_skill_binding(
     session: Session = Depends(get_session),
 ) -> dict:
     _require_admin(request)
+    actor = _actor(request)
     try:
         binding = bind_skill_to_position(
             session,
             position_id=payload.position_id,
             skill_id=skill_id,
             assignment_reason=payload.assignment_reason,
-            actor=_actor(request),
+            actor=actor,
         )
+        record_skill_mutation(
+            session,
+            action="organization_skill.binding_upserted",
+            actor=actor,
+            entity_type="organization_position_skill",
+            entity_id=binding.id,
+            after_state=binding_audit_state(binding),
+            reason="position skill binding created or reaffirmed through governed registry API",
+        )
+        session.commit()
+        session.refresh(binding)
     except ValueError as exc:
+        session.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    session.commit()
-    session.refresh(binding)
     return {
         "id": binding.id,
         "organization_position_id": binding.organization_position_id,
