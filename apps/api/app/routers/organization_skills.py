@@ -9,6 +9,12 @@ from sqlmodel import Session
 from app.core.db import get_session
 from app.models.domain import OrganizationPosition
 from app.models.skill_registry import OrganizationSkill
+from app.services.organization_skill_lifecycle import (
+    NativeSkillDefinition,
+    create_native_skill,
+    create_native_skill_version,
+    deprecate_native_skill,
+)
 from app.services.organization_skill_registry import (
     bind_skill_to_position,
     evaluate_skill_applicability,
@@ -31,6 +37,35 @@ class SkillApplicabilityRequest(BaseModel):
     available_permissions: list[str] = Field(default_factory=list)
 
 
+class NativeSkillDefinitionRequest(BaseModel):
+    skill_key: str = Field(min_length=1, max_length=255)
+    name: str = Field(min_length=1, max_length=255)
+    capability_family: str = Field(min_length=1, max_length=255)
+    description: str = Field(min_length=1, max_length=4000)
+    compatible_departments: list[str] = Field(default_factory=list)
+    compatible_position_keys: list[str] = Field(default_factory=list)
+    tool_requirements: list[str] = Field(default_factory=list)
+    permission_requirements: list[str] = Field(default_factory=list)
+    input_schema: dict = Field(default_factory=dict)
+    output_schema: dict = Field(default_factory=dict)
+    evidence_expectations: list[str] = Field(default_factory=list)
+
+    def to_definition(self) -> NativeSkillDefinition:
+        return NativeSkillDefinition(
+            skill_key=self.skill_key,
+            name=self.name,
+            capability_family=self.capability_family,
+            description=self.description,
+            compatible_departments=tuple(self.compatible_departments),
+            compatible_position_keys=tuple(self.compatible_position_keys),
+            tool_requirements=tuple(self.tool_requirements),
+            permission_requirements=tuple(self.permission_requirements),
+            input_schema=self.input_schema,
+            output_schema=self.output_schema,
+            evidence_expectations=tuple(self.evidence_expectations),
+        )
+
+
 def _actor(request: Request) -> str:
     context = getattr(request.state, "auth", None)
     return str(getattr(context, "username", "api-operator"))
@@ -42,9 +77,83 @@ def _require_admin(request: Request) -> None:
         raise HTTPException(status_code=403, detail="Skill registry mutation requires the admin role")
 
 
+def _skill_response(skill: OrganizationSkill) -> dict:
+    return {
+        "id": skill.id,
+        "skill_key": skill.skill_key,
+        "version": skill.version,
+        "origin": skill.origin,
+        "status": skill.status,
+        "validation_status": skill.validation_status,
+        "content_sha256": skill.content_sha256,
+        "supersedes_skill_id": skill.supersedes_skill_id,
+        "authority_granted": False,
+        "permissions_granted": False,
+        "credentials_granted": False,
+        "autonomy_granted": False,
+    }
+
+
 @router.get("")
 def get_active_skills(session: Session = Depends(get_session)) -> list[OrganizationSkill]:
     return list_active_skills(session)
+
+
+@router.post("/native", status_code=201)
+def create_native_skill_definition(
+    payload: NativeSkillDefinitionRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    _require_admin(request)
+    try:
+        skill = create_native_skill(session, definition=payload.to_definition(), actor=_actor(request))
+        session.commit()
+        session.refresh(skill)
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _skill_response(skill)
+
+
+@router.post("/{skill_id}/versions", status_code=201)
+def create_native_skill_successor(
+    skill_id: UUID,
+    payload: NativeSkillDefinitionRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    _require_admin(request)
+    try:
+        skill = create_native_skill_version(
+            session,
+            skill_id=skill_id,
+            definition=payload.to_definition(),
+            actor=_actor(request),
+        )
+        session.commit()
+        session.refresh(skill)
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _skill_response(skill)
+
+
+@router.post("/{skill_id}/deprecate")
+def deprecate_native_skill_definition(
+    skill_id: UUID,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    _require_admin(request)
+    try:
+        skill = deprecate_native_skill(session, skill_id=skill_id)
+        session.commit()
+        session.refresh(skill)
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _skill_response(skill)
 
 
 @router.post("/{skill_id}/validate")
