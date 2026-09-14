@@ -7,12 +7,13 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.models.domain import AuditLog, RegulatoryChange, SourceSnapshot, VerifiedRule
+from app.models.domain import AuditLog, HumanReview, RegulatoryChange, SourceSnapshot, VerifiedRule
 from app.models.regulatory_publication import RegulatoryPublicationSet, RegulatoryReviewDisposition
 from app.services.regulatory_machine_publication import (
     PUBLICATION_ACTION,
     PUBLICATION_CONTRACT_VERSION,
 )
+from app.services.regulatory_promotion_authorization import AUTHORIZATION_ACTION, AUTHORIZATION_VERSION
 
 
 PROVENANCE_GATE_VERSION = "regulatory-graph-publication-provenance-v1"
@@ -115,6 +116,23 @@ def _machine_regulatory_change_provenance(
         if str(rule.id) not in manifest_ids:
             reasons.append("machine_rule_missing_from_manifest")
 
+    authorization_audit = session.get(AuditLog, publication_set.authorization_audit_id)
+    if authorization_audit is None:
+        reasons.append("machine_authorization_audit_missing")
+    else:
+        authorization_payload = _load_json(authorization_audit.after_state_json, {})
+        if authorization_audit.action != AUTHORIZATION_ACTION:
+            reasons.append("machine_authorization_action_mismatch")
+        if authorization_payload.get("authorization_version") != AUTHORIZATION_VERSION:
+            reasons.append("machine_authorization_version_mismatch")
+        if str(authorization_payload.get("regulatory_change_id") or "") != str(change.id):
+            reasons.append("machine_authorization_change_mismatch")
+        intended_mutations = authorization_payload.get("intended_rule_mutations", [])
+        if not isinstance(intended_mutations, list) or not intended_mutations:
+            reasons.append("machine_authorization_mutations_missing")
+        elif _sha256(intended_mutations) != publication_set.intended_mutations_sha256:
+            reasons.append("machine_mutation_fingerprint_mismatch")
+
     publication_audit = session.exec(
         select(AuditLog)
         .where(AuditLog.action == PUBLICATION_ACTION)
@@ -136,6 +154,12 @@ def _machine_regulatory_change_provenance(
             reasons.append("machine_publication_audit_snapshot_mismatch")
         if payload.get("source_snapshot_hash") != snapshot.content_hash:
             reasons.append("machine_publication_audit_hash_mismatch")
+        if str(payload.get("autonomy_profile_id") or "") != publication_set.autonomy_profile_id:
+            reasons.append("machine_publication_audit_autonomy_profile_mismatch")
+        if payload.get("autonomy_profile_sequence") != publication_set.autonomy_profile_sequence:
+            reasons.append("machine_publication_audit_autonomy_sequence_mismatch")
+        if payload.get("intended_mutations_sha256") != publication_set.intended_mutations_sha256:
+            reasons.append("machine_publication_audit_mutation_fingerprint_mismatch")
         published_rules = payload.get("published_rules", [])
         if not isinstance(published_rules, list) or _stable_json(published_rules) != _stable_json(manifest):
             reasons.append("machine_publication_audit_manifest_mismatch")
@@ -152,24 +176,35 @@ def _machine_regulatory_change_provenance(
         if manifest_ids != {str(item.id) for item in all_rules}:
             reasons.append("machine_publication_rule_set_manifest_mismatch")
 
-    if not publication_set.intended_mutations_sha256 or len(publication_set.intended_mutations_sha256) != 64:
-        reasons.append("machine_mutation_fingerprint_invalid")
-
+    reviews = session.exec(
+        select(HumanReview)
+        .where(HumanReview.regulatory_change_id == change.id)
+        .order_by(HumanReview.created_at, HumanReview.id)
+    ).all()
+    review_ids = {str(review.id) for review in reviews}
     dispositions = session.exec(
         select(RegulatoryReviewDisposition).where(
-            RegulatoryReviewDisposition.publication_set_id == publication_set.id
+            RegulatoryReviewDisposition.regulatory_change_id == change.id
         )
     ).all()
+    disposition_review_ids: list[str] = []
     for disposition in dispositions:
+        disposition_review_ids.append(str(disposition.human_review_id))
         if (
-            disposition.regulatory_change_id != change.id
+            disposition.publication_set_id != publication_set.id
+            or str(disposition.human_review_id) not in review_ids
             or disposition.disposition != "waived_board_delegation"
             or disposition.actor_type != "agent"
             or disposition.actor_key != publication_set.actor_key
             or disposition.authority_bridge_audit_id != publication_set.authority_bridge_audit_id
         ):
             reasons.append("machine_review_disposition_invalid")
-            break
+    if not reviews:
+        reasons.append("machine_review_requirement_missing")
+    elif len(disposition_review_ids) != len(set(disposition_review_ids)):
+        reasons.append("machine_review_disposition_duplicate")
+    if set(disposition_review_ids) != review_ids:
+        reasons.append("machine_review_disposition_coverage_incomplete")
 
     return GraphPublicationProvenance(
         provenance_type="board_delegated_machine",
@@ -191,8 +226,9 @@ def assess_graph_publication_provenance(
 
     Human-reviewed publication keeps its existing contract. Non-human publication is
     accepted only as a complete Board-delegated atomic publication set whose actor,
-    snapshot, audit lineage, manifest, and review-waiver dispositions remain intact.
-    This gate never grants publication authority and never writes canonical state.
+    snapshot, authorization, audit lineage, manifest, mutation fingerprint, and full
+    review-waiver coverage remain intact. This gate never grants publication authority
+    and never writes canonical state.
     """
 
     if rule.regulatory_change_id != change.id:
