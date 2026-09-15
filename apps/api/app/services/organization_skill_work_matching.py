@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -31,6 +32,19 @@ class SkillWorkCandidateSet:
     autonomy_granted: bool = False
     assignment_granted: bool = False
     execution_granted: bool = False
+
+
+def _has_no_requirements(raw: str) -> bool:
+    """Accept only a valid empty JSON string-list contract.
+
+    Malformed, non-list, or non-string requirement contracts fail closed instead of
+    being treated as prerequisite-free capability.
+    """
+    try:
+        value = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        return False
+    return isinstance(value, list) and not value
 
 
 def find_skill_work_candidates(
@@ -69,8 +83,6 @@ def find_skill_work_candidates(
             OrganizationSkill.capability_family == family,
             OrganizationPosition.status == "active",
             OrganizationPosition.department == work_item.department,
-            OrganizationSkill.tool_requirements_json == "[]",
-            OrganizationSkill.permission_requirements_json == "[]",
         )
     ).all()
 
@@ -85,6 +97,8 @@ def find_skill_work_candidates(
                     skill_version=skill.version,
                 )
                 for _binding, skill, position in rows
+                if _has_no_requirements(skill.tool_requirements_json)
+                and _has_no_requirements(skill.permission_requirements_json)
             ),
             key=lambda candidate: (
                 candidate.position_key,
