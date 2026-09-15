@@ -24,6 +24,7 @@ class SkillWorkCandidateSet:
     capability_family: str
     candidates: tuple[SkillWorkCandidate, ...]
     diagnostic_only: bool = True
+    prerequisites_resolved: bool = False
     authority_granted: bool = False
     permissions_granted: bool = False
     credentials_granted: bool = False
@@ -41,9 +42,9 @@ def find_skill_work_candidates(
     """Return capability candidates without authorizing assignment or execution.
 
     Phase 14.6 deliberately matches only canonical active positions, eligible exact
-    position/skill bindings, and active validated skill versions. Tool and
-    permission prerequisites are not evaluated here because the repository does
-    not yet expose canonical server-side entitlement truth for them. Consequently
+    position/skill bindings, and active validated skill versions. Skills declaring
+    tool or permission requirements are excluded because the repository does not
+    yet expose canonical server-side per-position entitlement truth. Consequently
     this result is diagnostic candidate discovery only and must not be consumed as
     an authorization, assignment, routing, credential, or execution decision.
     """
@@ -68,6 +69,8 @@ def find_skill_work_candidates(
             OrganizationSkill.capability_family == family,
             OrganizationPosition.status == "active",
             OrganizationPosition.department == work_item.department,
+            OrganizationSkill.tool_requirements_json == "[]",
+            OrganizationSkill.permission_requirements_json == "[]",
         )
     ).all()
 
@@ -95,4 +98,5 @@ def find_skill_work_candidates(
         work_item_id=work_item.id,
         capability_family=family,
         candidates=candidates,
+        prerequisites_resolved=True,
     )
