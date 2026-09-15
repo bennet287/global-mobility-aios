@@ -108,7 +108,7 @@ def test_matching_returns_only_active_validated_eligible_same_department_candida
     assert result.execution_granted is False
 
 
-def test_matching_fails_closed_for_skills_with_unresolved_tool_or_permission_requirements(db_session) -> None:
+def test_matching_fails_closed_for_skills_with_unresolved_or_malformed_prerequisites(db_session) -> None:
     work = _work()
     position = _position(key="regulatory_reviewer")
     tool_skill = _skill(
@@ -121,10 +121,20 @@ def test_matching_fails_closed_for_skills_with_unresolved_tool_or_permission_req
         family="regulatory_evidence",
         permission_requirements_json='["regulatory.publish"]',
     )
-    db_session.add_all([work, position, tool_skill, permission_skill])
+    malformed_skill = _skill(
+        key="regulatory.malformed.review",
+        family="regulatory_evidence",
+        tool_requirements_json="not-json",
+    )
+    non_list_skill = _skill(
+        key="regulatory.object.review",
+        family="regulatory_evidence",
+        permission_requirements_json="{}",
+    )
+    db_session.add_all([work, position, tool_skill, permission_skill, malformed_skill, non_list_skill])
     db_session.flush()
-    _bind(db_session, position, tool_skill)
-    _bind(db_session, position, permission_skill)
+    for skill in (tool_skill, permission_skill, malformed_skill, non_list_skill):
+        _bind(db_session, position, skill)
     db_session.commit()
 
     result = find_skill_work_candidates(
