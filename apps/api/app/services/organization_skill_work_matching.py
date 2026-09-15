@@ -34,17 +34,31 @@ class SkillWorkCandidateSet:
     execution_granted: bool = False
 
 
-def _has_no_requirements(raw: str) -> bool:
-    """Accept only a valid empty JSON string-list contract.
-
-    Malformed, non-list, or non-string requirement contracts fail closed instead of
-    being treated as prerequisite-free capability.
-    """
+def _string_list_or_none(raw: str) -> tuple[str, ...] | None:
+    """Parse a registry string-list contract, returning None when malformed."""
     try:
         value = json.loads(raw)
     except (TypeError, json.JSONDecodeError):
+        return None
+    if not isinstance(value, list) or any(not isinstance(item, str) or not item for item in value):
+        return None
+    return tuple(value)
+
+
+def _is_candidate_compatible(skill: OrganizationSkill, position: OrganizationPosition) -> bool:
+    departments = _string_list_or_none(skill.compatible_departments_json)
+    position_keys = _string_list_or_none(skill.compatible_position_keys_json)
+    required_tools = _string_list_or_none(skill.tool_requirements_json)
+    required_permissions = _string_list_or_none(skill.permission_requirements_json)
+    if None in (departments, position_keys, required_tools, required_permissions):
         return False
-    return isinstance(value, list) and not value
+    if departments and position.department not in departments:
+        return False
+    if position_keys and position.position_key not in position_keys:
+        return False
+    # Until canonical server-side entitlement truth exists, any declared tool or
+    # permission prerequisite makes this skill ineligible for operational matching.
+    return not required_tools and not required_permissions
 
 
 def find_skill_work_candidates(
@@ -55,12 +69,12 @@ def find_skill_work_candidates(
 ) -> SkillWorkCandidateSet:
     """Return capability candidates without authorizing assignment or execution.
 
-    Phase 14.6 deliberately matches only canonical active positions, eligible exact
-    position/skill bindings, and active validated skill versions. Skills declaring
-    tool or permission requirements are excluded because the repository does not
-    yet expose canonical server-side per-position entitlement truth. Consequently
-    this result is diagnostic candidate discovery only and must not be consumed as
-    an authorization, assignment, routing, credential, or execution decision.
+    Phase 14.6 matches canonical active, unsuspended positions to eligible exact
+    bindings and active validated skill versions. Compatibility contracts are
+    enforced fail-closed. Skills declaring tool or permission requirements are
+    excluded because canonical server-side per-position entitlement truth does not
+    yet exist. The result is diagnostic candidate discovery only and must never be
+    consumed as authorization, assignment, routing, credential, or execution truth.
     """
     family = capability_family.strip()
     if not family:
@@ -82,6 +96,7 @@ def find_skill_work_candidates(
             OrganizationSkill.validation_status == "passed",
             OrganizationSkill.capability_family == family,
             OrganizationPosition.status == "active",
+            OrganizationPosition.suspended_at.is_(None),
             OrganizationPosition.department == work_item.department,
         )
     ).all()
@@ -97,8 +112,7 @@ def find_skill_work_candidates(
                     skill_version=skill.version,
                 )
                 for _binding, skill, position in rows
-                if _has_no_requirements(skill.tool_requirements_json)
-                and _has_no_requirements(skill.permission_requirements_json)
+                if _is_candidate_compatible(skill, position)
             ),
             key=lambda candidate: (
                 candidate.position_key,
