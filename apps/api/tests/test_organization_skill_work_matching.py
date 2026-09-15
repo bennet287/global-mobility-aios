@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from datetime import datetime, timezone
 
 from app.models.domain import OrganizationPosition, OrganizationalWorkItem
 from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
@@ -27,6 +28,8 @@ def _skill(
     family: str,
     status: str = "active",
     validation: str = "passed",
+    compatible_departments_json: str = "[]",
+    compatible_position_keys_json: str = "[]",
     tool_requirements_json: str = "[]",
     permission_requirements_json: str = "[]",
 ) -> OrganizationSkill:
@@ -38,6 +41,8 @@ def _skill(
         content_sha256=_sha(key),
         validation_status=validation,
         status=status,
+        compatible_departments_json=compatible_departments_json,
+        compatible_position_keys_json=compatible_position_keys_json,
         tool_requirements_json=tool_requirements_json,
         permission_requirements_json=permission_requirements_json,
         created_by="pytest",
@@ -89,11 +94,7 @@ def test_matching_returns_only_active_validated_eligible_same_department_candida
     _bind(db_session, eligible_position, unvalidated_skill)
     db_session.commit()
 
-    result = find_skill_work_candidates(
-        db_session,
-        work_item=work,
-        capability_family="regulatory_evidence",
-    )
+    result = find_skill_work_candidates(db_session, work_item=work, capability_family="regulatory_evidence")
 
     assert [(candidate.position_key, candidate.skill_key) for candidate in result.candidates] == [
         ("regulatory_reviewer", "regulatory.source.review")
@@ -106,6 +107,36 @@ def test_matching_returns_only_active_validated_eligible_same_department_candida
     assert result.autonomy_granted is False
     assert result.assignment_granted is False
     assert result.execution_granted is False
+
+
+def test_matching_enforces_skill_compatibility_and_excludes_suspended_positions(db_session) -> None:
+    work = _work()
+    eligible = _position(key="regulatory_reviewer")
+    suspended = _position(key="regulatory_suspended")
+    suspended.suspended_at = datetime.now(timezone.utc)
+    compatible = _skill(
+        key="regulatory.compatible",
+        family="regulatory_evidence",
+        compatible_departments_json='["regulatory"]',
+        compatible_position_keys_json='["regulatory_reviewer"]',
+    )
+    incompatible = _skill(
+        key="regulatory.incompatible",
+        family="regulatory_evidence",
+        compatible_position_keys_json='["another_position"]',
+    )
+    db_session.add_all([work, eligible, suspended, compatible, incompatible])
+    db_session.flush()
+    _bind(db_session, eligible, compatible)
+    _bind(db_session, eligible, incompatible)
+    _bind(db_session, suspended, compatible)
+    db_session.commit()
+
+    result = find_skill_work_candidates(db_session, work_item=work, capability_family="regulatory_evidence")
+
+    assert [(candidate.position_key, candidate.skill_key) for candidate in result.candidates] == [
+        ("regulatory_reviewer", "regulatory.compatible")
+    ]
 
 
 def test_matching_fails_closed_for_skills_with_unresolved_or_malformed_prerequisites(db_session) -> None:
@@ -137,11 +168,7 @@ def test_matching_fails_closed_for_skills_with_unresolved_or_malformed_prerequis
         _bind(db_session, position, skill)
     db_session.commit()
 
-    result = find_skill_work_candidates(
-        db_session,
-        work_item=work,
-        capability_family="regulatory_evidence",
-    )
+    result = find_skill_work_candidates(db_session, work_item=work, capability_family="regulatory_evidence")
 
     assert result.candidates == ()
     assert result.prerequisites_resolved is True
@@ -160,11 +187,7 @@ def test_matching_does_not_mutate_work_assignment_or_position_authority(db_sessi
 
     original_assignment = work.assigned_position_key
     original_authority = position.authority_level
-    result = find_skill_work_candidates(
-        db_session,
-        work_item=work,
-        capability_family="regulatory_evidence",
-    )
+    result = find_skill_work_candidates(db_session, work_item=work, capability_family="regulatory_evidence")
 
     assert len(result.candidates) == 1
     db_session.refresh(work)
