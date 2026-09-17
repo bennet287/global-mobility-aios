@@ -2,9 +2,10 @@
 
 **Date:** 2026-08-22
 **Status:** ACTIVE ARCHITECTURE DIRECTION / NO PRODUCTION-ADOPTION CLAIM
-**Active branch:** `roadmap/global-mobility-aios-v12`
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Parent architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`
-**Current product sequence:** I.1–I.4 SEALED → J.1 SEALED → K.1 SEALED → L Live Organization NEXT
+**Current sequencing authority:** `ROADMAP.md` with recovery coordinates in `../agents/PROJECT_STATE.md`
 
 > **External infrastructure provides capability. AIOS owns meaning, truth and authority.**
 

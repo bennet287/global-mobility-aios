@@ -1,10 +1,54 @@
-# Global Mobility AIOS — V12 Active Changelog
+# Global Mobility AIOS — Delivery Changelog
 
-This changelog records current meaningful delivery on `roadmap/global-mobility-aios-v12`.
+This changelog preserves dated meaningful delivery. `docs/ROADMAP.md` is current scheduling authority; `agents/PROJECT_STATE.md` is the concise recovery dashboard. Historical entries retain the status that was true at their dated checkpoint and must not be read as current work.
 
-Frozen V11 reference head remains `ac130deaafa7aa44068e9459facbda2b4df327d6`.
+Exact older V12 detail remains in Git history and `docs/archive/CHANGELOG_THROUGH_V12_33_2026-08-31.md`.
 
-The active changelog was rotated after V12.33. Exact older detail remains in Git history and `docs/archive/CHANGELOG_THROUGH_V12_33_2026-08-31.md`.
+---
+
+## 2026-09-17 — PHASE 15.2 GOVERNED LIFECYCLE TRANSITION SERVICES SEALED
+
+### Status
+
+**PHASE 15.2 COMPLETE / PASS / SEALED / GOVERNED RUNTIME SIGNALS NEXT**
+
+Exact accepted implementation candidate and proof:
+
+~~~text
+6dcd1744a3c56bdab231f62bcfa76caf01df866d
+
+Repository Policy Check #1393   PASS
+V12 Production Proof #2023     PASS
+PR #158 actual merge           30e6a9e691f4b82a326b2dc1cb267ef5bb938c35
+Roadmap reconciliation         eee8ac5d24808b3880e50f51e1879c4ad623021c
+~~~
+
+Phase 15.2 adds the admin-only explicit lifecycle transition service/API on canonical `OrganizationAgent` truth. The sealed forward graph is fail-closed, competing mutations serialize before source-state validation, invalid/skipped/reverse/repeated/terminal transitions are rejected, and bounded actor/reason/before/after lineage commits through existing `AuditLog` infrastructure.
+
+The accepted slice changed exactly six implementation/test files and added no migration or second lifecycle store. Transitions grant no authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
+
+Phase 15 remains active. Governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries are next.
+
+---
+
+## 2026-09-17 — PHASE 15.1 GOVERNED AGENT LIFECYCLE FOUNDATION SEALED
+
+### Status
+
+**PHASE 15.1 COMPLETE / PASS / SEALED / PHASE 15.2 NEXT AT THIS CHECKPOINT**
+
+Exact accepted implementation candidate and proof:
+
+~~~text
+3b4ca1e2d2c7f00ebf54f309a6d59dca0d3d9ea3
+
+Repository Policy Check #1392   PASS
+V12 Production Proof #2022     PASS
+PR #156 actual merge           30774751a79e998fe80f648f1e172ab1b75c08d0
+Seal reconciliation            519a360d1895dc942aadc2b02852e5007832ccca
+~~~
+
+Migration `0084_organization_agent_lifecycle` introduced durable `OrganizationAgent` lifecycle/identity truth while preserving the separation from static implementation definitions, execution history, organizational authority, capability eligibility, assignment, autonomy and credentials.
 
 ---
 

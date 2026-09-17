@@ -4,16 +4,20 @@
 
 **Last reconciled:** 2026-09-17
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
-**Current sealed integration SHA:** `98229c2024b44d6b65a6af7829d61209c142e7bc`
+**Current sealed programme checkpoint:** `eee8ac5d24808b3880e50f51e1879c4ad623021c` (Phase 15.2 Roadmap reconciliation)
+**Latest accepted implementation merge:** `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35` (PR #158)
 **Current programme:** Phase 15 — Agent Lifecycle Governance Hooks
-**Active implementation:** Phase 15.1 Draft PR #156 on `feature/phase-15-1-agent-lifecycle-foundation`
+**Active implementation:** none; Phase 15.2 is sealed
+**Next scheduled slice:** governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries
 
 ## Current programme state
 
 - Phase 13G Living HQ flagship convergence — SEALED.
 - Autonomous Regulatory Intelligence RI.A1–RI.A8 — SEALED. Production machine publication and machine recovery remain OFF unless separately authorized.
 - Phase 14 Native Skills Registry — SEALED through governed skill-informed work assignment.
-- Phase 15 Agent Lifecycle Governance — ACTIVE.
+- Phase 15.1 Governed Agent Lifecycle Foundation — SEALED by PR #156.
+- Phase 15.2 Governed Lifecycle Transition Services — SEALED by PR #158.
+- Phase 15 Agent Lifecycle Governance — ACTIVE; the next signal slice has not yet opened a branch or PR.
 
 ## Phase 14 sealed chain
 
@@ -25,17 +29,26 @@ Permanent boundary: `CAN DO != MAY DO`. Skills, validation, matching and assignm
 
 ## Phase 15 current boundary
 
-Phase 15 owns durable governed AI-employee lifecycle state:
+Phase 15 owns durable governed AI-employee lifecycle state and its explicit transition boundary:
 
-`create -> onboard -> position -> skills -> tools/permissions -> activate -> observe -> restrict/suspend -> retire`
+`created -> onboarding -> inactive -> active -> restricted/suspended -> retired`
 
 The existing concepts remain separate:
 
 - `CONTROLLED_AGENT_REGISTRY` = static implementation-definition truth.
 - `AgentRun` = execution-history truth.
-- `OrganizationAgent` = durable lifecycle/identity truth introduced by Phase 15.1 when accepted.
+- `OrganizationAgent` = durable lifecycle/identity truth introduced by sealed Phase 15.1.
+- the Phase 15.2 transition service = explicit fail-closed lifecycle mutation plus bounded `AuditLog` lineage.
 
-Phase 15.1 does not wire execution, grant autonomy, create credential truth or automatically activate agents.
+Phase 15.1/15.2 do not wire execution, grant autonomy, create credential truth, assign work, route work or automatically activate agents. Phase 15.2 added no migration or second lifecycle store. Migration head remains `0084_organization_agent_lifecycle`.
+
+Phase 15.2 accepted exact-head evidence:
+
+- candidate `6dcd1744a3c56bdab231f62bcfa76caf01df866d`;
+- Repository Policy Check #1393 — PASS;
+- V12 Production Proof #2023 — PASS;
+- actual merge `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`;
+- Roadmap reconciliation `eee8ac5d24808b3880e50f51e1879c4ad623021c`.
 
 ## Canonical read order
 

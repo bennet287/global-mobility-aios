@@ -2,9 +2,10 @@
 
 **Date:** 2026-08-31
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
-**Branch:** `roadmap/global-mobility-aios-v12`
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Original ledger branch context:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.78 / M.7.4 GPU FLOW field TRIAL Iteration 1 technical PASS; benchmark pending; AI runtime / Model Router seam restored
+**Last technology reconciliation recorded here:** V12.78 / M.7.4 GPU FLOW field TRIAL Iteration 1 technical PASS; benchmark pending; AI runtime / Model Router seam restored
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`

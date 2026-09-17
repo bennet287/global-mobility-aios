@@ -3,7 +3,8 @@
 **Date:** 2026-08-22
 **Status:** Strategic donor / controlled adoption programme
 **Donor baseline:** Munder Difflin `v0.4.4`
-**AIOS implementation line:** `roadmap/global-mobility-aios-v12`
+**Canonical AIOS integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Frontend design programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 
 ## 1. Purpose

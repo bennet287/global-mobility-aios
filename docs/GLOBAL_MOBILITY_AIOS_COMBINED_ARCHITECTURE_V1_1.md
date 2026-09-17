@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-21  
 **Status:** CANONICAL ACTIVE ARCHITECTURE REFINEMENT — DOCUMENTATION / DIRECTION ONLY  
-**Active implementation branch:** `roadmap/global-mobility-aios-v12`  
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Refines:** `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`  
 **Preserves constitutional source:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`  
 **Runtime effect of this document:** none by itself  

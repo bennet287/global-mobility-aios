@@ -1,13 +1,14 @@
 # L Live Organization — Acceptance Operations
 
-**Status:** L IMPLEMENTED / ACCEPTANCE PENDING
+**Status:** HISTORICAL ACCEPTANCE RUNBOOK — L COMPLETE / PASS / SEALED BY V12.63
+**Status at this runbook checkpoint:** L IMPLEMENTED / ACCEPTANCE PENDING
 **Original technical predecessor:** `1037f020adfb8e8b99849050bd75cf1035ed2e96`
 **Original technical proof:** Woodpecker Pipeline #72 — 4/4 PASS
 **Latest fully green historical L checkpoint:** `34597abf24a348a28b25e15dccb1a22fa35b3998` — Woodpecker Pipeline #77, 4/4 PASS
 **Accepted live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`
 **Migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
-This runbook covers the evidence work for L. The live-runtime gates were accepted on 2026-08-30 in `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`; independent professional review and final exact-current-head technical proof remain. This runbook does not redefine AIOS authority, benchmark truth, or milestone acceptance.
+This runbook preserves the evidence work that remained for L at its checkpoint. The live-runtime gates were accepted on 2026-08-30 in `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`; independent professional review and final exact-current-head technical proof were subsequently completed and L was sealed by V12.63. This runbook does not redefine AIOS authority, benchmark truth, current sequencing, or milestone acceptance.
 
 ## Acceptance boundary
 

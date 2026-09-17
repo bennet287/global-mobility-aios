@@ -1,12 +1,13 @@
 # Global Mobility AIOS — V12.25 Integration Capability Programme
 
 **Date:** 2026-08-22
-**Status:** ACTIVE CAPABILITY REFERENCE / SUBORDINATE TO MASTER ROADMAP
-**Active branch:** `roadmap/global-mobility-aios-v12`
-**Accepted runtime baseline:** K.1 COMPLETE / PASS / SEALED
-**Current product milestone:** L — Live Organization
+**Status:** ARCHITECTURE CAPABILITY REFERENCE / SUBORDINATE TO MASTER ROADMAP
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
+**Accepted runtime baseline at publication:** K.1 COMPLETE / PASS / SEALED
+**Current programme state:** see `ROADMAP.md` and `../agents/PROJECT_STATE.md`
 **Master scheduling authority:** `ROADMAP.md`
-**Technology direction:** `TECHNOLOGY_RADAR_V1_3_2.md`
+**Consolidated technology direction:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Capability radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 
