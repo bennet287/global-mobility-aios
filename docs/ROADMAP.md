@@ -511,6 +511,27 @@ A completed WorkItem is not automatically a successful outcome. Revenue/value at
 
 Learning begins as proposals and may recommend changed training, skills, routing, model/tool choice or resource envelope; it must not silently alter authority policy.
 
+#### Production economics and practical-result controls
+
+Before meaningful spend, a WorkItem should carry an explicit expected-result contract where the domain permits it: acceptance criteria, expected outcome/value class, maximum authorized cost, and the evidence required to call the result successful. Competency alone does not make work economically sensible.
+
+Expensive work should support **progressive funding** and evidence checkpoints rather than exposing the entire budget at once. Discovery, investigation and execution tranches may be released only when the preceding checkpoint still supports continuation. A **stop-loss** boundary should halt or escalate before budget exhaustion when repeated failure, negligible information gain, an impossible dependency, or deteriorating expected value makes further spend unjustified. Employees are not rewarded for consuming an allocation.
+
+When a competency gap exists, AIOS should compare **reskill vs reassign** using expected cost, time, recurrence of the capability need, risk and available qualified capacity. Newly verified competencies may enter a bounded probationary state with lower-risk work, smaller budgets and stronger review until production outcomes establish the competency. Competencies may become stale or require recertification when regulations, organizational procedures, tools, APIs or other material dependencies change.
+
+Training/reskilling expenditure, production expenditure, and failure/recovery expenditure should remain distinguishable in economic evidence. Opportunity cost should later inform scheduling across competing WorkItems so a positive result is not automatically treated as the best use of scarce organizational capital.
+
+Economic evaluation must support portfolio roles whose value is not direct revenue. Revenue created, cost saved, loss/risk avoided, customer outcome, quality, strategic capability and unknown/unattributed value remain distinct. Savings or avoided-loss claims require a defensible baseline/counterfactual; otherwise attribution remains unknown rather than manufacturing impressive economics.
+
+Permanent production laws:
+
+- **NO SPEND WITHOUT PURPOSE.**
+- **NO PRODUCTION WITHOUT VERIFIED READINESS.**
+- **NO RESKILL WITHOUT A VERIFIED GAP.**
+- **NO RESULT WITHOUT EVIDENCE.**
+- **NO VALUE CLAIM WITHOUT ATTRIBUTION EVIDENCE.**
+- **NO ADDITIONAL CAPITAL WITHOUT GOVERNANCE.**
+
 ### Phase 20 — Earned Autonomy & Resource Governance
 
 Grant autonomy capability-by-capability with bounded scope, authority ceiling, risk class, budget, rollback, audit, quality threshold, revocation and periodic review. Phase 20 consumes verified competency, production-result and economic evidence rather than enabling autonomy or resource increases by configuration alone.
