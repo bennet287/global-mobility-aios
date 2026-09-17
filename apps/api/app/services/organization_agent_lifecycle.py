@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.agent_lifecycle import OrganizationAgent, now_utc
 from app.services.audit_log import record_audit
@@ -72,7 +72,13 @@ def transition_organization_agent(
     if not clean_actor:
         raise ValueError("transition actor is required")
 
-    agent = session.get(OrganizationAgent, agent_id)
+    # Serialize competing lifecycle commands so a stale source state cannot authorize
+    # a transition after another transaction has already changed canonical truth.
+    agent = session.exec(
+        select(OrganizationAgent)
+        .where(OrganizationAgent.id == agent_id)
+        .with_for_update()
+    ).one_or_none()
     if agent is None:
         raise NotFound("organization agent was not found")
 
