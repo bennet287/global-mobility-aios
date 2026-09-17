@@ -1,11 +1,11 @@
 # Global Mobility AIOS — Master Product Roadmap
 
 **Roadmap generation:** 2026.09 — post-Phase-13G autonomous-operations reset
-**Date:** 2026-09-12
+**Date:** 2026-09-17
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 15 — Agent Lifecycle Governance Hooks
-**Current checkpoint:** Phase 15.1 — SEALED by PR #156 at merge `30774751a79e998fe80f648f1e172ab1b75c08d0`
+**Current checkpoint:** Phase 15.2 — SEALED by PR #158 at merge `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`
 **Code migration head:** `0084_organization_agent_lifecycle`
 
 <!-- CURRENT_MIGRATION_HEAD: 0084_organization_agent_lifecycle -->
@@ -160,7 +160,7 @@ locomotionAllowed = false
 
 Canonical handoffs/conversations/governance events may drive presentation only when their durable records exist. Character placement does not assert physical presence. Room presentation does not assert occupancy. Selection remains view state. Living HQ does not create work, evidence, authority or decisions.
 
-Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. Phase 15 remains active; governed lifecycle transition services are next. Lifecycle records do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
+Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. **Phase 15.2 — Governed Lifecycle Transition Services** is sealed and merged by PR #158 at `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`. Phase 15 remains active; governed pre/post tool-use and permission signals are next. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
 
 ---
 
@@ -467,9 +467,9 @@ Governed pre/post tool-use, tool failure, permission request/denial, task/subage
 
 PR #156 merged exact candidate `3b4ca1e2d2c7f00ebf54f309a6d59dca0d3d9ea3` as `30774751a79e998fe80f648f1e172ab1b75c08d0` after Repository Policy Check #1392 and V12 Production Proof #2022 passed. Migration `0084_organization_agent_lifecycle` establishes an `OrganizationAgent` record with canonical registry lineage, lifecycle status and timestamps. It remains separate from static implementation definitions and execution history, and grants no authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
 
-#### Phase 15.2 — Governed Lifecycle Transition Services — NEXT
+#### Phase 15.2 — Governed Lifecycle Transition Services — SEALED
 
-Add explicit lifecycle transition commands and service/API boundaries only after the sealed Phase 15.1 identity contract. Transitions must fail closed, preserve audit lineage and remain non-authorizing.
+PR #158 merged exact candidate `6dcd1744a3c56bdab231f62bcfa76caf01df866d` as `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35` after Repository Policy Check #1393 and V12 Production Proof #2023 passed. The admin-only service/API enforces the sealed forward lifecycle, serializes competing mutations at canonical `OrganizationAgent` truth, rejects invalid transitions, and commits bounded actor/reason/before/after evidence through the existing `AuditLog` infrastructure. It adds no migration or second lifecycle store and grants no authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
 
 ### Phase 16 — Runtime Reliability & Cost Intelligence
 
@@ -558,15 +558,14 @@ We also do not optimize for “maximum autonomy” as a vanity metric. We do not
 ## 14. Immediate order of work
 
 ```text
-1. Phase 15.2 — add fail-closed lifecycle transition services and APIs with durable audit lineage.
-2. Add governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries.
-3. Add task, subagent, session, compaction and cancellation lifecycle signals with durable audit lineage.
-4. Keep lifecycle identity separate from static agent definitions, `AgentRun` execution history, work assignment, credentials, permissions, authority and autonomy.
-5. Integrate lifecycle visibility into employee inspection and Living HQ only from canonical lifecycle state and without asserting physical presence.
-6. Build Phase 16 runtime reliability/cost and Phase 17 security assurance before materially increasing autonomous execution.
-7. Expand AUTO.DOC, AUTO.CASE, AUTO.COMMS, AUTO.ORG and AUTO.OPS only where their evidence/reconciliation/queue controls are proven.
-8. Use Phase 19/20 metrics to earn higher autonomy capability-by-capability; demote automatically when quality degrades.
-9. Add interoperability and production scale only when measured bottlenecks justify them.
+1. Add governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries.
+2. Add task, subagent, session, compaction and cancellation lifecycle signals with durable audit lineage.
+3. Keep lifecycle identity separate from static agent definitions, `AgentRun` execution history, work assignment, credentials, permissions, authority and autonomy.
+4. Integrate lifecycle visibility into employee inspection and Living HQ only from canonical lifecycle state and without asserting physical presence.
+5. Build Phase 16 runtime reliability/cost and Phase 17 security assurance before materially increasing autonomous execution.
+6. Expand AUTO.DOC, AUTO.CASE, AUTO.COMMS, AUTO.ORG and AUTO.OPS only where their evidence/reconciliation/queue controls are proven.
+7. Use Phase 19/20 metrics to earn higher autonomy capability-by-capability; demote automatically when quality degrades.
+8. Add interoperability and production scale only when measured bottlenecks justify them.
 ```
 
 ### Workstream parallelization rule
