@@ -596,6 +596,68 @@ Automation surfaces must make **why**, **evidence**, **authority**, **confidence
 
 **Backpressure is a correctness feature:** overload must slow, queue, deduplicate or shed low-priority work rather than silently dropping evidence or lowering gates.
 
+### Anti-bottleneck production design
+
+Controls that prevent failure must not become a second source of operational failure. Control strength, synchronization and durability are proportional to consequence. Routine compliant work should use the shortest safe path; governance concentrates on exceptions and boundary crossings.
+
+| Anti-bottleneck mechanism | Practical failure mode | Better production design |
+| --- | --- | --- |
+| Capability autonomy | autonomy levels become a sequential approval staircase | capability-specific pre-authorized operating envelopes; routine work executes directly inside the earned envelope |
+| Governance by exception | routine work is over-classified as exceptional | measure exception rate/age and repair policies that repeatedly escalate safe routine work |
+| Cached competency | constant revalidation or stale competency | version/freshness-aware reuse with event/dependency invalidation; recheck only after material change, expiry or performance trigger |
+| Permission/authority reuse | repeated identical checks or stale authorization | bounded execution leases/contexts with immediate revocation semantics; cached authorization never becomes a new grant |
+| Fast-path preflight | every subsystem independently recomputes eligibility | one bounded execution context from canonical competency, authority, permission, risk and budget truth |
+| Human escalation | reviewer queues become stale | lowest-capable-authority routing, priority/SLA/aging and safe timeout behavior; escalate upward only when unresolved |
+| CEO/Board coordination | executive becomes synchronous router for every action | distributed routine execution under canonical objectives/policies/budgets; executives handle strategy, conflicts, exceptions and material allocation |
+| Progressive funding | tiny tranches create approval chatter | materiality-aware tranches/checkpoints; no approval per token/API call inside an authorized envelope |
+| Budget enforcement | per-call bureaucracy or spend-to-budget behavior | bounded local spending envelope, actual metering, hard limit and material governed replenishment |
+| Stop-loss | crude attempt limits kill valuable difficult work | failure class, information gain, progress, dependency state and expected value determine continuation |
+| Evidence reuse | full evidence graph is reconstructed repeatedly | canonical fingerprints, dependency versions, incremental recomputation and selective retrieval |
+| Durable audit | write amplification/transaction contention | durable pre/post evidence for consequential effects; efficient durable/batched metering for material paid operations; sampled/aggregated routine telemetry |
+| Pre-tool durability | database commit before every harmless tool call | consequence-tier signal durability; reconstructable lineage for external mutation, lighter treatment for routine reads/calculations |
+| Retry control | repeated deterministic failures consume capacity | classify failure before retry; bounded retries plus scoped circuit breakers; deterministic failures are not papered over |
+| Deduplication | global duplicate search becomes expensive | deterministic idempotency/causal keys and bounded windows |
+| Queue prioritization | reprioritization churn or easy-task starvation | stable priority classes with deadlines, consequence, aging/fairness, expected value and capacity |
+| Backpressure | queues grow forever | admission control, bounded queues, deduplication, cancellation and shedding obsolete/low-value work while preserving evidence |
+| Parallel execution | provider/database contention | concurrency budgets by tenant/provider/capability and dependency-aware parallelism |
+| Capacity-aware routing | best employee/model becomes hotspot | route on fit, competency, quality, cost, load, deadline and probation needs rather than quality alone |
+| Cheap-model routing | repeated cheap failures cost more overall | measured task/provider success-cost history with bounded escalation |
+| Expensive-model escalation | difficult work always jumps to frontier inference | explicit complexity/risk thresholds and measured marginal benefit |
+| Reskill vs reassign | optimizer spends too long deciding | deterministic thresholds first; deeper optimization only when material |
+| Competency recertification | simultaneous expiry creates retraining storm | staggered expiry, dependency-triggered invalidation and reuse of valid organizational learning |
+| Organizational learning | behavior churn after every task | accumulate evidence and batch governed learning proposals; never silently rewrite authority |
+| Economic attribution | work waits for revenue/value evidence | separate operational completion from asynchronous economic attribution; outcomes may remain pending/unknown |
+| Outcome verification | long-latency outcomes hold workers | durable pending-outcome state and asynchronous reconciliation |
+| Agent handoffs | serialization/context reconstruction | direct ownership by default; hand off only for capability/authority/dependency reasons using compact structured artifacts |
+| Context transport | full company/case/history resent every call | canonical references, selective retrieval, fingerprints and incremental compaction |
+| Context compaction | repeated summaries lose facts/cost tokens | compact derived runtime/conversation context; reference canonical truth rather than rewriting it |
+| Provider fallback | fallback violates assumptions/output shape | normalized capability/output contracts, provider validation and explicit degraded/unknown states |
+| External reconciliation | missing confirmation blocks forever | bounded reconciliation with pending/unknown states and escalation; never fabricate confirmation |
+| Circuit breakers | one failure stops unrelated work | scope breakers by provider/tool/capability/tenant |
+| Observability | telemetry becomes production workload | aggregate/sample diagnostics where safe; full durable lineage for consequential/material events |
+| Security assurance | heavyweight security checks on harmless operations | risk-tiered controls; strongest checks at credential/consequential/external boundaries |
+| GRC/policy evaluation | policy engine becomes synchronous bureaucracy | deterministic/precompiled evaluation and reusable bounded decisions where policy permits |
+| Production proof | exhaustive proof on every tiny runtime action | proof proportional to change/action risk while exact-head release acceptance remains mandatory |
+| Living HQ updates | visualization polling overloads backend | event-driven/coalesced presentation; UI never enters execution critical path |
+| Notifications | Owner/reviewer alert fatigue | aggregate, rank, deduplicate and suppress redundant alerts while preserving critical escalation |
+| Multi-agent consensus | routine work waits for unnecessary agreement | consensus/review only when risk/evidence policy justifies it; model agreement is never authority |
+| Bottleneck optimization | system scales guessed constraint | measure end-to-end lead time: queue + governance + dependency + provider + execution + reconciliation; scale measured constraint |
+| Successful throughput | easy work crowds out important difficult work | balance priority, consequence, deadline, aging, expected value and capacity; raw throughput is not success |
+
+**Fast-path invariant:** work admitted -> valid reusable competency/authority/permission/budget context -> capacity-aware assignment -> execute inside bounded envelope -> proportionate telemetry/evidence -> exception only when necessary -> asynchronous outcome/economic attribution.
+
+**Anti-bottleneck laws:**
+- **FAST PATH FOR ROUTINE WORK.**
+- **GOVERNANCE BY EXCEPTION.**
+- **AUTONOMY LEVELS ARE OPERATING ENVELOPES, NOT SEQUENTIAL APPROVAL STEPS.**
+- **REUSE VERIFIED COMPETENCY, EVIDENCE AND AUTHORIZATION UNTIL A MATERIAL INVALIDATION EVENT.**
+- **NO CENTRAL AGENT ON EVERY EXECUTION PATH.**
+- **NO CONSENSUS WITHOUT A RISK OR EVIDENCE REASON.**
+- **FAILURE CLASSIFICATION BEFORE RETRY.**
+- **HUMAN ATTENTION IS A SCARCE ORGANIZATIONAL RESOURCE.**
+- **DURABILITY AND CONTROL COST MUST BE PROPORTIONAL TO CONSEQUENCE.**
+- **MEASURE END-TO-END LEAD TIME AND BOTTLENECKS BEFORE SCALING.**
+
 ---
 
 ## 13. What we deliberately do not build
