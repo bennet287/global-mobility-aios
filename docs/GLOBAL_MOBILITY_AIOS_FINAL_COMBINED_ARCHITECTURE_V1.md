@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-20  
 **Status:** Canonical combined architecture direction proposed for V12  
-**Active implementation branch:** `roadmap/global-mobility-aios-v12`  
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Architecture basis:** Global Mobility AIOS V1.3 + controlled Munder Difflin v0.4.4 donor adoption  
 **Munder donor baseline:** `v0.4.4` frozen source snapshot  
 

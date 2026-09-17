@@ -5,7 +5,7 @@ This guide is for AI coding agents and developers working on the active Global M
 **New session recovery:**
 1. Read `agents/PROJECT_STATE.md` first for the current project map.
 2. Then read `agents/SESSION_HANDOFF.md` for recovery commands, exact branch/worktree state, and recent decisions.
-3. Verify all claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, the active Radar/adoption ledger, and the actual git remotes before acting.
+3. Verify all claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, the consolidated Radar/adoption ledger, and the actual git remotes before acting.
 
 ## 1. Product identity and constitutional boundaries
 
@@ -37,21 +37,24 @@ Implementation != acceptance
 
 Visa, immigration, legal, scholarship, job, tax, investment, and other regulated/material claims must remain grounded in the project's governed truth/evidence model. An LLM response is never canonical truth by itself.
 
-## 2. Active product milestone
+## 2. Active product programme
 
-The active product milestone is **L — Live Organization**.
+The active product programme is **Phase 15 — Agent Lifecycle Governance Hooks** on `design/aios-v2-complete-redesign`.
 
 Current status:
 
 ```text
-L Live Organization              IMPLEMENTED / ACCEPTANCE PENDING
-M Board Transparency Experience  NOT STARTED
-N Learning & Optimization        NOT STARTED
+Phase 13G Living HQ flagship convergence       SEALED
+Regulatory Intelligence RI.A1-RI.A8            SEALED
+Phase 14 Native Skills Registry                SEALED
+Phase 15.1 Agent Lifecycle Foundation          SEALED
+Phase 15.2 Lifecycle Transition Services       SEALED
+Phase 15 governed runtime signals              NEXT
 ```
 
-Do not advance M merely because L code exists. The live-provider/fresh-retrieval/failure/replay runtime gates are recorded in `docs/V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`. L remains open until genuine independent professional-review evidence and final exact-current-head technical proof are recorded under `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`.
+The current sealed programme checkpoint is recorded in `agents/PROJECT_STATE.md`; the actual integration ref must be freshly verified. `docs/ROADMAP.md` remains scheduling authority. L/M/N and earlier V12 acceptance documents are historical evidence, not the current work queue.
 
-A deterministic fallback path or synthetic integration test may prove technical lineage, but it does not substitute for live-provider success or independent professional correctness evidence.
+The next bounded slice adds governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries. It must not expand lifecycle identity into authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
 
 ## 3. Repository layout
 
@@ -128,7 +131,7 @@ The normal controlled-agent stack may use deterministic template fallback when c
 The current package contract is:
 
 - Node.js 24 accepted proof runtime (`.nvmrc`)
-- Next.js 16.3.1
+- Next.js 16.3.4
 - React / React DOM 19.0.8
 - TypeScript 5.8.3
 - App Router
@@ -158,7 +161,7 @@ apps/api/app/evaluations/
 apps/api/tests/test_organization_*
 ```
 
-Current L/Austria runtime/evaluation areas include:
+Historical L/Austria runtime/evaluation areas remain relevant when a task touches that accepted path:
 
 ```text
 apps/api/app/services/organization_mobility_live_organization.py
@@ -321,7 +324,9 @@ Use `python scripts/check_local_quality.py` for the repository's aggregate local
 
 Do not claim a check passed unless it was actually executed for the commit/state being described.
 
-## 8. Milestone L live-provider acceptance tooling
+## 8. Historical Milestone L live-provider tooling
+
+Milestone L is sealed. Use this tooling only for regression investigation, a deliberately scheduled re-evaluation, or work that explicitly touches the accepted Austria live-provider path. It is not the current Phase 15 work queue.
 
 Use the bounded operator CLI:
 
@@ -365,9 +370,11 @@ Background execution does not expand authority. Material actions remain governed
 
 ## 10. CI direction and proof semantics
 
-### Forward CI authority
+### CI authority
 
-The repository's forward CI direction is **self-hosted Woodpecker**. Active pipeline definitions are:
+GitHub Actions currently provides the accepted exact-head PR proof used by governed redesign slices. The required workflows are `Repository Policy Check` and `V12 Production Proof`; inspect their actual jobs and conclusions for the exact candidate SHA.
+
+Self-hosted Woodpecker remains configured as the forward pipeline direction. Active pipeline definitions are:
 
 ```text
 .woodpecker/backend-sqlite.yml
@@ -383,7 +390,7 @@ frontend tests/types/build/compiled-auth
 live-organization Chromium Playwright E2E
 ```
 
-Historical GitHub Actions workflows under `.github/workflows/` remain useful proof/fallback artifacts and may still run, but they are not the forward CI direction.
+Neither system's existence is proof. Only an observed completed-success run attached to the exact candidate head may be cited for acceptance.
 
 ### Exact-head rule
 
@@ -459,8 +466,8 @@ what remains unproven
 ## 15. Useful current references
 
 - `docs/ROADMAP.md` — master necessity-driven orchestration and milestone status
-- `docs/CHANGELOG.md` — active V12 delivery history
-- `docs/TECHNOLOGY_RADAR_V1_3_8.md` — active consolidated Technology Radar
+- `docs/CHANGELOG.md` — dated delivery history; the newest entry summarizes the current sealed slice
+- `docs/TECHNOLOGY_RADAR_V1_3_8.md` — consolidated Technology Radar reference
 - `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md` — applied duplication audit / rationale
 - `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` — L external/live acceptance runbook
 - `docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md` — sealed K.1 baseline

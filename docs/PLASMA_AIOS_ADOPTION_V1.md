@@ -3,7 +3,8 @@
 **Date:** 2026-08-21  
 **Status:** CONTROLLED ADOPTION / PILOT APPROVED — NOT PRODUCTION ADOPTED  
 **Track:** Technology Radar / Platform Evolution  
-**AIOS branch context:** `roadmap/global-mobility-aios-v12`  
+**Canonical AIOS integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Canonical architecture refinement:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`  
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_1.md`  
 **Accepted V1.3 baseline:** H.2.4 COMPLETE / PASS / SEALED  

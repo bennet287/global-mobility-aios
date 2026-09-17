@@ -9,8 +9,8 @@
 1. Read `agents/PROJECT_STATE.md`.
 2. Read the current scheduling sections of `docs/ROADMAP.md` and the companion spec for the active slice.
 3. Fetch `design/aios-v2-complete-redesign` from GitHub and verify its actual SHA.
-4. Inspect the active PR and exact-head workflow runs before changing code.
-5. If the active PR is stale against a newly sealed base, reconstruct/rebase it before proof rather than accepting stale CI.
+4. If an active PR exists, inspect its exact head and workflow runs before changing code; otherwise branch from the verified integration head.
+5. If a future PR is stale against a newly sealed base, reconstruct/rebase it before proof rather than accepting stale CI.
 
 ## Current recovery coordinates
 
@@ -18,25 +18,29 @@ Canonical integration branch:
 
 `design/aios-v2-complete-redesign`
 
-Verified Phase 14 sealed merge:
+Current sealed programme checkpoint:
 
-`98229c2024b44d6b65a6af7829d61209c142e7bc`
+`eee8ac5d24808b3880e50f51e1879c4ad623021c`
+
+Latest accepted implementation merge:
+
+`30e6a9e691f4b82a326b2dc1cb267ef5bb938c35` — PR #158
 
 Active programme:
 
 `Phase 15 — Agent Lifecycle Governance Hooks`
 
-Active slice at this handoff:
+Sealed slices at this handoff:
 
 `Phase 15.1 — Governed Agent Lifecycle Foundation`
 
-Active branch:
+`Phase 15.2 — Governed Lifecycle Transition Services`
 
-`feature/phase-15-1-agent-lifecycle-foundation`
+Next scheduled slice:
 
-Draft PR:
+`governed pre/post tool-use, tool-failure and permission-request/denial signals`
 
-`#156`
+There is no active implementation branch or PR recorded by this handoff. The integration branch may contain later documentation-only reconciliation commits; create the next bounded branch only from its freshly verified actual head.
 
 Always verify these coordinates against GitHub; this file is a recovery pointer, not self-updating repository truth.
 
@@ -61,7 +65,7 @@ Phase 15 must not collapse these concepts:
 - AgentRun: execution history;
 - autonomy profile: separately earned execution latitude.
 
-Lifecycle state alone grants none of authority, permissions, credentials, autonomy, work assignment, routing or execution.
+Lifecycle state and lifecycle transitions grant none of authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution. Phase 15.2 reuses `AuditLog`; it does not create another lifecycle truth store.
 
 ## Do not do
 

@@ -1,7 +1,8 @@
 # Living Organization Advanced Rendering Adoption V1
 
 **Date:** 2026-09-02
-**Branch:** roadmap/global-mobility-aios-v12
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Status:** MIXED CLASSIFICATION — INFRASTRUCTURE ADOPTED / FLOW TRIAL / REACTION-DIFFUSION EXPERIMENT / COGNITIVE ECOLOGY OPTIONAL
 **Scheduling authority:** docs/ROADMAP.md
 **Technology truth:** docs/TECHNOLOGY_ADOPTION_LEDGER.md

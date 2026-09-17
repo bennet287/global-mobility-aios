@@ -18,11 +18,15 @@ Historical Phase 1 audits and phase-specific records are supporting evidence. Re
 
 ## Current programme boundary
 
-The active programme remains the AIOS V2 redesign and convergence. Do not divert implementation into post-redesign autonomy work until the redesign stack is sealed.
+The AIOS V2 redesign and Living HQ flagship baseline are sealed through Phase 13G. Autonomous Regulatory Intelligence RI.A1–RI.A8 and Phase 14 Native Skills Registry are also sealed. The active programme is Phase 15 — Agent Lifecycle Governance Hooks.
 
-## Post-redesign priority — Autonomous Global Regulatory Intelligence
+Phase 15.1 and Phase 15.2 are sealed. The next scheduled slice is governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
 
-After redesign completion, the next high-priority capability programme is to strengthen Global Intelligence into a high-autonomy **Global Immigration Intelligence Department** that can maintain visa/residence/work/study/family/business/talent/digital-nomad/permanent-residence knowledge across jurisdictions with minimal routine human intervention.
+`docs/ROADMAP.md` is authoritative for the current sequence and `agents/PROJECT_STATE.md` holds the exact recovery coordinates.
+
+## Sealed post-redesign programme — Autonomous Global Regulatory Intelligence
+
+The programme that followed redesign completion strengthened Global Intelligence into a high-autonomy **Global Immigration Intelligence Department** that can maintain visa/residence/work/study/family/business/talent/digital-nomad/permanent-residence knowledge across jurisdictions with minimal routine human intervention. RI.A1–RI.A8 are sealed; the architecture below remains a reference rather than the current work queue.
 
 This is an extension of `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md`, not a separate product authority.
 
@@ -89,7 +93,7 @@ Red-team cases must include one-digit threshold changes, unit/currency mistakes,
 
 Repeated successful acquisition/verification procedures may automatically become reusable versioned employee skills after machine validation under the employee capability architecture. Learned capability can improve discovery, extraction, verification routing and regression testing, but cannot weaken promotion gates, grant credentials, certify arbitrary sources or expand legal publication authority.
 
-### Post-redesign delivery order
+### Sealed delivery order (historical sequence)
 
 1. Reconcile existing regulatory intelligence, SourceSnapshot, VerifiedRule, pathway and professional-review contracts.
 2. Establish jurisdiction/authority/certified-source registry and coverage graph.

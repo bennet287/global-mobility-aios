@@ -2,12 +2,14 @@
 
 **Date:** 2026-08-22
 **Status:** ACTIVE PRODUCT-DESIGN CAPABILITY / SUBORDINATE TO MASTER ROADMAP
-**Active branch:** `roadmap/global-mobility-aios-v12`
+**Canonical integration branch:** `design/aios-v2-complete-redesign`
+**Publication branch context:** `roadmap/global-mobility-aios-v12`
 **Master scheduling authority:** `ROADMAP.md`
 **Preferred current design environment:** Penpot — replaceable; not product authority
 **Production frontend authority:** repository-owned Next.js/React frontend
 **Component-workbench candidate:** Storybook — adoption requires bounded proof
-**Related product milestones:** L — Live Organization; M — Board Transparency Experience
+**Publication milestone context:** L — Live Organization; M — Board Transparency Experience
+**Current programme state:** see `ROADMAP.md` and `../agents/PROJECT_STATE.md`
 **Related donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 
 This programme defines how product experience should evolve. It does not independently determine which product capability is implemented next; `ROADMAP.md` does.
