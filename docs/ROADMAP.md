@@ -4,11 +4,11 @@
 **Date:** 2026-09-12
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
-**Active programme:** Phase 14 — AIOS Native Skills Registry
-**Active implementation:** Draft PR #149 — `feature/phase-14-native-skills-registry`
-**Code migration head:** `0083_native_skill_registry`
+**Active programme:** Phase 15 — Agent Lifecycle Governance Hooks
+**Active implementation:** Draft PR #156 — `feature/phase-15-1-agent-lifecycle-foundation`
+**Code migration head:** `0084_organization_agent_lifecycle`
 
-<!-- CURRENT_MIGRATION_HEAD: 0083_native_skill_registry -->
+<!-- CURRENT_MIGRATION_HEAD: 0084_organization_agent_lifecycle -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
@@ -160,7 +160,7 @@ locomotionAllowed = false
 
 Canonical handoffs/conversations/governance events may drive presentation only when their durable records exist. Character placement does not assert physical presence. Room presentation does not assert occupancy. Selection remains view state. Living HQ does not create work, evidence, authority or decisions.
 
-Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. The active programme is now **Phase 14 — AIOS Native Skills Registry** on Draft PR #149, beginning with a versioned native skill registry and exact position-to-skill bindings while preserving the permanent rule that skills model capability and never grant authority.
+Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. The active programme is now **Phase 15 — Agent Lifecycle Governance Hooks** on Draft PR #156, beginning with durable governed AI-employee identity and lifecycle state while preserving the permanent rule that lifecycle records do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
 
 ---
 
@@ -453,15 +453,17 @@ The programme should track at least:
 
 ## 9. Platform capability expansion
 
-### Phase 14 — AIOS Native Skills Registry — ACTIVE
+### Phase 14 — AIOS Native Skills Registry — SEALED
 
 Portable skill definitions, validation, discovery metadata, curated role bundles and workflow recipes with durable ID/version, compatible roles, allowed/denied tools, mutation classification, authority tier, evidence behavior, risk, budget, output contract, tests and revocation. Learned/imported capability never implies authority acquisition.
 
-Phase 14.1 establishes the smallest durable registry contract: versioned `OrganizationSkill` records and exact `OrganizationPositionSkill` bindings to immutable position versions. Skill records may declare tool and permission requirements but cannot grant credentials, permissions, authority or autonomy.
+Phase 14 established the native skill registry, validation and evidence lifecycle, mutation audit, deterministic work-candidate matching and governed skill-assignment gate. Skill records may declare tool and permission requirements but cannot grant credentials, permissions, authority or autonomy.
 
-### Phase 15 — Agent Lifecycle Governance Hooks
+### Phase 15 — Agent Lifecycle Governance Hooks — ACTIVE
 
 Governed pre/post tool-use, tool failure, permission request/denial, task/subagent/session lifecycle, compaction and cancellation signals through existing AIOS boundaries.
+
+Phase 15.1 establishes the smallest durable lifecycle identity contract in migration `0084_organization_agent_lifecycle`: an `OrganizationAgent` record with canonical registry lineage, lifecycle status and timestamps. It remains separate from static implementation definitions and execution history, and grants no authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
 
 ### Phase 16 — Runtime Reliability & Cost Intelligence
 
@@ -550,17 +552,16 @@ We also do not optimize for “maximum autonomy” as a vanity metric. We do not
 ## 14. Immediate order of work
 
 ```text
-1. Phase 14.1 — prove the native skill-registry schema and exact position→skill binding contract.
-2. Add read/write registry services and APIs only after the migration/model contract is green.
-3. Add deterministic skill applicability/selection with explicit tool/permission requirement checks; never grant authority from a skill match.
-4. Add imported-skill provenance/licensing/fingerprint ingestion behind quarantine/validation.
-5. Add learned-skill generation only after recurrence/extraction/validation contracts exist; learned capability must remain inside pre-existing authority/credential ceilings.
-6. Integrate skill visibility into employee inspection and Living HQ only from canonical registry state.
-7. Proceed to Phase 15 lifecycle governance hooks once Phase 14 skill execution boundaries are sealed.
-8. Build Phase 16 runtime reliability/cost and Phase 17 security assurance before materially increasing autonomous execution.
-9. Expand AUTO.DOC, AUTO.CASE, AUTO.COMMS, AUTO.ORG and AUTO.OPS only where their evidence/reconciliation/queue controls are proven.
-10. Use Phase 19/20 metrics to earn higher autonomy capability-by-capability; demote automatically when quality degrades.
-11. Add interoperability and production scale only when measured bottlenecks justify them.
+1. Phase 15.1 — prove the durable `OrganizationAgent` lifecycle identity and migration `0084_organization_agent_lifecycle` without embedding authority or execution rights.
+2. Add lifecycle transition services and APIs only after the migration/model contract is green.
+3. Add governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries.
+4. Add task, subagent, session, compaction and cancellation lifecycle signals with durable audit lineage.
+5. Keep lifecycle identity separate from static agent definitions, `AgentRun` execution history, work assignment, credentials, permissions, authority and autonomy.
+6. Integrate lifecycle visibility into employee inspection and Living HQ only from canonical lifecycle state and without asserting physical presence.
+7. Build Phase 16 runtime reliability/cost and Phase 17 security assurance before materially increasing autonomous execution.
+8. Expand AUTO.DOC, AUTO.CASE, AUTO.COMMS, AUTO.ORG and AUTO.OPS only where their evidence/reconciliation/queue controls are proven.
+9. Use Phase 19/20 metrics to earn higher autonomy capability-by-capability; demote automatically when quality degrades.
+10. Add interoperability and production scale only when measured bottlenecks justify them.
 ```
 
 ### Workstream parallelization rule

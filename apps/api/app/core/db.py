@@ -159,6 +159,7 @@ def register_models() -> None:
         OrganizationPositionSkill,
         OrganizationSkill,
     )
+    from app.models.agent_lifecycle import OrganizationAgent  # noqa: F401
 
     _register_legacy_metadata_constraints()
 
