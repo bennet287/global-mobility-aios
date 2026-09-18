@@ -5,7 +5,7 @@
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 15 — Agent Lifecycle Governance Hooks
-**Current checkpoint:** Phase 15.2 — SEALED by PR #158 at merge `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`
+**Current checkpoint:** Phase 15.4 — SEALED by PR #163 at merge `3944ddb7a21cd76e92eb3739b4fe95340ff43610`
 **Code migration head:** `0084_organization_agent_lifecycle`
 
 <!-- CURRENT_MIGRATION_HEAD: 0084_organization_agent_lifecycle -->
@@ -160,7 +160,7 @@ locomotionAllowed = false
 
 Canonical handoffs/conversations/governance events may drive presentation only when their durable records exist. Character placement does not assert physical presence. Room presentation does not assert occupancy. Selection remains view state. Living HQ does not create work, evidence, authority or decisions.
 
-Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. **Phase 15.2 — Governed Lifecycle Transition Services** is sealed and merged by PR #158 at `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`. Phase 15 remains active; governed pre/post tool-use and permission signals are next. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
+Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. **Phase 15.2 — Governed Lifecycle Transition Services** is sealed and merged by PR #158 at `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`. Phase 15 runtime hooks are sealed through the real connector and background `AgentRun` boundaries. Session/subagent/compaction/cancellation hooks are deferred to Phase 16 until canonical runtime operations exist; AIOS will not invent duplicate state merely to emit signals. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
 
 ---
 
@@ -471,6 +471,14 @@ PR #156 merged exact candidate `3b4ca1e2d2c7f00ebf54f309a6d59dca0d3d9ea3` as `30
 
 PR #158 merged exact candidate `6dcd1744a3c56bdab231f62bcfa76caf01df866d` as `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35` after Repository Policy Check #1393 and V12 Production Proof #2023 passed. The admin-only service/API enforces the sealed forward lifecycle, serializes competing mutations at canonical `OrganizationAgent` truth, rejects invalid transitions, and commits bounded actor/reason/before/after evidence through the existing `AuditLog` infrastructure. It adds no migration or second lifecycle store and grants no authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
 
+#### Phase 15.3 — Governed Connector Runtime Signals — SEALED
+
+PR #161 merged normalized exact candidate `da79e5383d9c714daa67a5ab9b1dc1479bf4e92d` as `2fa80c298642db579c3446c6e825ae220b65522d` after exact-head Repository Policy and V12 Production Proof passed. The existing external-delivery authorization and connector side-effect boundary now emits durable authorization-denial, pre-use, completion and failure evidence. It introduces no permission truth or execution grant, and consequence-tier durability must not be generalized into a database commit before every harmless internal tool call.
+
+#### Phase 15.4 — Background AgentRun Lifecycle Evidence — SEALED
+
+PR #163 merged exact candidate `0e4ed4505aac1fc16c89d706ef4b483c015b0c18` as `3944ddb7a21cd76e92eb3739b4fe95340ff43610` after exact-head Repository Policy and V12 Production Proof passed. The existing Celery/AgentRun path now preserves the real background lifecycle handoff into `pending_review` alongside its existing running, retry/queued and failure evidence. No session, subagent, compaction or cancellation store was invented. Those controls move into Phase 16 runtime reliability and are added only with a canonical operation to govern.
+
 ### Phase 16 — Runtime Reliability, Cost Intelligence & Economic Metering
 
 Gap-audit routing, **real-money-equivalent work budgets**, per-work/agent/department cost attribution, loop/stall detection, cancellation/circuit breakers, bounded retry, checkpoint/recovery, governance-preserving context compaction, observability and provider quality history before adoption. Model tokens, paid APIs, tools, compute, retries and attributable human-review cost must be metered from actual provider/runtime evidence where available rather than estimated presentation state.
@@ -672,7 +680,7 @@ We also do not optimize for “maximum autonomy” as a vanity metric. We do not
 
 ```text
 1. Add governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries.
-2. Add task, subagent, session, compaction and cancellation lifecycle signals with durable audit lineage.
+2. Phase 15 task lifecycle evidence is sealed at the existing `AgentRun` boundary. Add session/subagent/compaction/cancellation lifecycle evidence in Phase 16 only together with canonical runtime operations; never create a signal-only duplicate truth store.
 3. Keep lifecycle identity separate from static agent definitions, `AgentRun` execution history, work assignment, credentials, permissions, authority and autonomy.
 4. Integrate lifecycle visibility into employee inspection and Living HQ only from canonical lifecycle state and without asserting physical presence.
 5. Build Phase 16 runtime reliability, real-cost metering and hard budget boundaries plus Phase 17 security assurance before materially increasing autonomous execution.
