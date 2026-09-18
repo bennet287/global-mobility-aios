@@ -2469,6 +2469,25 @@ def run_controlled_agent(
         run.input_json = _json_dump(input_data)
         run.output_json = _json_dump(output)
         session.add(run)
+        # The worker already records queued/running transitions. Persist the terminal
+        # handoff to human review here because this service owns that real state change.
+        # This observes AgentRun truth; it does not create session/subagent truth or
+        # grant execution authority.
+        record_audit(
+            session,
+            actor=payload.actor,
+            action="agent_run_status_changed",
+            entity_type="agent_run",
+            entity_id=run.id,
+            after_state={
+                "agent_name": resolved_name,
+                "status": AgentRunStatus.pending_review.value,
+                "lead_id": str(payload.lead_id) if payload.lead_id else None,
+                "workflow_run_id": str(payload.workflow_run_id) if payload.workflow_run_id else None,
+            },
+            reason="Background controlled-agent execution completed and entered human review.",
+            source="phase_15_runtime_signals",
+        )
     else:
         run = AgentRun(
             workflow_run_id=payload.workflow_run_id,

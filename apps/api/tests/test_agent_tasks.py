@@ -30,7 +30,18 @@ def test_run_agent_task_executes_queued_run(db_session: Session) -> None:
     db_session.refresh(run)
     assert run.status == AgentRunStatus.pending_review.value
     assert "summary" in run.output_json
-    assert any(log.action == "agent_run_status_changed" for log in db_session.exec(select(AuditLog).where(AuditLog.entity_id == str(run.id))).all())
+    lifecycle_logs = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.entity_id == str(run.id))
+        .where(AuditLog.action == "agent_run_status_changed")
+        .order_by(AuditLog.created_at.asc())
+    ).all()
+    assert [log.source for log in lifecycle_logs] == [
+        "celery_worker_v1.0",
+        "phase_15_runtime_signals",
+    ]
+    assert '"status": "running"' in (lifecycle_logs[0].after_state_json or "")
+    assert '"status": "pending_review"' in (lifecycle_logs[1].after_state_json or "")
 
 
 def test_run_agent_task_fails_for_missing_run(db_session: Session) -> None:
