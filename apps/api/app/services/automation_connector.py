@@ -395,7 +395,26 @@ def attempt_delivery_dispatch(
     if delivery.status not in {"ready", "retry", "dispatching"}:
         raise ValueError("Only ready, retry, or dispatching deliveries can be dispatched")
 
-    assert_delivery_dispatch_authorized(session, delivery)
+    try:
+        assert_delivery_dispatch_authorized(session, delivery)
+    except ValueError as exc:
+        record_audit(
+            session,
+            action="automation_delivery_permission_denied",
+            entity_type="automation_delivery",
+            entity_id=delivery.id,
+            after_state={
+                "channel": delivery.channel,
+                "status": delivery.status,
+                "permission": "external_delivery_dispatch",
+                "granted": False,
+            },
+            reason=str(exc),
+            actor=actor,
+            source="phase_15_runtime_signals",
+        )
+        session.commit()
+        raise
 
     config = find_connector_for_delivery(session, delivery)
     if config is None:
@@ -413,8 +432,24 @@ def attempt_delivery_dispatch(
         return delivery
 
     before = to_audit_dict(delivery)
+    adapter = get_adapter(config.provider_type)
+    record_audit(
+        session,
+        action="automation_delivery_tool_use_started",
+        entity_type="automation_delivery",
+        entity_id=delivery.id,
+        after_state={
+            "channel": delivery.channel,
+            "provider_type": config.provider_type,
+            "tool": "automation_connector.send",
+            "attempt": delivery.attempt_count + 1,
+        },
+        actor=actor,
+        source="phase_15_runtime_signals",
+    )
+    # The pre-use signal must be durable before the external side effect occurs.
+    session.commit()
     try:
-        adapter = get_adapter(config.provider_type)
         provider_message_id = adapter.send(delivery, config)
         now = _now()
         delivery.status = "dispatched"
@@ -426,6 +461,21 @@ def attempt_delivery_dispatch(
         delivery.next_attempt_at = None
         delivery.updated_at = now
         session.add(delivery)
+        record_audit(
+            session,
+            action="automation_delivery_tool_use_completed",
+            entity_type="automation_delivery",
+            entity_id=delivery.id,
+            after_state={
+                "channel": delivery.channel,
+                "provider_type": config.provider_type,
+                "tool": "automation_connector.send",
+                "attempt": delivery.attempt_count,
+                "provider_message_id": delivery.provider_message_id,
+            },
+            actor=actor,
+            source="phase_15_runtime_signals",
+        )
         record_audit(
             session,
             action="automation_delivery_dispatched",
@@ -451,6 +501,22 @@ def attempt_delivery_dispatch(
             delivery.next_attempt_at = now + timedelta(seconds=_backoff_delay(delivery.attempt_count))
         delivery.updated_at = now
         session.add(delivery)
+        record_audit(
+            session,
+            action="automation_delivery_tool_use_failed",
+            entity_type="automation_delivery",
+            entity_id=delivery.id,
+            after_state={
+                "channel": delivery.channel,
+                "provider_type": config.provider_type,
+                "tool": "automation_connector.send",
+                "attempt": delivery.attempt_count,
+                "status": delivery.status,
+            },
+            reason=str(exc),
+            actor=actor,
+            source="phase_15_runtime_signals",
+        )
         record_audit(
             session,
             action="automation_delivery_attempt_failed",
