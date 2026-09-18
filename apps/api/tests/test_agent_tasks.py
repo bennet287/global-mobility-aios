@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
 from app.tasks.agent_tasks import run_agent_task
 
+from app.services.llm_client import LLMProviderConfigurationError, LLMProviderTransportError
 from .conftest import create_lead
 
 
@@ -49,3 +50,17 @@ def test_run_agent_task_fails_for_missing_run(db_session: Session) -> None:
         run_agent_task.run("00000000-0000-0000-0000-000000000000")
     except ValueError as exc:
         assert "not found" in str(exc)
+
+
+def test_failure_classifier_retries_transport_only() -> None:
+    from app.tasks.agent_tasks import _classify_failure
+
+    assert _classify_failure(LLMProviderTransportError("temporary")) == (
+        "provider_transport",
+        True,
+    )
+    assert _classify_failure(LLMProviderConfigurationError("bad config")) == (
+        "provider_configuration",
+        False,
+    )
+    assert _classify_failure(RuntimeError("unknown")) == ("unknown", False)
