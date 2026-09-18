@@ -202,3 +202,117 @@ def test_reconcile_automation_deliveries_task_runs(client, db_session: Session) 
 
     result = reconcile_automation_deliveries_task.run(max_age_hours=24)
     assert result == {"reconciled": 1}
+
+
+def test_dispatch_emits_durable_tool_use_signals(client, db_session: Session) -> None:
+    from app.services.automation_connector import attempt_delivery_dispatch
+
+    client.headers.update(_headers("admin", "signal-author"))
+    account = _account(client, "Runtime Signal Employer")
+    _connector(client, account["id"], "crm", provider_type="console")
+    _rule(client, account["id"], channels=["crm"], destinations={"crm": "ops@example.com"})
+    _case(client, account["id"], "SIGNAL-001")
+
+    delivery = db_session.exec(
+        select(AutomationDelivery)
+        .join(AutomationEvent)
+        .where(AutomationEvent.corporate_account_id == UUID(account["id"]))
+    ).first()
+    assert delivery is not None
+
+    result = attempt_delivery_dispatch(db_session, delivery, actor="signal-worker")
+    assert result.status == "dispatched"
+
+    signals = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.source == "phase_15_runtime_signals")
+        .where(AuditLog.entity_id == str(delivery.id))
+        .order_by(AuditLog.created_at)
+    ).all()
+    assert [item.action for item in signals] == [
+        "automation_delivery_tool_use_started",
+        "automation_delivery_tool_use_completed",
+    ]
+    assert '"tool": "automation_connector.send"' in (signals[0].after_state_json or "")
+    assert '"provider_message_id":' in (signals[1].after_state_json or "")
+
+
+def test_dispatch_permission_denial_is_durable_and_never_starts_tool(
+    client,
+    db_session: Session,
+) -> None:
+    from app.services.automation_connector import attempt_delivery_dispatch
+
+    client.headers.update(_headers("admin", "permission-author"))
+    account = _account(client, "Permission Signal Employer")
+    _rule(
+        client,
+        account["id"],
+        channels=["email"],
+        destinations={"email": "ops@example.com"},
+        requires_human_approval=True,
+    )
+    _case(client, account["id"], "SIGNAL-DENIED-001")
+
+    delivery = db_session.exec(
+        select(AutomationDelivery)
+        .join(AutomationEvent)
+        .where(AutomationEvent.corporate_account_id == UUID(account["id"]))
+    ).first()
+    assert delivery is not None
+    delivery.status = "ready"
+    db_session.add(delivery)
+    db_session.commit()
+
+    try:
+        attempt_delivery_dispatch(db_session, delivery, actor="signal-worker")
+    except ValueError as exc:
+        assert "human-review receipt" in str(exc)
+    else:
+        raise AssertionError("Expected governed dispatch denial")
+
+    signals = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.source == "phase_15_runtime_signals")
+        .where(AuditLog.entity_id == str(delivery.id))
+    ).all()
+    assert [item.action for item in signals] == ["automation_delivery_permission_denied"]
+    assert '"granted": false' in (signals[0].after_state_json or "")
+    assert not any(item.action == "automation_delivery_tool_use_started" for item in signals)
+    db_session.refresh(delivery)
+    assert delivery.dispatched_at is None
+
+
+def test_dispatch_adapter_failure_emits_tool_failure_after_start(
+    client,
+    db_session: Session,
+) -> None:
+    from app.services.automation_connector import attempt_delivery_dispatch
+
+    client.headers.update(_headers("admin", "failure-author"))
+    account = _account(client, "Failure Signal Employer")
+    _connector(client, account["id"], "crm", provider_type="smtp", credentials={})
+    _rule(client, account["id"], channels=["crm"], destinations={"crm": "ops@example.com"})
+    _case(client, account["id"], "SIGNAL-FAIL-001")
+
+    delivery = db_session.exec(
+        select(AutomationDelivery)
+        .join(AutomationEvent)
+        .where(AutomationEvent.corporate_account_id == UUID(account["id"]))
+    ).first()
+    assert delivery is not None
+
+    result = attempt_delivery_dispatch(db_session, delivery, actor="signal-worker", max_attempts=1)
+    assert result.status == "failed"
+
+    signals = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.source == "phase_15_runtime_signals")
+        .where(AuditLog.entity_id == str(delivery.id))
+        .order_by(AuditLog.created_at)
+    ).all()
+    assert [item.action for item in signals] == [
+        "automation_delivery_tool_use_started",
+        "automation_delivery_tool_use_failed",
+    ]
+    assert "credentials" in (signals[1].reason or "").lower()
