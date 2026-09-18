@@ -1266,3 +1266,62 @@ def test_general_counsel_exposes_missing_evidence(
         output["evidence_gaps"]
     )
     assert output["confidence"] < 0.5
+
+
+def test_llm_run_persists_provider_usage_as_diagnostic_evidence(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch,
+) -> None:
+    from app.services.llm_client import LLMResponse
+
+    class FakeProvider:
+        name = "deepseek"
+
+        def complete(self, **kwargs):
+            return LLMResponse(
+                content='{"summary":"metered"}',
+                provider="deepseek",
+                model="deepseek-chat",
+                finish_reason="stop",
+                prompt_tokens=100,
+                completion_tokens=20,
+                total_tokens=120,
+            )
+
+    monkeypatch.setattr("app.services.controlled_agents._should_use_llm", lambda: True)
+    monkeypatch.setattr("app.services.controlled_agents.LLMProviderFactory.get_provider", lambda: FakeProvider())
+
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={"agent_name": "sales_summary_agent", "task": "Meter this run.", "context": {}},
+    )
+    assert response.status_code == 200
+
+    usage = db_session.exec(
+        select(AuditLog).where(AuditLog.action == "agent_run_provider_usage_observed")
+    ).one()
+    state = json.loads(usage.after_state_json)
+    assert state["provider"] == "deepseek"
+    assert state["model"] == "deepseek-chat"
+    assert state["prompt_tokens"] == 100
+    assert state["completion_tokens"] == 20
+    assert state["total_tokens"] == 120
+    assert state["billing_evidence"] is False
+    assert "estimated_cost_usd" in state
+
+
+def test_template_fallback_does_not_fabricate_provider_usage_evidence(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr("app.services.controlled_agents._should_use_llm", lambda: False)
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={"agent_name": "sales_summary_agent", "task": "Template run.", "context": {}},
+    )
+    assert response.status_code == 200
+    assert db_session.exec(
+        select(AuditLog).where(AuditLog.action == "agent_run_provider_usage_observed")
+    ).all() == []
