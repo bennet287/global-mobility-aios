@@ -2502,6 +2502,29 @@ def run_controlled_agent(
 
     session.flush()
 
+    llm_meta = output.get("_llm_meta")
+    if isinstance(llm_meta, dict) and not llm_meta.get("fallback_to_template"):
+        record_audit(
+            session,
+            actor=payload.actor,
+            action="agent_run_provider_usage_observed",
+            entity_type="agent_run",
+            entity_id=run.id,
+            after_state={
+                "provider": llm_meta.get("provider"),
+                "model": llm_meta.get("model"),
+                "finish_reason": llm_meta.get("finish_reason"),
+                "prompt_tokens": llm_meta.get("prompt_tokens"),
+                "completion_tokens": llm_meta.get("completion_tokens"),
+                "total_tokens": llm_meta.get("total_tokens"),
+                # Diagnostic only: the current adapter exposes an estimate, not billed cost.
+                "estimated_cost_usd": llm_meta.get("estimated_cost_usd"),
+                "billing_evidence": False,
+            },
+            reason="Provider-reported runtime usage observed for controlled agent execution.",
+            source="phase_16_runtime_metering",
+        )
+
     record_audit(
         session,
         actor=payload.actor,
