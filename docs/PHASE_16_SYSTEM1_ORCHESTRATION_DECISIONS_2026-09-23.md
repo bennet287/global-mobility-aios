@@ -1,8 +1,8 @@
 # Phase 16 Candidate Evaluation — System-1 Decisions and AX Orchestration
 
-**Date:** 2026-09-23  
-**Base:** `9ca583cb3a38c2cee33d2558ada9995106758cd9`  
-**Purpose:** bounded architectural decision record for Jev, Laya, and Google AX.  
+**Date:** 2026-09-23
+**Base:** `9ca583cb3a38c2cee33d2558ada9995106758cd9`
+**Purpose:** bounded architectural decision record for Jev, Laya, and Google AX.
 **Production authority:** AIOS deterministic policy and canonical state remain authoritative.
 
 ## Decision
