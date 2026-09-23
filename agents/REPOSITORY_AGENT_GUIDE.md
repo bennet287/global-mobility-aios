@@ -1,11 +1,10 @@
-# Global Mobility AIOS — Agent Guide
+# Global Mobility AIOS — Repository Agent Guide
 
-This guide is for AI coding agents and developers working on the active Global Mobility AIOS repository. Treat repository state, accepted proof records, and `docs/ROADMAP.md` as authority. Do not infer capabilities, acceptance, or infrastructure that the repository does not prove.
+This guide owns repository mechanics: layout, stack, setup-relevant implementation seams, security/vendor boundaries, and project-specific engineering conventions. It does **not** own the active programme, current branch head, next slice, or acceptance status.
 
-**New session recovery:**
-1. Read `agents/PROJECT_STATE.md` first for the current project map.
-2. Then read `agents/SESSION_HANDOFF.md` for recovery commands, exact branch/worktree state, and recent decisions.
-3. Verify all claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, the consolidated Radar/adoption ledger, and the actual git remotes before acting.
+For substantial work, enter through `AGENTS.md`. Resolve current programme truth from `agents/PROJECT_STATE.md`, scheduling from `docs/ROADMAP.md`, and live refs/PR/workflows from GitHub.
+
+Where this guide names versions, paths, or configuration, verify the actual package/configuration file when the detail is material to the change.
 
 ## 1. Product identity and constitutional boundaries
 
@@ -37,24 +36,17 @@ Implementation != acceptance
 
 Visa, immigration, legal, scholarship, job, tax, investment, and other regulated/material claims must remain grounded in the project's governed truth/evidence model. An LLM response is never canonical truth by itself.
 
-## 2. Active product programme
+## 2. Status ownership
 
-The active product programme is **Phase 15 — Agent Lifecycle Governance Hooks** on `design/aios-v2-complete-redesign`.
+Do not place active-phase or “next task” prose in this guide. Those facts drift faster than repository mechanics.
 
-Current status:
+- `agents/PROJECT_STATE.md` owns concise current programme truth.
+- `docs/ROADMAP.md` owns remaining programme order and rationale.
+- GitHub owns live branch/PR/commit/workflow state.
+- `agents/SESSION_HANDOFF.md` is only a minimal recovery pointer.
+- `docs/CHANGELOG.md` and dated phase/acceptance records are historical evidence, not the current work queue.
 
-```text
-Phase 13G Living HQ flagship convergence       SEALED
-Regulatory Intelligence RI.A1-RI.A8            SEALED
-Phase 14 Native Skills Registry                SEALED
-Phase 15.1 Agent Lifecycle Foundation          SEALED
-Phase 15.2 Lifecycle Transition Services       SEALED
-Phase 15 governed runtime signals              NEXT
-```
-
-The current sealed programme checkpoint is recorded in `agents/PROJECT_STATE.md`; the actual integration ref must be freshly verified. `docs/ROADMAP.md` remains scheduling authority. L/M/N and earlier V12 acceptance documents are historical evidence, not the current work queue.
-
-The next bounded slice adds governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries. It must not expand lifecycle identity into authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
+If this guide conflicts with live code/configuration or an accepted architecture/specification, verify the owning source and update the stale guide text rather than creating another repository guide.
 
 ## 3. Repository layout
 
@@ -64,15 +56,15 @@ global-mobility-aios/
 │   ├── api/                  # FastAPI backend, Alembic, services, routers, tests
 │   └── web/                  # Next.js operator/Cockpit product surface
 │       └── e2e/              # Playwright browser E2E for Live Organization
-├── agents/                   # AI employee / department role cards
-├── workflows/                # LangGraph/n8n workflow material
-├── knowledge/                # Official-source registry and governed knowledge assets
-├── infrastructure/           # Deployment / monitoring material
-├── docs/                     # Architecture, roadmap, acceptance, runbooks, changelog
-├── scripts/                  # Quality gates and operational/acceptance tooling
-├── vendor/                   # Frozen donor/reference snapshots; not canonical runtime authority
-├── .woodpecker/              # Forward CI pipelines
-├── .github/workflows/        # Historical/fallback GitHub Actions proof workflows
+├── agents/                   # agent engineering governance + AI employee/department role cards
+├── workflows/                # workflow material
+├── knowledge/                # official-source registry and governed knowledge assets
+├── infrastructure/           # deployment / monitoring material
+├── docs/                     # architecture, roadmap, acceptance, runbooks, changelog
+├── scripts/                  # quality gates and operational/acceptance tooling
+├── vendor/                   # frozen donor/reference snapshots; not canonical runtime authority
+├── .woodpecker/              # forward CI pipelines
+├── .github/workflows/        # GitHub Actions proof workflows
 ├── docker-compose.yml
 ├── docker-compose.prod.yml
 ├── .env.example
@@ -108,47 +100,30 @@ The first-party provider configuration in `apps/api/app/core/config.py` supports
 - Moonshot / Kimi
 - Gemini
 
-Provider selection is controlled by `LLM_PROVIDER`. Current default provider settings include:
+Provider selection is controlled by `LLM_PROVIDER`. Current default provider settings should be read from `apps/api/app/core/config.py`; do not duplicate them here as programme truth.
 
-```text
-DeepSeek  deepseek-chat
-Moonshot  kimi-k1-5
-Gemini    gemini-3.7-flash
-```
+Credential-variable names and provider-specific configuration likewise belong to the real configuration file and environment examples. Never put secrets or credential values into repository guidance.
 
-The corresponding credential variables are:
-
-```text
-DEEPSEEK_API_KEY
-MOONSHOT_API_KEY
-GEMINI_API_KEY
-```
-
-The normal controlled-agent stack may use deterministic template fallback when configured to do so. **Milestone L live-provider acceptance is stricter:** a live configured provider must be selected with a credential, and template fallback must be disabled for an acceptance execution. Follow the L operations runbook rather than treating generic fallback behavior as acceptance evidence.
+Historical live-provider acceptance may impose stricter conditions than normal deterministic fallback. When a task touches that sealed acceptance path, follow its task-specific runbook and verify the current code/configuration rather than treating generic fallback behavior as acceptance evidence.
 
 ### Frontend (`apps/web/`)
 
-The current package contract is:
+Verify exact versions from `apps/web/package.json` and the accepted lockfile. The current first-party frontend architecture uses:
 
-- Node.js 24 accepted proof runtime (`.nvmrc`)
-- Next.js 16.3.4
-- React / React DOM 19.0.8
-- TypeScript 5.8.3
-- App Router
-- custom CSS; no first-party Tailwind/component-library dependency in this branch
+- Next.js / App Router
+- React
+- TypeScript
+- custom CSS and the repository's accepted design system/conventions
 
 ### Browser E2E (`apps/web/e2e/`)
 
-- Playwright 1.62.1
-- Chromium / Desktop Chrome project
-- base URL `http://127.0.0.1:3000`
-- current primary spec: `apps/web/e2e/tests/live-organization.spec.ts`
+The first-party browser proof uses Playwright/Chromium against the real Next.js application. Verify the current Playwright configuration and active specs before changing browser-proof behavior.
 
-The Playwright config starts the already-built Next.js app with `npm --prefix .. run start`. In CI, the normal frontend build step runs before browser E2E.
+For accepted candidate work, a generated screenshot or successful command is not enough when the governing profile requires actual browser/visual inspection.
 
 ## 5. Canonical organization/runtime areas
 
-Important current implementation seams include:
+Important implementation seams include:
 
 ```text
 apps/api/app/services/organization_*
@@ -161,7 +136,7 @@ apps/api/app/evaluations/
 apps/api/tests/test_organization_*
 ```
 
-Historical L/Austria runtime/evaluation areas remain relevant when a task touches that accepted path:
+Historical L/Austria runtime/evaluation areas remain relevant when a task actually touches that accepted path:
 
 ```text
 apps/api/app/services/organization_mobility_live_organization.py
@@ -176,7 +151,7 @@ scripts/evaluate_austria_live_provider.py
 scripts/prepare_austria_professional_review.py
 ```
 
-Do not perform a broad Austria-to-generic rewrite while L acceptance is still stabilizing unless a concrete second vertical or proven duplication requires it. Extract proven seams, not speculative abstractions.
+Do not perform a broad Austria-to-generic rewrite merely because historical seams exist. Extract a reusable abstraction only when a current product need or proven duplication justifies it, and preserve the accepted evidence/truth boundaries of the original path.
 
 ## 6. Local setup
 
@@ -220,7 +195,7 @@ uvicorn app.main:app --reload
 
 ### Frontend
 
-Use Node 24:
+Use the Node version pinned by `.nvmrc`:
 
 ```bash
 nvm use
@@ -230,7 +205,7 @@ export NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 npm run dev
 ```
 
-On Windows without `nvm`, use a Node 24 installation and verify `node --version` before dependency installation or proof.
+On Windows without `nvm`, install the pinned Node major and verify `node --version` before dependency installation or proof.
 
 ### Docker Compose
 
@@ -272,7 +247,7 @@ For canonical PowerShell acceptance instructions, wrap the entire acceptance seq
 
 ### Frontend contract/types/build proof
 
-From `apps/web` under Node 24:
+From `apps/web` under the pinned Node version:
 
 ```bash
 npm ci
@@ -299,13 +274,7 @@ npm audit --audit-level=high
 npm test
 ```
 
-`npm test` runs:
-
-```text
-playwright test --project=chromium
-```
-
-The browser suite is product/UX proof for the bounded Live Organization surface. It is not a substitute for backend integration, PostgreSQL concurrency, live-provider quality, professional review, or external-action acceptance.
+The browser suite is product/UX proof for its governed surfaces. It is not a substitute for backend integration, PostgreSQL concurrency, live-provider quality, professional review, or external-action acceptance.
 
 ### Repository and quality gates
 
@@ -326,7 +295,7 @@ Do not claim a check passed unless it was actually executed for the commit/state
 
 ## 8. Historical Milestone L live-provider tooling
 
-Milestone L is sealed. Use this tooling only for regression investigation, a deliberately scheduled re-evaluation, or work that explicitly touches the accepted Austria live-provider path. It is not the current Phase 15 work queue.
+Milestone L is sealed. Use this tooling only for regression investigation, a deliberately scheduled re-evaluation, or work that explicitly touches the accepted Austria live-provider path. It is not the current work queue.
 
 Use the bounded operator CLI:
 
@@ -340,11 +309,9 @@ The CLI:
 
 - masks database URLs in output;
 - reports provider/model identity without exposing secrets;
-- recognizes DeepSeek, Moonshot, and Gemini configuration;
+- recognizes the providers supported by current configuration;
 - requires a real configured provider credential for live selection;
-- treats `LLM_FALLBACK_TO_TEMPLATE=false` as part of live-provider acceptance readiness;
-- requires fresh retrieval before live K.1/L execution;
-- consumes the selected fresh objective on a live attempt;
+- applies the accepted live-provider fallback/freshness rules for that sealed path;
 - does not create objectives automatically;
 - does not grant external-action authority.
 
@@ -372,23 +339,9 @@ Background execution does not expand authority. Material actions remain governed
 
 ### CI authority
 
-GitHub Actions currently provides the accepted exact-head PR proof used by governed redesign slices. The required workflows are `Repository Policy Check` and `V12 Production Proof`; inspect their actual jobs and conclusions for the exact candidate SHA.
+GitHub Actions provides the accepted exact-head PR proof used by governed slices. Inspect the required workflow names, jobs, and conclusions on the exact candidate SHA rather than assuming a fixed historical proof set.
 
-Self-hosted Woodpecker remains configured as the forward pipeline direction. Active pipeline definitions are:
-
-```text
-.woodpecker/backend-sqlite.yml
-.woodpecker/frontend.yml
-.woodpecker/postgres-governance.yml
-.woodpecker/repository-policy.yml
-```
-
-The frontend Woodpecker pipeline currently runs both:
-
-```text
-frontend tests/types/build/compiled-auth
-live-organization Chromium Playwright E2E
-```
+Self-hosted Woodpecker remains configured as a repository CI path. Active pipeline definitions include `.woodpecker/*.yml`; inspect the current files when a task depends on them.
 
 Neither system's existence is proof. Only an observed completed-success run attached to the exact candidate head may be cited for acceptance.
 
@@ -407,7 +360,7 @@ Permanent evidence rules:
 
 ## 11. Code and architecture conventions
 
-- Use Python 3.12/3.13 and Pydantic v2 patterns.
+- Use Python 3.12/3.13 and Pydantic v2 patterns where the current codebase does.
 - Primary keys are UUIDs unless an existing domain contract explicitly differs.
 - Keep canonical organizational meaning in AIOS-owned models/services; vendor or provider state cannot redefine it.
 - Keep external provider/model selection non-authorizing.
@@ -417,7 +370,7 @@ Permanent evidence rules:
 - Prefer public semantic contracts over cross-module imports of private helpers once the semantic seam is proven.
 - Do not introduce a generic framework merely to reduce file size or duplicate a small amount of route-specific code.
 - Keep optional AI dependencies isolated unless production necessity requires promotion.
-- Frontend uses Next.js App Router and the current custom design system/CSS.
+- Frontend uses the accepted Next.js/App Router architecture and project design conventions.
 - Board/Cockpit surfaces must display persisted canonical truth, not fabricated activity for visual effect.
 
 ## 12. Security and privacy
@@ -436,23 +389,27 @@ Permanent evidence rules:
 
 `vendor/` contains frozen donor/reference material. Vendoring is not production adoption.
 
-Munder Difflin and Plasma may supply ideas or bounded mechanics only through an explicit AIOS-owned adoption decision. Do not import donor authority models, canonical state semantics, or visual language automatically.
+Munder Difflin, Plasma, and other donors may supply ideas or bounded mechanics only through an explicit AIOS-owned adoption decision. Do not import donor authority models, canonical state semantics, or visual language automatically.
 
 Do not edit frozen upstream donor snapshots merely to make first-party policy/tests green unless the repository's vendor provenance process explicitly requires a refreshed snapshot.
 
 ## 14. Documentation discipline
 
-For meaningful work, reconcile the documents that define repository truth:
+Documentation drift is a defect. Use the existing owner for each responsibility rather than adding another status or architecture surface:
 
 ```text
-docs/ROADMAP.md       scheduling / milestone / acceptance truth
-docs/CHANGELOG.md     meaningful delivered change
-acceptance record     proof for a sealed milestone/slice
-domain runbook/spec   operational contract when applicable
-AGENTS.md              current implementation/working guidance
+AGENTS.md                               front door / read path / precedence
+agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md engineering process + proof loop
+agents/PROJECT_STATE.md                 concise current programme truth
+agents/REPOSITORY_AGENT_GUIDE.md        repository mechanics (this file)
+docs/ROADMAP.md                         remaining order / rationale
+accepted architecture/spec/ADR          durable contract / consequential decision
+docs/CHANGELOG.md + acceptance records  historical delivery/proof
+agents/SESSION_HANDOFF.md                minimal cold-start recovery pointer
+GitHub PR/commit/CI                      live implementation and acceptance evidence
 ```
 
-Never rewrite historical acceptance entries to pretend later evidence existed earlier. Add a new reconciliation entry when current truth changes.
+Do not duplicate current status into this guide, README files, architecture indexes, or changelog entries. Never rewrite historical acceptance entries to pretend later evidence existed earlier.
 
 When documenting a proof checkpoint, include enough identity to distinguish:
 
@@ -463,35 +420,31 @@ what actually executed
 what remains unproven
 ```
 
-## 15. Useful current references
+## 15. Useful durable references
 
-- `docs/ROADMAP.md` — master necessity-driven orchestration and milestone status
-- `docs/CHANGELOG.md` — dated delivery history; the newest entry summarizes the current sealed slice
+- `AGENTS.md` — engineering front door and authority/precedence map
+- `agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md` — governed execution and exact-head proof process
+- `agents/PROJECT_STATE.md` — current programme truth
+- `docs/ROADMAP.md` — master necessity-driven orchestration and programme order
+- `docs/ARCHITECTURE.md` — architecture map to accepted architecture/specification owners
+- `docs/CHANGELOG.md` — dated delivery history
 - `docs/TECHNOLOGY_RADAR_V1_3_8.md` — consolidated Technology Radar reference
-- `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md` — applied duplication audit / rationale
 - `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` — L external/live acceptance runbook
-- `docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md` — sealed K.1 baseline
-- `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — active combined architecture
+- `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — combined architecture
 - `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` — organization architecture
 - `docs/AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md` — frontend/UX programme
 - `docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md` — integration boundaries
 - `docs/REPOSITORY_POLICY.md` — repository/dependency policy
 - `docs/SECURITY_AND_COMPLIANCE.md` — security guidance
-- `.woodpecker/*.yml` — forward CI definitions
 
 ## 16. Working rule for agents
 
-Before changing implementation:
+The governing loop lives in `agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md`:
 
 ```text
-inspect current branch/head
-→ inspect current ROADMAP/acceptance state
-→ identify the smallest necessary product gap
-→ modify implementation + tests together
-→ run the checks you can actually execute
-→ record only observed evidence
-→ reconcile ROADMAP/CHANGELOG when state meaningfully changes
-→ never promote the next dependent milestone without acceptance
+Orient → Select → inspect only relevant specs → Build → Test → Review → Record → Commit → Reflect
 ```
+
+This guide contributes repository mechanics to that loop; it does not define the current task. Before changing implementation, verify the live branch/head and active task from the current-state/scheduler chain, inspect existing implementation before adding abstractions, and record only observed evidence.
 
 Repository truth wins over assumptions, old chat history, stale documentation, or the apparent status of a workflow that did not execute its steps.

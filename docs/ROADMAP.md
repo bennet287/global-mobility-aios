@@ -34,25 +34,29 @@ The finished product must answer from real system state: what the organization i
 
 ---
 
-## 2. Canonical document map and mandatory read order
+## 2. Roadmap relationship to repository information architecture
 
-The roadmap is the master scheduler, but it does **not** supersede specialized canonical specifications. Future sessions must not treat separate documents as optional islands or infer that a roadmap rewrite deleted their requirements.
+This file owns **WHAT / WHEN / WHY** and cross-programme sequencing. It does not own the engineering cold-start sequence, repository mechanics, a live branch head, or acceptance evidence.
 
-1. `docs/ROADMAP.md` — master product direction, programme order, current/next work and cross-programme integration map.
-2. `docs/aios-v2/README.md` — canonical AIOS V2 session entry point and active programme boundary.
-3. `docs/aios-v2/AIOS_V2_COMPLETE_REDESIGN_MASTER_PLAN.md` — product destination, redesign principles, six-system model and acceptance philosophy.
-4. `docs/aios-v2/AIOS_V2_MASTER_PLAN_EXECUTION_RECONCILIATION_2026-09-08.md` — execution/governance bridge; dated SHA/status snapshots are historical evidence.
-5. `docs/aios-v2/AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — employee, department, skills, tools, memory, learning and capability/authority architecture.
-6. `docs/aios-v2/AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md` — mandatory visible-redesign quality law and anti-generic/anti-AI-slop rules.
-7. `docs/aios-v2/AIOS_V2_EFFICIENT_PROOF_LADDER.md` — iterate narrowly, seal broadly.
-8. `docs/aios-v2/AIOS_V2_MIGRATION_AND_FINAL_ACCEPTANCE_CHECKLIST.md` — final migration and whole-product acceptance inventory.
-9. `docs/aios-v2/AIOS_V2_PHASE_13G1_ARCHITECTURAL_WORLD_REDIRECT_2026-09-11.md` — historical Owner rejection and architectural redirect record.
-10. `docs/aios-v2/AIOS_V2_PHASE_13G1_VISUAL_OUTCOME_EXECUTION_PLAN_2026-09-11.md` — historical execution record for the accepted Living HQ correction.
-11. `docs/aios-v2/AIOS_V2_PHASE_13G2_CLOSURE_RECONCILIATION_2026-09-12.md` — Phase 13G acceptance/closure evidence and permanent truth boundary.
+Engineering sessions enter through `AGENTS.md`, which leads through the execution playbook, current project state, this roadmap, task-relevant architecture/specification/ADR material, real code/tests/GitHub proof, and finally the minimal session handoff. Do not treat this roadmap as a requirement to read every companion or historical document before acting.
+
+### Task-scoped companion map
+
+Use only the sources relevant to the selected slice:
+
+- `docs/aios-v2/AIOS_V2_COMPLETE_REDESIGN_MASTER_PLAN.md` — durable product destination, redesign principles, six-system model, and acceptance philosophy.
+- `docs/aios-v2/AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — durable employee, department, skills, tools, memory, learning, and capability/authority architecture.
+- `docs/aios-v2/AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md` — visible-redesign quality law when a task changes material UI/UX or flagship visual behavior.
+- `docs/aios-v2/AIOS_V2_EFFICIENT_PROOF_LADDER.md` — proof strategy when a task needs visual/product acceptance planning.
+- `docs/aios-v2/AIOS_V2_MIGRATION_AND_FINAL_ACCEPTANCE_CHECKLIST.md` — whole-product migration/final-acceptance inventory when that stage is relevant.
+- `docs/aios-v2/AIOS_V2_MASTER_PLAN_EXECUTION_RECONCILIATION_2026-09-08.md` and Phase 13G execution/closure records — dated historical evidence; permanent decisions remain relevant, dated SHA/status snapshots do not become current programme truth.
+- `docs/ADR/` and phase-specific decision records — read when the selected slice touches the decision they own.
+
+`docs/aios-v2/README.md` is a companion index for those materials, not a second project-state document.
 
 ### Authority and precedence
 
-When documents appear to disagree, use this order: canonical truth/evidence/authority/security/domain contracts; AIOS Constitution/accepted governance; this roadmap for current scheduling; Complete Redesign Master Plan; Employee Capability & Skills Architecture; active execution/proof directives; dated reconciliation snapshots; external references/donor patterns; implementation convenience.
+Repository-wide precedence is defined at the front door/playbook. In short: accepted canonical contracts/sealed decisions outrank stale prose; verified repository/schema/owning-system state proves implementation and live external state; accepted architecture/specification governs its domain; this roadmap schedules unfinished work; `PROJECT_STATE` summarizes the current programme; `SESSION_HANDOFF` is only a recovery pointer.
 
 A newer accepted exact-head implementation may make an old status snapshot stale; it does not silently repeal permanent architectural or acceptance rules.
 
