@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from celery.exceptions import SoftTimeLimitExceeded
 from sqlmodel import Session, select
 
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
@@ -63,4 +64,5 @@ def test_failure_classifier_retries_transport_only() -> None:
         "provider_configuration",
         False,
     )
+    assert _classify_failure(SoftTimeLimitExceeded()) == ("runtime_timeout", False)
     assert _classify_failure(RuntimeError("unknown")) == ("unknown", False)
