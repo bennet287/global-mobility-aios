@@ -138,6 +138,11 @@ celery_app.conf.update(
             "task": "app.tasks.external_agency_sla_tasks.evaluate_external_agency_assignment_sla_task",
             "schedule": 3600.0,
         },
+        "reconcile-stale-agent-runs": {
+            "task": "app.tasks.agent_tasks.reconcile_stale_agent_runs",
+            "schedule": 60.0,
+            "args": (100, 60),
+        },
         "scan-ai-organization-work": {
             "task": "app.tasks.organization_tasks.scan_organization_work",
             "schedule": 30.0,
