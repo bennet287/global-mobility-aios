@@ -4,6 +4,8 @@ import json
 import traceback
 from uuid import UUID
 
+from billiard.exceptions import SoftTimeLimitExceeded
+
 from sqlmodel import Session
 
 from app.core import db as db_module
@@ -56,6 +58,31 @@ def run_agent_task(self, agent_run_id: str) -> dict:
             _transition_run(session, run, AgentRunStatus.failed, error=str(exc))
             return {"run_id": str(run.id), "status": run.status, "error": str(exc)}
 
+        except SoftTimeLimitExceeded as exc:
+            error = "AgentRun exceeded the worker soft time limit."
+            record_audit(
+                session,
+                actor="worker",
+                action="agent_run_runtime_timeout",
+                entity_type="agent_run",
+                entity_id=str(run.id),
+                after_state={
+                    "failure_class": "runtime_timeout",
+                    "retryable": False,
+                    "soft_time_limit_seconds": celery_app.conf.task_soft_time_limit,
+                    "hard_time_limit_seconds": celery_app.conf.task_time_limit,
+                },
+                reason=error,
+                source="phase_16_runtime_timeout",
+            )
+            session.commit()
+            _transition_run(session, run, AgentRunStatus.failed, error=error)
+            return {
+                "run_id": str(run.id),
+                "status": run.status,
+                "error": error,
+            }
+
         except Exception as exc:
             failure_class, retryable = _classify_failure(exc)
             record_audit(
@@ -90,6 +117,8 @@ def run_agent_task(self, agent_run_id: str) -> dict:
 
 def _classify_failure(exc: Exception) -> tuple[str, bool]:
     """Classify before retry without pretending unknown failures are safe to repeat."""
+    if isinstance(exc, SoftTimeLimitExceeded):
+        return "runtime_timeout", False
     if isinstance(exc, LLMProviderTransportError):
         return "provider_transport", True
     if isinstance(exc, LLMProviderConfigurationError):
