@@ -4,10 +4,10 @@
 
 **Last reconciled:** 2026-09-23
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
-**Current integration head:** `14d7bfdd238ca93a10310541702c216fc9561f4b` (PR #171 merge)
+**Current integration head:** `c4ff75f24801eb52a82da2ac09cc724ffe872534` (PR #173 merge)
 **Current programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
-**Active implementation:** none; AgentRun soft-timeout semantics are sealed by PR #171
-**Next scheduled slice:** finish the bounded timeout/cancellation tranche with hard-limit/stale-run reconciliation and explicit cancellation semantics, reusing existing AgentRun/Celery truth
+**Active implementation:** none; cooperative soft-timeout handling and stale-running reconciliation are sealed
+**Next scheduled slice:** explicit AgentRun cancellation semantics through the existing AgentRun/Celery boundary, with no duplicate execution-state store unless repository evidence proves one is required
 
 ## Current programme state
 
@@ -18,7 +18,8 @@
 - Phase 16.1 Runtime Metering — SEALED by PR #165; provider/model/token/estimated-cost observations are diagnostic evidence, not billing truth.
 - Phase 16.2 Runtime Reliability — SEALED by PR #166; failure classification precedes retry and only provider transport failures retry.
 - PR #167 System-1 / orchestration evaluation — MERGED at `896e338e77c9ecf797a7f26f676cb10b18ae5c18`. Jev and Laya remain benchmark candidates; Google AX remains deferred execution-substrate evaluation. None is a production dependency.
-- AgentRun runtime soft-timeout semantics — SEALED by PR #171 at merge `14d7bfdd238ca93a10310541702c216fc9561f4b`. Existing Celery limits remain canonical: 240s soft / 300s hard. A soft timeout records durable `agent_run_runtime_timeout` evidence and terminates the existing AgentRun as `failed`; it is non-retryable.
+- AgentRun cooperative soft-timeout semantics — SEALED by PR #171 at merge `14d7bfdd238ca93a10310541702c216fc9561f4b`. Existing Celery limits remain canonical: 240s soft / 300s hard. A soft timeout records durable `agent_run_runtime_timeout` evidence and terminates the existing AgentRun as `failed`; it is non-retryable.
+- AgentRun stale-running reconciliation — SEALED by PR #173 at merge `c4ff75f24801eb52a82da2ac09cc724ffe872534` after Repository Policy #1415 and V12 Production Proof #2045 passed on exact accepted head `d1b4156e85d5b23dfa1c9ee245a32a6009acb4a1`. The periodic reconciler uses existing AgentRun + AuditLog truth, waits for the 300s hard limit plus 60s grace, requires durable running-state evidence, records `runtime_stale_running`, and fails closed without claiming the underlying cause was definitely a hard kill.
 
 ## Current Phase 16 boundary
 
@@ -30,22 +31,23 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - Phase 16.1 provider usage evidence is observed runtime telemetry; `estimated_cost_usd` is not billed spend.
 - Phase 16.2 deterministic failure classification is authoritative for current retry behavior.
 - PR #171 reuses existing Celery worker limits rather than introducing a second timeout configuration.
-- Soft timeout is not equivalent to hard-kill reconciliation or explicit operator cancellation. Those remain unimplemented and must not be claimed as complete.
+- PR #173 reconciles observably stranded `running` state without introducing a task-id/cancellation table and without inferring a specific worker/process/infrastructure cause.
+- Soft timeout and stale-running reconciliation are not explicit operator cancellation. Cancellation remains unimplemented and must not be claimed as complete.
 - Jev/Laya may later provide bounded advisory System-1 decisions only after benchmark evidence.
 - Google AX may later provide replaceable execution infrastructure only after AIOS owns timeout/cancellation, hard runtime budgets, actual cost metering, circuit breakers and reconciliation.
 - Deterministic AIOS policy remains authoritative. External decision/runtime systems receive no authority, permissions, credentials, budgets, autonomy or assignment rights.
 
 ## Next slice guardrails
 
-Before implementing cancellation or hard-limit reconciliation, inspect existing Celery task identity, AgentRun enqueue paths, worker lifecycle, and any existing stale-run cleanup. Reuse the current AgentRun and audit boundaries. Do not introduce a second execution-state table merely to represent cancellation.
+Before implementing explicit AgentRun cancellation, inspect every real asynchronous enqueue path, Celery task identity availability, current AgentRun statuses, API/operator boundaries and already-existing cancellation patterns. Reuse canonical AgentRun/AuditLog truth and Celery mechanics. Existing `OrganizationalWorkItem.cancel_requested_at` is work-item truth and must not be repurposed as AgentRun cancellation state.
 
-The next slice should distinguish three facts cleanly:
+The remaining timeout/cancellation tranche now distinguishes three facts cleanly:
 
-1. cooperative soft timeout — already sealed by PR #171;
-2. hard worker termination / stale `running` reconciliation — still unresolved;
+1. cooperative soft timeout — sealed by PR #171;
+2. hard worker termination / stale `running` reconciliation — sealed by PR #173, with cause deliberately not inferred;
 3. explicit cancellation request and observable terminal outcome — still unresolved.
 
-No slice may imply that external side effects can be rolled back merely because an AgentRun is cancelled.
+Explicit cancellation must define what happens to queued versus running execution, how cancellation intent and observed outcome are evidenced, and what can truthfully be guaranteed by Celery. It must never imply rollback of an external side effect that already occurred.
 
 ## Canonical read order
 
