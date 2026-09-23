@@ -32,6 +32,7 @@ def test_perfect_candidate_reports_accuracy_calibration_latency_and_cost() -> No
     assert metrics.false_stop_rate == 0.0
     assert metrics.unnecessary_escalation_rate == 0.0
     assert metrics.deterministic_disagreement_rate == 0.0
+    assert metrics.ambiguous_safe_escalation_rate == 1.0
     assert metrics.p50_latency_ms == 13.5
     assert metrics.p95_latency_ms == pytest.approx(16.65)
     assert metrics.measured_cost_usd == pytest.approx(0.008)
@@ -51,6 +52,7 @@ def test_wrong_candidate_exposes_safety_errors_and_does_not_invent_cost() -> Non
     assert metrics.false_allow_rate > 0
     assert metrics.false_stop_rate > 0
     assert metrics.deterministic_disagreement_rate == pytest.approx(7 / 8)
+    assert metrics.ambiguous_safe_escalation_rate == 0.0
     assert metrics.measured_cost_usd is None
     assert metrics.missing_cost_observations == 8
 
@@ -59,6 +61,17 @@ def test_missing_observation_fails_closed() -> None:
     cases = _cases()
     with pytest.raises(ValueError, match="cover every benchmark case exactly once"):
         evaluate(cases, [CandidateObservation(cases[0].case_id, "ALLOW", 0.8, 2.0)])
+
+
+def test_duplicate_observation_fails_closed() -> None:
+    cases = _cases()
+    observations = [
+        CandidateObservation(c.case_id, c.expected, 0.8, 2.0)
+        for c in cases
+    ]
+    observations[-1] = CandidateObservation(cases[0].case_id, cases[0].expected, 0.8, 2.0)
+    with pytest.raises(ValueError, match="each benchmark case exactly once"):
+        evaluate(cases, observations)
 
 
 def test_invalid_confidence_fails_closed() -> None:
