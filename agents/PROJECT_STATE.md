@@ -4,10 +4,10 @@
 
 **Last reconciled:** 2026-09-23
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
-**Current integration head:** `896e338e77c9ecf797a7f26f676cb10b18ae5c18` (PR #167 merge)
+**Current integration head:** `14d7bfdd238ca93a10310541702c216fc9561f4b` (PR #171 merge)
 **Current programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
-**Active implementation:** none; Phase 16.1 and 16.2 are sealed, System-1/AX evaluation is recorded
-**Next scheduled slice:** establish canonical bounded timeout/cancellation semantics through existing AgentRun/Celery runtime boundaries
+**Active implementation:** none; AgentRun soft-timeout semantics are sealed by PR #171
+**Next scheduled slice:** finish the bounded timeout/cancellation tranche with hard-limit/stale-run reconciliation and explicit cancellation semantics, reusing existing AgentRun/Celery truth
 
 ## Current programme state
 
@@ -18,6 +18,7 @@
 - Phase 16.1 Runtime Metering — SEALED by PR #165; provider/model/token/estimated-cost observations are diagnostic evidence, not billing truth.
 - Phase 16.2 Runtime Reliability — SEALED by PR #166; failure classification precedes retry and only provider transport failures retry.
 - PR #167 System-1 / orchestration evaluation — MERGED at `896e338e77c9ecf797a7f26f676cb10b18ae5c18`. Jev and Laya remain benchmark candidates; Google AX remains deferred execution-substrate evaluation. None is a production dependency.
+- AgentRun runtime soft-timeout semantics — SEALED by PR #171 at merge `14d7bfdd238ca93a10310541702c216fc9561f4b`. Existing Celery limits remain canonical: 240s soft / 300s hard. A soft timeout records durable `agent_run_runtime_timeout` evidence and terminates the existing AgentRun as `failed`; it is non-retryable.
 
 ## Current Phase 16 boundary
 
@@ -28,15 +29,23 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - `CONTROLLED_AGENT_REGISTRY` = static implementation-definition truth.
 - Phase 16.1 provider usage evidence is observed runtime telemetry; `estimated_cost_usd` is not billed spend.
 - Phase 16.2 deterministic failure classification is authoritative for current retry behavior.
+- PR #171 reuses existing Celery worker limits rather than introducing a second timeout configuration.
+- Soft timeout is not equivalent to hard-kill reconciliation or explicit operator cancellation. Those remain unimplemented and must not be claimed as complete.
 - Jev/Laya may later provide bounded advisory System-1 decisions only after benchmark evidence.
 - Google AX may later provide replaceable execution infrastructure only after AIOS owns timeout/cancellation, hard runtime budgets, actual cost metering, circuit breakers and reconciliation.
 - Deterministic AIOS policy remains authoritative. External decision/runtime systems receive no authority, permissions, credentials, budgets, autonomy or assignment rights.
 
 ## Next slice guardrails
 
-Before implementation, search for existing timeout/cancellation semantics and reuse them. Current archaeology found no canonical Celery `time_limit` / `soft_time_limit` or generic runtime timeout contract. Existing domain-specific cancellation concepts must not be repurposed as AgentRun runtime cancellation truth.
+Before implementing cancellation or hard-limit reconciliation, inspect existing Celery task identity, AgentRun enqueue paths, worker lifecycle, and any existing stale-run cleanup. Reuse the current AgentRun and audit boundaries. Do not introduce a second execution-state table merely to represent cancellation.
 
-The next slice should be narrow: bounded runtime timeout/cancellation semantics at the existing AgentRun/Celery execution boundary, focused regression tests, no schema unless evidence proves it necessary, and no duplicate state.
+The next slice should distinguish three facts cleanly:
+
+1. cooperative soft timeout — already sealed by PR #171;
+2. hard worker termination / stale `running` reconciliation — still unresolved;
+3. explicit cancellation request and observable terminal outcome — still unresolved.
+
+No slice may imply that external side effects can be rolled back merely because an AgentRun is cancelled.
 
 ## Canonical read order
 
