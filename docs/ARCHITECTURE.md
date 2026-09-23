@@ -1,55 +1,35 @@
-# Architecture
+# Global Mobility AIOS — Architecture Map
 
-## Design Pattern
+**Purpose:** durable navigation map for architecture sources. This file does not own active programme status, branch heads, or phase scheduling, and it must not become a second master architecture specification.
 
-Global Mobility AIOS is workflow-first and agent-assisted.
+## Architecture authority
 
-```text
-Lead / Client / Employer
-        ↓
-API Gateway
-        ↓
-Workflow Orchestrator
-        ↓
-Domain Service
-        ↓
-Truth Engine / Data / Documents
-        ↓
-Human Approval if sensitive
-        ↓
-Automation / Follow-up / CRM
-```
+Use architecture at the narrowest relevant level:
 
-## Components
+1. Accepted canonical truth/evidence/authority/security/domain contracts and sealed decisions.
+2. Verified code, schema, configuration, and tests for what is actually implemented.
+3. The accepted architecture/specification that owns the task domain.
+4. ADRs or dated decision records for why a consequential choice was made.
+5. `docs/ROADMAP.md` for when unfinished architecture is scheduled.
 
-Repository scope for architecture dependencies is restricted by the allowlist in `docs/REPOSITORY_POLICY.md`.
+The high-level product architecture is described by existing accepted documents, including:
 
-### API Gateway
-FastAPI exposes typed endpoints and OpenAPI documentation.
+- `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — combined AIOS product/organization architecture.
+- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` — persistent AI organization, authority, autonomy, and human-governance architecture.
+- `docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md` — enterprise integration and sovereignty boundaries.
+- `docs/aios-v2/AIOS_V2_COMPLETE_REDESIGN_MASTER_PLAN.md` — AIOS V2 product destination and redesign acceptance model.
+- `docs/aios-v2/AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — employee/capability/skills/tools/learning architecture and capability-vs-authority separation.
+- `docs/ADR/` — durable architecture decisions where a specific ADR exists.
 
-### CRM Service
-Stores leads, status, intent, source, target country, and notes.
+Read only the sources relevant to the active slice. Dated phase execution/reconciliation records may contain permanent decisions, but their SHA/status snapshots are historical unless the current owning documents say otherwise.
 
-### Truth Engine
-Validates claims using official-source evidence and red-flag detection.
+## Implementation rule
 
-### Education Service
-Builds study-abroad recommendations after profile and rule verification.
+Architecture prose describes intended contracts; the repository proves implemented reality. Before introducing a service, state store, framework, workflow, runtime, or abstraction:
 
-### Recruitment Service
-Matches candidates with job pathways and application workflows.
+- inspect the real models/services/routers/tests/configuration first;
+- reuse the existing canonical owner when one exists;
+- preserve truth, authority, evidence, privacy, and reconciliation boundaries;
+- add a new durable architecture document only when a genuinely separate domain/authority cannot be represented in an existing owner.
 
-### Document Service
-Stores document metadata and supports future MinIO/OCR integration.
-
-### Agent Layer
-Agents are role-bound workers, not independent authorities.
-
-### n8n
-Handles business automations like forms, WhatsApp, email, reminders, and CRM transitions.
-
-### LangGraph
-Handles stateful, auditable, human-in-loop workflows.
-
-### Data Layer
-PostgreSQL for transactional data, Qdrant for semantic memory, Redis for state/cache, MinIO for documents.
+The older workflow-first component sketch previously stored in this file is superseded as a repository-wide architecture description by the accepted architecture set above. Historical implementation ideas such as n8n/LangGraph usage are not implied production dependencies merely because they appeared in that sketch; verify current adoption in code and task-relevant accepted specifications.

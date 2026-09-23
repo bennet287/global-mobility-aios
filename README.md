@@ -8,7 +8,7 @@ It combines global-mobility intelligence, official-source Evidence, document int
 
 The project is deliberately more ambitious than an immigration chatbot, CRM with AI, workflow-automation product, multi-agent demo, generic SaaS admin panel, ERP core or agent framework wrapped in a UI.
 
-The active architecture direction is:
+The long-lived architecture direction is:
 
 > **Global Mobility AIOS V1.3 + governed Organization Fabric + Context Intelligence + Organizational Immune System + Earned Autonomy + Board Transparency + provider-independent runtime + production integration fabric, with external technologies used only behind AIOS-owned boundaries.**
 
@@ -26,9 +26,11 @@ Operating principles:
 
 > **No necessary production infrastructure should remain absent merely because it is not a differentiating AI feature.**
 
+> **Repository status note:** this README is a stable product and architecture overview, not current programme truth. Start engineering sessions at [`AGENTS.md`](AGENTS.md); use `agents/PROJECT_STATE.md` for what is true now, `docs/ROADMAP.md` for what remains and in what order, and GitHub itself for the live branch/PR/workflow state.
+
 ---
 
-## Current development line
+## Engineering entry point
 
 Canonical integration branch:
 
@@ -36,27 +38,21 @@ Canonical integration branch:
 design/aios-v2-complete-redesign
 ```
 
-Current sealed programme checkpoint:
+Do not duplicate the active phase, next slice, or current integration SHA here. They change more frequently than the product overview and are owned elsewhere.
+
+Use the repository chain:
 
 ```text
-Phase 15.2 — Governed Lifecycle Transition Services — SEALED
-roadmap seal          eee8ac5d24808b3880e50f51e1879c4ad623021c
-implementation merge  30e6a9e691f4b82a326b2dc1cb267ef5bb938c35 (PR #158)
-migration head         0084_organization_agent_lifecycle
+AGENTS.md
+→ agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md
+→ agents/PROJECT_STATE.md
+→ docs/ROADMAP.md
+→ task-relevant architecture / specification / ADR
+→ real code + tests + GitHub proof
+→ agents/SESSION_HANDOFF.md
 ```
 
-Current programme sequence:
-
-```text
-Phase 13G Living HQ flagship convergence       SEALED
-Regulatory Intelligence RI.A1-RI.A8            SEALED
-Phase 14 Native Skills Registry                SEALED
-Phase 15.1 Agent Lifecycle Foundation          SEALED
-Phase 15.2 Lifecycle Transition Services       SEALED
-Phase 15 governed runtime signals              NEXT
-```
-
-Lifecycle identity and transitions grant no authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution. `docs/ROADMAP.md` is the scheduling authority; `agents/PROJECT_STATE.md` is the concise recovery dashboard.
+Resolve the live integration head directly from GitHub before branching, reviewing, or merging.
 
 ---
 
@@ -144,7 +140,7 @@ real configured-provider success + real provider-failure evidence
 real guarded fresh-retrieval Austria L-cycle
 ```
 
-Those gates were subsequently reconciled and sealed by V12.63. They are not open Phase 15 tasks.
+Those gates were subsequently reconciled and sealed by V12.63. They are not current tasks.
 
 Operational commands, one-shot/recovery semantics, Board authentication requirements and professional-review handoff are documented in [`docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`](docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md).
 
@@ -211,17 +207,20 @@ Permanent integration rules:
 
 ## Canonical documentation
 
-Current direction:
+Use documents by responsibility rather than as competing “current truth” files:
 
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — master product/programme scheduler and current/next work authority
-- [`agents/PROJECT_STATE.md`](agents/PROJECT_STATE.md) — concise current integration and programme recovery dashboard
-- [`agents/SESSION_HANDOFF.md`](agents/SESSION_HANDOFF.md) — current recovery coordinates
-- [`docs/aios-v2/README.md`](docs/aios-v2/README.md) — AIOS V2 companion entry point and reference map
+- [`AGENTS.md`](AGENTS.md) — repository front door and canonical cold-start chain
+- [`agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md`](agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md) — engineering process, verification and candidate lifecycle
+- [`agents/PROJECT_STATE.md`](agents/PROJECT_STATE.md) — concise current programme truth and next bounded slice
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — master WHAT / WHEN / WHY scheduler
+- [`agents/SESSION_HANDOFF.md`](agents/SESSION_HANDOFF.md) — minimal recovery pointer
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture navigation map, not a second master architecture specification
+- [`docs/aios-v2/README.md`](docs/aios-v2/README.md) — task-scoped AIOS V2 architecture/specification companion index
 - [`docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`](docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md) — canonical combined architecture
 - [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md) — constitutional high-autonomy source
 - [`docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`](docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md) — enterprise integration sovereignty/boundary architecture
 - [`docs/TECHNOLOGY_RADAR_V1_3_8.md`](docs/TECHNOLOGY_RADAR_V1_3_8.md) — consolidated Technology Radar reference
-- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — dated delivery history with the latest sealed-slice summary first
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — dated delivery history; not the current work queue
 
 Historical acceptance and programme records, including L/K.1, V12.25, Munder and Plasma documents, remain evidence for their dated checkpoints. They are not current scheduling authority.
 
@@ -539,46 +538,20 @@ global-mobility-aios/
 
 ---
 
-## Current migration truth
+## Schema migration marker
+
+The current roadmap records:
 
 ```text
 0084_organization_agent_lifecycle
 ```
 
-Phase 15.2 added no schema change; it reuses the Phase 15.1 `OrganizationAgent` model and existing `AuditLog` infrastructure.
+Verify the actual migration head in the repository before schema work. Historical lifecycle slices may explain why a migration exists, but this README does not own current migration or programme status.
 
 ---
 
-## Immediate direction
+## Current direction
 
-Primary:
-
-```text
-governed pre/post tool-use signals
-→ tool-failure signals
-→ permission request/denial signals
-→ task/subagent/session lifecycle signals
-→ compaction and cancellation signals
-```
-
-These signals must use existing AIOS boundaries and durable audit lineage. They do not expand authority, permissions, credentials, autonomy, assignment, routing or execution.
-
-Parallel production-foundation work:
-
-```text
-backup / isolated restore proof
-bounded secrets-manager pilot when a real credential lifecycle requires it
-Identity/SSO benchmark when deployment/multi-user need pulls it forward
-Communications Gateway contract when governed outbound communication becomes necessary
-```
-
-Later/demand-gated:
-
-```text
-e-signature execution
-accounting / ERP adapter
-payments
-broad Austria-to-generic runtime extraction until a second vertical proves the abstraction
-```
+Current and next implementation work is intentionally not duplicated in this README. Use `agents/PROJECT_STATE.md` for the active programme boundary and next bounded slice, and `docs/ROADMAP.md` for the ordered programme.
 
 The next project maturity increase must come from real organization performance, operational reliability and measurable mobility outcomes—not from adding another large framework.

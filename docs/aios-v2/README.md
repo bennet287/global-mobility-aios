@@ -1,28 +1,31 @@
-# AIOS V2 — Session Entry Point
+# AIOS V2 — Architecture & Specification Companion Index
 
-`docs/ROADMAP.md` is the master product/programme scheduler and the first document for every new AIOS session. This directory remains the canonical read-first companion location for AIOS V2 product/redesign work. The roadmap schedules and indexes the specialized specifications here; it does not supersede their domain authority.
+**Purpose:** task-scoped index for AIOS V2 architecture, visual, proof, migration, and historical phase material. This file does not own the active programme, current branch head, next slice, or cold-start sequence.
 
-New sessions should not scan every historical/audit document before acting. Start from the roadmap, then follow the companion read order below for the active task.
+Start engineering sessions at repository `AGENTS.md`. Use `agents/PROJECT_STATE.md` for current programme truth and `docs/ROADMAP.md` for remaining work/order. Come here only when the selected task needs AIOS V2 companion architecture or acceptance material.
 
-## Read order
+## Task-scoped companion map
 
-1. `../ROADMAP.md` — master project direction, current/next programme state, mandatory document map, cross-programme sequencing and no-orphan reconciliation rule.
-2. `AIOS_V2_COMPLETE_REDESIGN_MASTER_PLAN.md` — product destination, principles, sequencing, references and acceptance model.
-3. `AIOS_V2_MASTER_PLAN_EXECUTION_RECONCILIATION_2026-09-08.md` — reconciliation bridge between the master plan and implementation state; dated SHA/status snapshots may be historical relative to the roadmap.
-4. `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — canonical employee/department/skills/tools/learning architecture and the permanent rule that capability acquisition does not imply authority acquisition.
-5. `AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md` — current visible-redesign execution rules.
-6. `AIOS_V2_EFFICIENT_PROOF_LADDER.md` — development-vs-final-seal proof strategy.
-7. `AIOS_V2_MIGRATION_AND_FINAL_ACCEPTANCE_CHECKLIST.md` — final migration/acceptance gates.
+Read only what the selected slice requires:
 
-Historical Phase 1 audits and phase-specific records are supporting evidence. Read them only when the current task touches their subject or a regression requires historical context. If a companion requirement is unfinished, it must be mapped, satisfied, explicitly deferred, or explicitly superseded under the roadmap's no-orphan rule.
+- `AIOS_V2_COMPLETE_REDESIGN_MASTER_PLAN.md` — durable product destination, redesign principles, six-system model, and acceptance philosophy.
+- `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` — durable employee/department/skills/tools/learning architecture and capability-vs-authority separation.
+- `AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md` — visible-redesign quality law when a task changes material UI/UX or flagship visual behavior.
+- `AIOS_V2_EFFICIENT_PROOF_LADDER.md` — proof strategy when a task needs visual/product acceptance planning.
+- `AIOS_V2_MIGRATION_AND_FINAL_ACCEPTANCE_CHECKLIST.md` — whole-product migration/final-acceptance inventory when that stage is relevant.
+- `AIOS_V2_MASTER_PLAN_EXECUTION_RECONCILIATION_2026-09-08.md` — historical execution/governance bridge; dated SHA/status snapshots are not current programme truth.
+- Phase-specific audits, redirects, execution plans, and closure reconciliations — historical evidence and permanent decisions only when the active task touches their subject.
 
-## Current programme boundary
+If a companion requirement remains unfinished, `docs/ROADMAP.md` must map it, explicitly defer it with rationale, mark it satisfied by accepted implementation, or name the accepted contract that supersedes it.
 
-The AIOS V2 redesign and Living HQ flagship baseline are sealed through Phase 13G. Autonomous Regulatory Intelligence RI.A1–RI.A8 and Phase 14 Native Skills Registry are also sealed. The active programme is Phase 15 — Agent Lifecycle Governance Hooks.
+## Status ownership
 
-Phase 15.1 and Phase 15.2 are sealed. The next scheduled slice is governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution.
+Do not add an “active programme” or “next slice” section here.
 
-`docs/ROADMAP.md` is authoritative for the current sequence and `agents/PROJECT_STATE.md` holds the exact recovery coordinates.
+- `agents/PROJECT_STATE.md` owns what is true now.
+- `docs/ROADMAP.md` owns what remains and in what order.
+- GitHub owns live refs/PR/commit/workflow facts.
+- `agents/SESSION_HANDOFF.md` is only a minimal resume pointer.
 
 ## Sealed post-redesign programme — Autonomous Global Regulatory Intelligence
 
@@ -273,6 +276,8 @@ These decisions are preserved here so useful patterns are not lost while avoidin
 
 External repositories are references, not authorities. Any future dependency, plugin installation, runtime replacement, hosted-service connection, vector store or broader import requires its own Goal Contract, security/privacy/truth-boundary review, exact-head verification and accepted integration path.
 
-## Documentation discipline from now on
+## Documentation discipline
 
-Prefer updating this canonical entry point or an existing canonical architecture document over creating a new document. Create a new document only when it represents a genuinely separate authority/domain or when a phase acceptance record must remain immutable. Every new canonical document must be linked from this README and, when it changes programme direction or sequencing, indexed from `docs/ROADMAP.md`. If a proposal naturally extends an existing architecture, put it there or summarize it here rather than scattering another root-level roadmap file.
+This file indexes AIOS V2 companion architecture/specification material; it does not own current programme state. Prefer updating the existing document that already owns a durable requirement or decision. Create a new document only when it represents a genuinely separate authority/domain or an immutable phase/acceptance record.
+
+Do not add current branch heads, active phase status, or a second roadmap here. New durable architecture/specification material should be discoverable from the appropriate existing index/map and referenced by `docs/ROADMAP.md` only when it changes programme scheduling or leaves an unfinished requirement to map.

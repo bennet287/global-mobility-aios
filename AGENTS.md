@@ -1,25 +1,34 @@
 # Global Mobility AIOS — Agent Entry Point
 
-This repository uses a layered agent-governance contract. Read the following sources before substantial implementation work and treat repository state plus accepted proof as authoritative.
+`AGENTS.md` is the repository front door only. It does not own programme status, architecture, acceptance history, or implementation truth.
 
-## Required startup order
+## Cold-start chain
 
-1. Read `agents/AIOS_AGENT_CONSTITUTION.md` for durable autonomy, verification, PR/CI, visual-acceptance, truth-boundary, and merge rules.
-2. Read `agents/PROJECT_STATE.md` for the current project map.
-3. Read `agents/SESSION_HANDOFF.md` for the latest branch/worktree state, recent decisions, and recovery commands.
-4. Read `agents/REPOSITORY_AGENT_GUIDE.md` for repository layout, stack, setup, test/proof commands, security, vendor boundaries, and documentation conventions.
-5. Read `agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md` for goal predicates, coordinator/builder/verifier separation, controlled parallel execution, reusable verification profiles, and the governed candidate lifecycle.
-6. When running in Codex or a Codex-like shared-workspace runtime, also read `agents/CODEX_RUNTIME_ADAPTER.md`.
-7. Verify active milestone and acceptance claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, relevant acceptance records, current git refs, current PR metadata, and current workflow state before acting.
+For substantial AIOS work, use this order and stop reading when the active task has enough authoritative context:
 
-## Precedence
+1. `agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md` — how work is selected, built, verified, sealed, and reconciled.
+2. `agents/PROJECT_STATE.md` — what is true now at programme level and what bounded slice is next.
+3. `docs/ROADMAP.md` — what remains, why it matters, and the intended order.
+4. Read only the architecture/specification/ADR material relevant to the selected slice.
+5. Inspect the real code, schema, tests, current GitHub refs/PRs/workflows, and exact-head proof before acting.
+6. `agents/SESSION_HANDOFF.md` — minimal recovery coordinates and the smallest task-specific resume pointer; never a substitute for live GitHub state.
+
+Do **not** scan every historical phase record, changelog entry, acceptance artifact, or donor/reference document during cold start.
+
+When repository mechanics are needed, use `agents/REPOSITORY_AGENT_GUIDE.md`. When durable agent-governance behavior itself is relevant, use `agents/AIOS_AGENT_CONSTITUTION.md`. When the runtime is Codex or a Codex-like shared workspace, use `agents/CODEX_RUNTIME_ADAPTER.md`. None of those files owns the current programme phase or next slice.
+
+## Repository authority
 
 Higher-priority platform/system instructions remain binding.
 
-Within repository guidance, current observed repository/project state outranks stale prose. The constitution defines durable agent behavior; the execution playbook defines repeatable goal/orchestration/verification mechanics; the repository guide defines project-specific mechanics; project-state/handoff files describe current execution context; roadmap and acceptance records define milestone truth.
+Within AIOS repository guidance, use this precedence when claims conflict:
 
-If two repository documents disagree, do not silently choose the more convenient claim. Refresh the underlying repository/PR/workflow state, identify which document is stale, preserve accepted truth boundaries, and reconcile documentation when the active task authorizes it.
+`accepted canonical contracts / sealed decisions -> verified repository + schema + owning-system state -> accepted architecture / specification -> docs/ROADMAP.md -> agents/PROJECT_STATE.md -> agents/SESSION_HANDOFF.md -> conversation / memory`
+
+GitHub PR, commit, branch, and workflow state is authoritative for whether a candidate is open, green, ready, merged, or currently at a particular SHA. A living document may point to the last meaningful implementation checkpoint, but it must not pretend to self-update the integration branch head.
+
+If two sources disagree, refresh the system that owns the fact, identify the stale source, preserve accepted truth boundaries, and reconcile the existing canonical document instead of creating another status document.
 
 ## Working rule
 
-When the user asks to proceed with an already-authorized AIOS workflow, continue through implementation, required validation, current-head CI, applicable visual inspection, normalization/readiness, merge, and post-merge verification as required by the slice acceptance contract. Do not stop at an intermediate success or repeatedly ask for authorization already granted.
+When the user has already authorized an AIOS workflow, continue through the bounded exit predicate: inspect -> implement -> test -> independent review -> exact-head proof -> readiness -> expected-head merge where supported -> post-merge verification -> living-document reconciliation. Do not stop at an intermediate success or repeatedly ask for authorization already granted.

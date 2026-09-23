@@ -1,6 +1,55 @@
 # AIOS Agent Execution & Verification Playbook v1
 
-This playbook operationalizes the AIOS Agent Constitution for substantial repository work. It adapts useful goal/loop/swarm and project-local verification ideas to AIOS without importing an external agent framework or weakening AIOS truth, CI, visual, or merge contracts.
+This playbook operationalizes the AIOS Agent Constitution for substantial repository work. It defines the repeatable engineering and proof process. It does not own current programme status, the roadmap, or historical acceptance truth.
+
+## 0. Cold-start workflow and information architecture
+
+Use the repository as a recoverable operating system, not as a pile of documents.
+
+The default working loop is:
+
+`Orient -> Select -> inspect only relevant specs -> Build -> Test -> Review -> Record -> Commit -> Reflect`
+
+### Orient
+
+Start at `AGENTS.md`, then use this playbook, `agents/PROJECT_STATE.md`, and `docs/ROADMAP.md`. Resolve the live integration-branch/PR/workflow state from GitHub rather than assuming a SHA copied into prose is still current.
+
+### Select
+
+Choose the smallest roadmap-backed semantic slice whose exit predicate can be proven. Search for existing canonical models, services, contracts, tests, and prior decisions before proposing new state or abstractions.
+
+### Inspect only relevant specs
+
+Read task-relevant architecture/specification/ADR material only. Historical phase records, changelog entries, acceptance artifacts, donor repositories, and old execution snapshots are supporting evidence, not mandatory cold-start reading.
+
+### Build -> Test -> Review
+
+Implement the minimum justified semantic delta, run focused verification, then independently inspect the complete current diff and the truth/authority boundaries it affects.
+
+### Record -> Commit -> Reflect
+
+Put durable decisions in the existing owning architecture/specification/ADR when needed; put implementation/acceptance evidence in GitHub PR/commit/CI; keep current programme truth in `PROJECT_STATE`; keep remaining work/order in `ROADMAP`; keep `SESSION_HANDOFF` minimal. After sealing, check that those living documents are materially consistent without copying the full proof history into each one.
+
+### Canonical document responsibilities
+
+- `AGENTS.md` — short repository front door.
+- `agents/AIOS_AGENT_EXECUTION_PLAYBOOK.md` — engineering process, verification, candidate lifecycle, and closure discipline.
+- `agents/PROJECT_STATE.md` — concise statement of what is true now and the next bounded slice; not an acceptance ledger.
+- `docs/ROADMAP.md` — WHAT / WHEN / WHY scheduler and future ordering; not a branch-head ledger.
+- architecture/specification documents — durable technical/product contracts for their domain.
+- ADRs / phase decision records — why consequential decisions were made; dated state snapshots remain historical.
+- GitHub PR / commit / CI / artifacts — implementation and acceptance evidence.
+- `agents/SESSION_HANDOFF.md` — minimal cold-start recovery pointer; not a second project-state document.
+- `agents/REPOSITORY_AGENT_GUIDE.md` — repository layout/mechanics; never active programme status.
+- `agents/CODEX_RUNTIME_ADAPTER.md` — runtime-specific operating behavior; never project scheduling truth.
+
+Authority precedence inside repository guidance is:
+
+`accepted canonical contracts / sealed decisions -> verified repository + schema + owning-system state -> accepted architecture / specification -> ROADMAP -> PROJECT_STATE -> SESSION_HANDOFF -> conversation / memory`
+
+A current GitHub fact such as branch head, PR state, merge SHA, or workflow result must be refreshed from GitHub. Do not design living documentation so that merging the documentation itself immediately makes its own “current head” claim stale.
+
+**Documentation drift is a defect.** Reconcile the existing owner of stale information. Do not create `PRD.md`, `BACKLOG.md`, `PROGRESS.md`, a second `ARCHITECTURE.md`, or another current-state/handoff file merely to avoid editing the canonical source.
 
 ## 1. Goal contract
 
@@ -20,7 +69,7 @@ A goal contract records:
 
 The coordinator owns the exit predicate until it is satisfied, the user redirects/stops, or a genuine external blocker/product decision is reached. A plateau, a passing build, an opened PR, or one green workflow is not an exit condition.
 
-## 2. Coordinator → Builder → Independent Verifier
+## 2. Coordinator -> Builder -> Independent Verifier
 
 Use role separation for non-trivial slices.
 
@@ -145,7 +194,7 @@ Use for any slice that presents canonical state:
 
 The default governed lifecycle is:
 
-`goal → inspect → implement → builder tests → candidate → independent verification → fix loop → normalized candidate → exact-head CI → exact-head product/visual proof → ready → final refresh → expected-SHA merge → post-merge verification → next roadmap slice`
+`goal -> orient/select -> inspect -> implement -> builder tests -> candidate -> independent verification -> fix loop -> normalized candidate -> exact-head CI -> exact-head product/visual proof -> ready -> final refresh -> expected-SHA merge -> post-merge verification -> living-doc reconciliation -> reflect -> next roadmap slice`
 
 Normalization is required when stale stacked ancestry or predecessor history would otherwise enter the sealed redesign base. Reconstruct only the accepted semantic delta on the latest sealed integration head and re-run acceptance on the normalized head.
 
@@ -162,6 +211,8 @@ For substantial work, keep a compact evidence trail in the PR/body or existing p
 - independent verifier verdict and evidenced findings;
 - normalization topology when applicable;
 - merge SHA and post-merge integration ref when merged.
+
+Do not copy that proof ledger into `PROJECT_STATE`, `ROADMAP`, and `SESSION_HANDOFF`. Those files should link or point to the relevant sealed checkpoint only when it materially helps recovery.
 
 Do not commit noisy private scratch logs solely to prove activity. The trail exists so another agent can resume and audit the decision, not to preserve internal reasoning.
 
