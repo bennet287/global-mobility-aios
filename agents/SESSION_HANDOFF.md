@@ -21,7 +21,7 @@ Canonical integration branch:
 
 Verified integration head at this reconciliation:
 
-`14d7bfdd238ca93a10310541702c216fc9561f4b` — PR #171 merge
+`c4ff75f24801eb52a82da2ac09cc724ffe872534` — PR #173 merge
 
 Active programme:
 
@@ -32,13 +32,16 @@ Sealed/runtime decisions:
 - Phase 16.1 — runtime provider-usage metering, PR #165, merge `8b13f8b8fc3a4bf922a873fe35ab7490307132b0`.
 - Phase 16.2 — deterministic failure classification/retry policy, PR #166, merge `9ca583cb3a38c2cee33d2558ada9995106758cd9`.
 - System-1 / AX evaluation record, PR #167, merge `896e338e77c9ecf797a7f26f676cb10b18ae5c18`.
-- AgentRun soft-timeout semantics, PR #171, merge `14d7bfdd238ca93a10310541702c216fc9561f4b`.
+- AgentRun cooperative soft-timeout semantics, PR #171, merge `14d7bfdd238ca93a10310541702c216fc9561f4b`.
+- AgentRun stale-running reconciliation, PR #173, accepted head `d1b4156e85d5b23dfa1c9ee245a32a6009acb4a1`, merge `c4ff75f24801eb52a82da2ac09cc724ffe872534`; Repository Policy #1415 and V12 Production Proof #2045 passed on the exact accepted head.
 
-PR #171 reuses the existing Celery `task_soft_time_limit=240` and `task_time_limit=300`. A cooperative soft timeout records `agent_run_runtime_timeout`, terminates the existing AgentRun as `failed`, and is non-retryable. It does **not** solve hard-killed/stale-run reconciliation or explicit cancellation.
+PR #171 reuses the existing Celery `task_soft_time_limit=240` and `task_time_limit=300`. A cooperative soft timeout records `agent_run_runtime_timeout`, terminates the existing AgentRun as `failed`, and is non-retryable.
+
+PR #173 adds a periodic stale-running reconciler using the existing AgentRun and AuditLog boundaries. It waits until the 300-second hard limit plus a 60-second grace window, requires durable evidence that the latest recorded lifecycle state is still `running`, records `agent_run_stale_running_reconciled`, and fails closed. `cause_inferred=false` is permanent to this evidence: a stranded run does not prove the worker was definitely killed by the Celery hard limit.
 
 Next scheduled slice:
 
-`hard-limit/stale AgentRun reconciliation plus explicit cancellation semantics through the existing AgentRun/Celery boundary`
+`explicit AgentRun cancellation semantics through the existing AgentRun/Celery boundary`
 
 No Jev, Laya or Google AX production dependency is approved. Jev/Laya are benchmark candidates; AX is deferred until canonical runtime controls exist.
 
@@ -62,6 +65,8 @@ Do not collapse:
 CAN DO != MAY DO != DID DO != CREATED VALUE.
 
 Timeout/cancellation work must reuse the existing execution boundary and must not silently grant authority, permissions, credentials, autonomy, budget, assignment or external side effects. Cancellation does not imply rollback of an external side effect that already occurred.
+
+For the next slice, inspect actual asynchronous enqueue/task identity paths before adding cancellation state. Existing `OrganizationalWorkItem.cancel_requested_at` belongs to WorkItem governance and is not AgentRun cancellation truth. Distinguish cancellation intent from a worker actually stopping; do not claim a Celery revoke proves rollback or absence of side effects.
 
 ## Closure rule
 
