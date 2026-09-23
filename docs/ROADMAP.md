@@ -1,11 +1,11 @@
 # Global Mobility AIOS — Master Product Roadmap
 
 **Roadmap generation:** 2026.09 — post-Phase-13G autonomous-operations reset
-**Date:** 2026-09-17
+**Date:** 2026-09-23
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
-**Active programme:** Phase 15 — Agent Lifecycle Governance Hooks
-**Current checkpoint:** Phase 15.4 — SEALED by PR #163 at merge `3944ddb7a21cd76e92eb3739b4fe95340ff43610`
+**Active programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
+**Current checkpoint:** Phase 16.2 runtime reliability is SEALED by PR #166 at merge `9ca583cb3a38c2cee33d2558ada9995106758cd9`; System-1/AX evaluation is merged by PR #167 at `896e338e77c9ecf797a7f26f676cb10b18ae5c18`
 **Code migration head:** `0084_organization_agent_lifecycle`
 
 <!-- CURRENT_MIGRATION_HEAD: 0084_organization_agent_lifecycle -->
@@ -161,6 +161,8 @@ locomotionAllowed = false
 Canonical handoffs/conversations/governance events may drive presentation only when their durable records exist. Character placement does not assert physical presence. Room presentation does not assert occupancy. Selection remains view state. Living HQ does not create work, evidence, authority or decisions.
 
 Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. **Phase 15.2 — Governed Lifecycle Transition Services** is sealed and merged by PR #158 at `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`. Phase 15 runtime hooks are sealed through the real connector and background `AgentRun` boundaries. Session/subagent/compaction/cancellation hooks are deferred to Phase 16 until canonical runtime operations exist; AIOS will not invent duplicate state merely to emit signals. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
+
+Phase 16.1 runtime provider-usage metering and Phase 16.2 deterministic failure classification/retry policy are sealed. Provider/model/token observations and `estimated_cost_usd` are diagnostic runtime evidence, not billing truth. Retry remains fail-closed: only classified provider transport failures retry. PR #167 records the System-1/orchestration decision: Jev and Laya remain benchmark candidates only; Google AX remains deferred as a possible execution substrate until AIOS owns canonical timeout/cancellation, hard runtime budgets, actual cost metering, circuit breakers and reconciliation. Deterministic AIOS policy remains authoritative. The next scheduled runtime slice is bounded timeout/cancellation semantics through the existing `AgentRun`/Celery execution boundary; no duplicate runtime state should be created merely to support it.
 
 ---
 

@@ -2,15 +2,16 @@
 
 **Purpose:** minimal recovery instructions for a fresh engineering session. Do not copy historical programme narratives into this file.
 
-**Last reconciled:** 2026-09-17
+**Last reconciled:** 2026-09-23
 
 ## Start here
 
 1. Read `agents/PROJECT_STATE.md`.
-2. Read the current scheduling sections of `docs/ROADMAP.md` and the companion spec for the active slice.
-3. Fetch `design/aios-v2-complete-redesign` from GitHub and verify its actual SHA.
-4. If an active PR exists, inspect its exact head and workflow runs before changing code; otherwise branch from the verified integration head.
-5. If a future PR is stale against a newly sealed base, reconstruct/rebase it before proof rather than accepting stale CI.
+2. Read the current Phase 16 scheduling sections of `docs/ROADMAP.md`.
+3. Read `docs/PHASE_16_SYSTEM1_ORCHESTRATION_DECISIONS_2026-09-23.md`.
+4. Fetch `design/aios-v2-complete-redesign` and verify its actual SHA.
+5. If an active PR exists, inspect its exact head, changed files and workflow runs before changing code; otherwise branch only from the verified integration head.
+6. Search for existing models/services/contracts before adding state or abstractions.
 
 ## Current recovery coordinates
 
@@ -18,70 +19,66 @@ Canonical integration branch:
 
 `design/aios-v2-complete-redesign`
 
-Current sealed programme checkpoint:
+Verified integration head at this reconciliation:
 
-`eee8ac5d24808b3880e50f51e1879c4ad623021c`
-
-Latest accepted implementation merge:
-
-`30e6a9e691f4b82a326b2dc1cb267ef5bb938c35` — PR #158
+`896e338e77c9ecf797a7f26f676cb10b18ae5c18` — PR #167 merge
 
 Active programme:
 
-`Phase 15 — Agent Lifecycle Governance Hooks`
+`Phase 16 — Runtime Reliability, Metering and Orchestration Foundations`
 
-Sealed slices at this handoff:
+Sealed/runtime decisions:
 
-`Phase 15.1 — Governed Agent Lifecycle Foundation`
-
-`Phase 15.2 — Governed Lifecycle Transition Services`
+- Phase 16.1 — runtime provider-usage metering, PR #165, merge `8b13f8b8fc3a4bf922a873fe35ab7490307132b0`.
+- Phase 16.2 — deterministic failure classification/retry policy, PR #166, merge `9ca583cb3a38c2cee33d2558ada9995106758cd9`.
+- System-1 / AX evaluation record, PR #167, merge `896e338e77c9ecf797a7f26f676cb10b18ae5c18`.
 
 Next scheduled slice:
 
-`governed pre/post tool-use, tool-failure and permission-request/denial signals`
+`bounded timeout/cancellation semantics through the existing AgentRun/Celery runtime boundary`
 
-There is no active implementation branch or PR recorded by this handoff. The integration branch may contain later documentation-only reconciliation commits; create the next bounded branch only from its freshly verified actual head.
+No Jev, Laya or Google AX production dependency is approved. Jev/Laya are benchmark candidates; AX is deferred until canonical runtime controls exist.
 
 Always verify these coordinates against GitHub; this file is a recovery pointer, not self-updating repository truth.
 
-## Exact-head rule
+## Runtime architecture boundary
 
-Acceptance requires one immutable implementation head:
+Do not collapse:
 
-`capture exact head -> run required proof -> verify exact same head -> inspect patch/scope -> merge with expected head -> fetch actual merge SHA`
+- controlled-agent registry = implementation definition;
+- OrganizationAgent = durable lifecycle identity;
+- AgentRun = execution history;
+- position = organizational role/authority contract;
+- skill = capability eligibility;
+- connector credential = runtime secret boundary;
+- autonomy profile = separately earned execution latitude;
+- provider usage observation = diagnostic runtime evidence, not billing truth;
+- Jev/Laya = possible future advisory System-1 decision primitives;
+- AX = possible future replaceable execution substrate.
 
-Never use a historical green workflow to certify a changed head. Never merge because a builder merely reports that tests passed.
+CAN DO != MAY DO != DID DO != CREATED VALUE.
 
-## Active architectural boundary
+Timeout/cancellation work must reuse the existing execution boundary and must not silently grant authority, permissions, credentials, autonomy, budget, assignment or external side effects.
 
-Phase 15 must not collapse these concepts:
+## Closure rule
 
-- controlled-agent registry: implementation definition;
-- organization agent: durable lifecycle identity;
-- position: organizational role/authority contract;
-- skill: capability eligibility;
-- tool/permission configuration: future canonical prerequisite truth;
-- credential: connector/runtime secret boundary;
-- AgentRun: execution history;
-- autonomy profile: separately earned execution latitude.
+Every implementation slice must finish with:
 
-Lifecycle state and lifecycle transitions grant none of authority, permissions, credentials, autonomy, tool access, work assignment, routing or execution. Phase 15.2 reuses `AuditLog`; it does not create another lifecycle truth store.
+`exact merged head -> duplicate/reuse audit -> stale-state/docs audit -> canonical living-doc reconciliation -> exact CI evidence -> actual merge SHA -> clear next slice`
+
+Do not leave `PROJECT_STATE.md`, `SESSION_HANDOFF.md` or the roadmap materially pointing at an older active programme after a slice is sealed. Update existing living documents rather than creating duplicate handoff/status files.
 
 ## Do not do
 
-- Do not branch from old V12, Radar, reconstruction, prep, `-next`, `-work`, or historical feature branches.
-- Do not create another current-state/handoff document; update `PROJECT_STATE.md` or the roadmap instead.
-- Do not add a new table when an existing canonical model owns the durable business truth.
-- Do not turn diagnostic skill matching into authorization.
-- Do not use corporate-account connector credentials as per-position entitlement truth.
-- Do not enable regulatory machine publication or machine recovery without a separate accepted authorization slice.
-- Do not reopen sealed Living HQ visual work without a concrete regression or new scheduled product requirement.
-- Do not treat memory, model confidence, telemetry, UI state or animation as canonical truth.
+- Do not branch from historical V12, reconstruction, prep, `-next`, `-work` or old feature branches.
+- Do not create another current-state/handoff document.
+- Do not add a new durable table when an existing canonical model owns the truth.
+- Do not turn diagnostic confidence, System-1 output or skill matching into authorization.
+- Do not treat corporate connector credentials as per-agent entitlement truth.
+- Do not enable regulatory machine publication/recovery without a separate accepted authorization slice.
+- Do not reopen sealed Living HQ visual work without a concrete regression or scheduled requirement.
+- Do not treat memory, telemetry, UI state or animation as canonical truth.
 
 ## CI / proof expectation
 
-For backend/governance slices, the expected broad seal includes Repository Policy, V12 Production Proof, SQLite regression and PostgreSQL governance. Frontend/browser proof is required when the slice affects those surfaces. Inspect the actual workflow jobs rather than inferring coverage from a workflow title.
-
-## Historical material
-
-Old V12 project-state narratives, professional-review proof records, phase-specific acceptance docs and Radar research remain historical evidence. They may explain why a rule exists, but they are not current branch/status authority. Git history is the archive; living handoff files should stay short.
+For backend/governance slices, inspect the exact-head Repository Policy and V12 Production Proof jobs plus their SQLite/PostgreSQL coverage. Frontend/browser proof is required when affected. A historical green run never certifies a changed head.
