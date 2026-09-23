@@ -4,6 +4,7 @@ import json
 import traceback
 from uuid import UUID
 
+from celery.exceptions import SoftTimeLimitExceeded
 from sqlmodel import Session
 
 from app.core import db as db_module
@@ -90,6 +91,11 @@ def run_agent_task(self, agent_run_id: str) -> dict:
 
 def _classify_failure(exc: Exception) -> tuple[str, bool]:
     """Classify before retry without pretending unknown failures are safe to repeat."""
+    if isinstance(exc, SoftTimeLimitExceeded):
+        # Celery already owns the canonical worker timeout envelope globally.
+        # A timed-out run is not automatically safe to repeat: work may have
+        # progressed before the cooperative soft limit interrupted execution.
+        return "runtime_timeout", False
     if isinstance(exc, LLMProviderTransportError):
         return "provider_transport", True
     if isinstance(exc, LLMProviderConfigurationError):
