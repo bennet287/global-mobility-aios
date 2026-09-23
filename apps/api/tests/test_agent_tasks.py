@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from sqlmodel import Session, select
 
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
-from app.tasks.agent_tasks import run_agent_task
+from app.tasks.agent_tasks import (
+    _transition_run,
+    reconcile_stale_agent_runs,
+    run_agent_task,
+)
 
 from billiard.exceptions import SoftTimeLimitExceeded
 
@@ -118,3 +123,98 @@ def test_run_agent_task_records_soft_timeout_as_terminal_failure(
     ]
     assert '"status": "running"' in (lifecycle_logs[0].after_state_json or "")
     assert '"status": "failed"' in (lifecycle_logs[1].after_state_json or "")
+
+
+def test_reconcile_stale_agent_runs_fails_only_overdue_running_run(
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    stale = AgentRun(
+        lead_id=lead.id,
+        agent_name="sales_summary_agent",
+        task="Stale run.",
+        status=AgentRunStatus.queued.value,
+        input_json="{}",
+        output_json="{}",
+    )
+    fresh = AgentRun(
+        lead_id=lead.id,
+        agent_name="sales_summary_agent",
+        task="Fresh run.",
+        status=AgentRunStatus.queued.value,
+        input_json="{}",
+        output_json="{}",
+    )
+    db_session.add(stale)
+    db_session.add(fresh)
+    db_session.commit()
+    db_session.refresh(stale)
+    db_session.refresh(fresh)
+
+    _transition_run(db_session, stale, AgentRunStatus.running)
+    _transition_run(db_session, fresh, AgentRunStatus.running)
+
+    now = datetime.now(timezone.utc)
+    stale_running_log = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.entity_id == str(stale.id))
+        .where(AuditLog.action == "agent_run_status_changed")
+        .order_by(AuditLog.created_at.desc())
+    ).first()
+    assert stale_running_log is not None
+    stale_running_log.created_at = (now - timedelta(seconds=361)).replace(tzinfo=None)
+    db_session.add(stale_running_log)
+    db_session.commit()
+
+    result = reconcile_stale_agent_runs(db_session, now=now)
+
+    assert result == {
+        "scanned": 2,
+        "reconciled": 1,
+        "skipped_missing_running_evidence": 0,
+        "stale_after_seconds": 360,
+    }
+    db_session.refresh(stale)
+    db_session.refresh(fresh)
+    assert stale.status == AgentRunStatus.failed.value
+    assert fresh.status == AgentRunStatus.running.value
+
+    reconciliation_logs = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.entity_id == str(stale.id))
+        .where(AuditLog.action == "agent_run_stale_running_reconciled")
+    ).all()
+    assert len(reconciliation_logs) == 1
+    after_state = reconciliation_logs[0].after_state_json or ""
+    assert '"failure_class": "runtime_stale_running"' in after_state
+    assert '"retryable": false' in after_state
+    assert '"cause_inferred": false' in after_state
+    assert '"hard_time_limit_seconds": 300' in after_state
+    assert '"grace_seconds": 60' in after_state
+
+
+def test_reconcile_stale_agent_runs_requires_running_audit_evidence(
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    run = AgentRun(
+        lead_id=lead.id,
+        agent_name="sales_summary_agent",
+        task="Missing evidence.",
+        status=AgentRunStatus.running.value,
+        input_json="{}",
+        output_json="{}",
+    )
+    db_session.add(run)
+    db_session.commit()
+    db_session.refresh(run)
+
+    result = reconcile_stale_agent_runs(
+        db_session,
+        now=datetime.now(timezone.utc) + timedelta(hours=1),
+    )
+
+    assert result["reconciled"] == 0
+    assert result["skipped_missing_running_evidence"] == 1
+    db_session.refresh(run)
+    assert run.status == AgentRunStatus.running.value
