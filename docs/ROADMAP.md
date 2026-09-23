@@ -5,7 +5,7 @@
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
-**Current checkpoint:** Phase 16.2 runtime reliability is SEALED by PR #166 at merge `9ca583cb3a38c2cee33d2558ada9995106758cd9`; System-1/AX evaluation is merged by PR #167 at `896e338e77c9ecf797a7f26f676cb10b18ae5c18`
+**Current checkpoint:** Phase 16 runtime reliability is sealed through cooperative soft-timeout handling (PR #171, merge `14d7bfdd238ca93a10310541702c216fc9561f4b`) and stale-running reconciliation (PR #173, merge `c4ff75f24801eb52a82da2ac09cc724ffe872534`); explicit AgentRun cancellation is the next bounded runtime slice. System-1/AX evaluation remains recorded by PR #167.
 **Code migration head:** `0084_organization_agent_lifecycle`
 
 <!-- CURRENT_MIGRATION_HEAD: 0084_organization_agent_lifecycle -->
@@ -160,9 +160,9 @@ locomotionAllowed = false
 
 Canonical handoffs/conversations/governance events may drive presentation only when their durable records exist. Character placement does not assert physical presence. Room presentation does not assert occupancy. Selection remains view state. Living HQ does not create work, evidence, authority or decisions.
 
-Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. **Phase 15.2 — Governed Lifecycle Transition Services** is sealed and merged by PR #158 at `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`. Phase 15 runtime hooks are sealed through the real connector and background `AgentRun` boundaries. Session/subagent/compaction/cancellation hooks are deferred to Phase 16 until canonical runtime operations exist; AIOS will not invent duplicate state merely to emit signals. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
+Autonomous Global Regulatory Intelligence RI.A1–RI.A8 is sealed and merged at `341ec1f0268cf483e868e85660978a4fbaac3e15`. Phase 14 — AIOS Native Skills Registry is sealed through its governed skill-assignment boundary. **Phase 15.1 — Governed Agent Lifecycle Foundation** is sealed and merged by PR #156 at `30774751a79e998fe80f648f1e172ab1b75c08d0`. **Phase 15.2 — Governed Lifecycle Transition Services** is sealed and merged by PR #158 at `30e6a9e691f4b82a326b2dc1cb267ef5bb938c35`. Phase 15 runtime hooks are sealed through the real connector and background `AgentRun` boundaries. Lifecycle identity and transitions do not grant authority, permissions, credentials, autonomy, tool access, work assignment or execution rights.
 
-Phase 16.1 runtime provider-usage metering and Phase 16.2 deterministic failure classification/retry policy are sealed. Provider/model/token observations and `estimated_cost_usd` are diagnostic runtime evidence, not billing truth. Retry remains fail-closed: only classified provider transport failures retry. PR #167 records the System-1/orchestration decision: Jev and Laya remain benchmark candidates only; Google AX remains deferred as a possible execution substrate until AIOS owns canonical timeout/cancellation, hard runtime budgets, actual cost metering, circuit breakers and reconciliation. Deterministic AIOS policy remains authoritative. The next scheduled runtime slice is bounded timeout/cancellation semantics through the existing `AgentRun`/Celery execution boundary; no duplicate runtime state should be created merely to support it.
+Phase 16.1 runtime provider-usage metering and Phase 16.2 deterministic failure classification/retry policy are sealed. Provider/model/token observations and `estimated_cost_usd` are diagnostic runtime evidence, not billing truth. Retry remains fail-closed: only classified provider transport failures retry. PR #171 seals cooperative AgentRun soft-timeout handling by reusing the existing Celery 240-second soft / 300-second hard limits; soft timeout is terminal and non-retryable. PR #173 seals stale-running reconciliation after the 300-second hard limit plus a 60-second grace window, using existing AgentRun + AuditLog truth and explicitly recording `cause_inferred=false` rather than claiming every stranded run was definitely hard-killed. Explicit AgentRun cancellation remains the next bounded runtime slice. PR #167 records the System-1/orchestration decision: Jev and Laya remain benchmark candidates only; Google AX remains deferred as a possible execution substrate until AIOS owns canonical timeout/cancellation, hard runtime budgets, actual cost metering, circuit breakers and reconciliation. Deterministic AIOS policy remains authoritative. No duplicate runtime state should be created merely to support lifecycle signals.
 
 ---
 
@@ -461,9 +461,9 @@ Portable skill definitions, validation, discovery metadata, curated role bundles
 
 Phase 14 established the native skill registry, validation and evidence lifecycle, mutation audit, deterministic work-candidate matching and governed skill-assignment gate. Skill records may declare tool and permission requirements but cannot grant credentials, permissions, authority or autonomy.
 
-### Phase 15 — Agent Lifecycle Governance Hooks — ACTIVE
+### Phase 15 — Agent Lifecycle Governance Hooks — SEALED
 
-Governed pre/post tool-use, tool failure, permission request/denial, task/subagent/session lifecycle, compaction and cancellation signals through existing AIOS boundaries.
+Governed pre/post tool-use, tool failure, permission request/denial and background task lifecycle signals are sealed through existing AIOS boundaries. Session/subagent/compaction/cancellation signals are admitted only when a real canonical runtime operation exists; signal-only duplicate truth stores remain prohibited.
 
 #### Phase 15.1 — Governed Agent Lifecycle Foundation — SEALED
 
@@ -484,6 +484,8 @@ PR #163 merged exact candidate `0e4ed4505aac1fc16c89d706ef4b483c015b0c18` as `39
 ### Phase 16 — Runtime Reliability, Cost Intelligence & Economic Metering
 
 Gap-audit routing, **real-money-equivalent work budgets**, per-work/agent/department cost attribution, loop/stall detection, cancellation/circuit breakers, bounded retry, checkpoint/recovery, governance-preserving context compaction, observability and provider quality history before adoption. Model tokens, paid APIs, tools, compute, retries and attributable human-review cost must be metered from actual provider/runtime evidence where available rather than estimated presentation state.
+
+Current runtime reliability foundation: provider-usage observations are sealed by PR #165; deterministic failure classification and transport-only retry are sealed by PR #166; cooperative soft-timeout handling is sealed by PR #171; and stale-running reconciliation is sealed by PR #173. Explicit AgentRun cancellation is the remaining timeout/cancellation slice before moving to the next Phase 16 runtime control. These controls reuse existing AgentRun/Celery/AuditLog truth and do not create a second execution-state store merely for signals.
 
 Before materially costly production execution, AIOS must expose the authorized budget, current spend and remaining budget to the governed runtime. Budget exhaustion is a hard pause/stop boundary unless a separately authorized allocation is granted. An employee may request additional resources with evidence and an expected completion/value case; it may not grant itself budget, bypass the limit, fabricate a result or treat unused budget as a spending target.
 
@@ -681,11 +683,11 @@ We also do not optimize for “maximum autonomy” as a vanity metric. We do not
 ## 14. Immediate order of work
 
 ```text
-1. Add governed pre/post tool-use, tool-failure and permission-request/denial signals through existing AIOS boundaries.
-2. Phase 15 task lifecycle evidence is sealed at the existing `AgentRun` boundary. Add session/subagent/compaction/cancellation lifecycle evidence in Phase 16 only together with canonical runtime operations; never create a signal-only duplicate truth store.
+1. Finish the Phase 16 timeout/cancellation tranche with explicit AgentRun cancellation semantics on top of the sealed soft-timeout and stale-running reconciliation boundaries.
+2. Continue Phase 16 with hard runtime budgets/actual cost metering, scoped circuit breakers and runtime reconciliation before materially increasing autonomous execution.
 3. Keep lifecycle identity separate from static agent definitions, `AgentRun` execution history, work assignment, credentials, permissions, authority and autonomy.
-4. Integrate lifecycle visibility into employee inspection and Living HQ only from canonical lifecycle state and without asserting physical presence.
-5. Build Phase 16 runtime reliability, real-cost metering and hard budget boundaries plus Phase 17 security assurance before materially increasing autonomous execution.
+4. Add session/subagent/compaction lifecycle evidence only together with a real canonical runtime operation; never create a signal-only duplicate truth store.
+5. Build Phase 17 security assurance before materially expanding external or consequential autonomous execution.
 6. Build Phase 19 preflight competency: verify job-specific organizational readiness before meaningful production spend; GAP → bounded reskill + evidence-backed competency verification; NOT_SUITABLE → route/reassign/escalate.
 7. Add canonical outcome/economic attribution: activity != result, completion != outcome, spend != value; preserve unknown/unattributed value rather than inventing ROI.
 8. Use Phase 19/20 verified competency, result, correction and economic evidence to propose resource/autonomy changes capability-by-capability; no employee may self-grant budget, permissions, authority or autonomy.
