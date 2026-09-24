@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`provider-specific pre-call output limits and monetary allocation prerequisites after reconciling paid tools and billing evidence`
+`monetary allocation prerequisites and paid-tool/billing reconciliation; verify Gemini output-cap compatibility separately`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #183 — opt-in, admin-governed provider call-count capacity on the direct model-call ledger, merge `c4ff79ff189d7f4a1521e226365cacc9b1c9f5e8`.
+- PR #185 — opt-in DeepSeek/Moonshot per-request output-token caps in the existing adapters, merge `15735f3815d007390b1c5c87530881527450ae19`.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,13 +31,13 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 16 boundary and budget/metering guardrails.
 3. Read the Phase 16 scheduling and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the sealed Phase 16.3A/B/C provider-call ledger and capacity, paid tools beyond model calls, and existing budget/allocation models before designing new state.
+4. Inspect the sealed Phase 16.3A–D provider-call ledger, capacity and optional adapter limits, paid tools beyond model calls, and existing budget/allocation models before designing new state.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing cost, usage, allocation, budget, retry and cancellation evidence before adding models or abstractions.
 
 ## Runtime cost truth boundary
 
-`estimated_cost_usd` remains diagnostic evidence, not billing truth. The sealed ledger covers direct model calls through AgentRun or unique operation identity; request-local calls have no invented WorkItem owner. For enrolled providers, an admin-operated cumulative call count is reserved before each direct model call, including retries; it is no monetary grant or per-call output cap. Unenrolled providers retain prior behavior. Paid tools beyond those calls remain to be reconciled. Keep authorized budget, observed actual provider/tool spend, and estimates/unattributed cost separate. A hard monetary budget requires authoritative cost evidence and a provable pre-call ceiling. Budget exhaustion may stop or pause new paid execution only through an explicit governed runtime boundary; an agent may request more allocation but may not grant itself budget. Cancellation does not imply refund or rollback of spend already incurred.
+`estimated_cost_usd` remains diagnostic evidence, not billing truth. The sealed ledger covers direct model calls through AgentRun or unique operation identity; request-local calls have no invented WorkItem owner. For enrolled providers, an admin-operated cumulative call count is reserved before each direct model call, including retries; it is no monetary grant. Independently, optional DeepSeek/Moonshot settings cap generated tokens per call; Gemini has no verified cap on its current compatibility path. Unenrolled providers retain prior call-count behavior. Paid tools beyond those calls remain to be reconciled. Keep authorized budget, observed actual provider/tool spend, and estimates/unattributed cost separate. A hard monetary budget requires authoritative cost evidence and a provable pre-call ceiling. Budget exhaustion may stop or pause new paid execution only through an explicit governed runtime boundary; an agent may request more allocation but may not grant itself budget. Cancellation does not imply refund or rollback of spend already incurred.
 
 Explicit AgentRun cancellation is already sealed by PR #176. Its non-terminating Celery revoke and no-rollback semantics remain intact while budget controls are added.
 
