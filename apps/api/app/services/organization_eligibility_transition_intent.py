@@ -30,6 +30,7 @@ from app.services.llm_client import (
     LLMProviderTransportError,
     LLMResponse,
 )
+from app.services.runtime_economics import complete_recorded
 from app.services.mobility_domain import mobility_intent_domain
 from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.organization_activity import stage_activity
@@ -540,7 +541,10 @@ def governed_eligibility_transition_intent(
     prompt_payload = canonical_json(payload)
 
     try:
-        response: LLMResponse = provider.complete(
+        response: LLMResponse = complete_recorded(
+            context_kind="eligibility_transition_work_item",
+            context_id=str(work_item_id),
+            provider=provider,
             system_prompt=_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt_payload}],
             response_format={"type": "json_object"},

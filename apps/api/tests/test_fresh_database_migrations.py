@@ -106,6 +106,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
 
     inspector = inspect(create_engine(database_url))
     durable_tables = {
+        "provider_call_attempts",
         "organization_activity_streams",
         "organization_activities",
         "organization_contributions",
@@ -172,7 +173,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0085_agent_run_provider_attempts"
+            "0086_provider_call_attempt_coverage"
         )
         position_inspector = inspect(connection)
         position_indexes = {
@@ -192,6 +193,47 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert position_indexes["ux_organization_positions_active_position_key"].get("unique") in {True, 1}
         for table in durable_tables:
             assert connection.execute(text(f"SELECT count(*) FROM {table}")).scalar_one() == 0
+
+
+def test_provider_call_migration_preserves_existing_agent_run_evidence(tmp_path: Path) -> None:
+    database_url = f"sqlite:///{(tmp_path / 'provider-call-upgrade.db').as_posix()}"
+    env = {**os.environ, "DATABASE_URL": database_url}
+
+    def migrate(command: str, target: str) -> None:
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", "-c", str(ROOT / "alembic.ini"), command, target],
+            cwd=ROOT, env=env, capture_output=True, text=True,
+            timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS, check=False,
+        )
+        assert result.returncode == 0, result.stderr or result.stdout
+
+    migrate("upgrade", "0085_agent_run_provider_attempts")
+    engine = create_engine(database_url)
+    run_id, attempt_id = uuid4().hex, uuid4().hex
+    with engine.begin() as connection:
+        connection.execute(text(
+            "INSERT INTO agent_runs (id, agent_name, task, status, created_at) "
+            "VALUES (:id, 'test', 'preserve evidence', 'completed', CURRENT_TIMESTAMP)"
+        ), {"id": run_id})
+        connection.execute(text(
+            "INSERT INTO agent_run_provider_attempts "
+            "(id, agent_run_id, attempt_no, provider, status, cost_basis, started_at, total_tokens) "
+            "VALUES (:id, :run_id, 1, 'deepseek', 'observed', 'unattributed', CURRENT_TIMESTAMP, 17)"
+        ), {"id": attempt_id, "run_id": run_id})
+
+    migrate("upgrade", "head")
+    with engine.connect() as connection:
+        row = connection.execute(text(
+            "SELECT agent_run_id, operation_key, total_tokens FROM provider_call_attempts WHERE id=:id"
+        ), {"id": attempt_id}).one()
+        assert tuple(row) == (run_id, None, 17)
+
+    migrate("downgrade", "0085_agent_run_provider_attempts")
+    with engine.connect() as connection:
+        row = connection.execute(text(
+            "SELECT agent_run_id, total_tokens FROM agent_run_provider_attempts WHERE id=:id"
+        ), {"id": attempt_id}).one()
+        assert tuple(row) == (run_id, 17)
 
 
 
