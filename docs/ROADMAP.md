@@ -6,9 +6,9 @@
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
 **Current checkpoint:** The Phase 16 timeout/cancellation tranche is sealed through PR #176. Phase 16.3A's controlled AgentRun provider-attempt ledger is sealed by PR #179; Phase 16.3B extends that ledger to every direct model-call path by PR #181 at merge `258678f0ba13af2401d5039f8d5c5e6d97a56d2d`. Governed runtime allocation and enforceable per-call limits remain next; authoritative billed cost and paid-tool coverage remain open. System-1/AX evaluation remains recorded by PR #167.
-**Code migration head:** `0086_provider_call_attempt_coverage`
+**Code migration head:** `0087_provider_call_capacity`
 
-<!-- CURRENT_MIGRATION_HEAD: 0086_provider_call_attempt_coverage -->
+<!-- CURRENT_MIGRATION_HEAD: 0087_provider_call_capacity -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
