@@ -228,7 +228,7 @@ def test_running_cancellation_wins_at_soft_timeout_boundary(
     db_session.commit()
     db_session.refresh(run)
 
-    def _cancel_then_timeout(session, payload, existing_run=None):
+    def _cancel_then_timeout(session, payload, existing_run=None, **kwargs):
         assert existing_run is not None
         record_audit(
             session,

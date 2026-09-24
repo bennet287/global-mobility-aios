@@ -142,7 +142,7 @@ def test_run_agent_task_suppresses_output_when_running_cancel_was_requested(
     db_session.commit()
     db_session.refresh(run)
 
-    def _complete_after_cancel(session, payload, existing_run=None):
+    def _complete_after_cancel(session, payload, existing_run=None, **kwargs):
         assert existing_run is not None
         record_audit(
             session,

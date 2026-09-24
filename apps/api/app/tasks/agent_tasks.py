@@ -111,11 +111,17 @@ def run_agent_task(self, agent_run_id: str) -> dict:
                 task=input_data.get("task", run.task),
                 lead_id=run.lead_id,
                 workflow_run_id=run.workflow_run_id,
+                work_item_id=input_data.get("work_item_id"),
                 context=input_data.get("context", {}),
                 actor=input_data.get("actor", "system"),
             )
 
-            response = run_controlled_agent(session, payload, existing_run=run)
+            response = run_controlled_agent(
+                session,
+                payload,
+                existing_run=run,
+                runtime_attempt_number=self.request.retries + 1,
+            )
             if agent_run_cancellation_requested(session, run.id):
                 session.refresh(run)
                 _transition_run(

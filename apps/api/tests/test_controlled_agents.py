@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -11,6 +12,7 @@ from sqlmodel import Session
 from sqlmodel import select
 
 from app.models.domain import AgentRun, AuditLog, FollowUp, Lead
+from app.services.runtime_costs import configure_controlled_agent_runtime_budget
 
 from .conftest import create_lead
 
@@ -683,11 +685,23 @@ def test_agent_review_dashboard_shows_reviewer_note_and_status_badge(
 # ---------------------------------------------------------------------------
 
 
+def _configure_llm_runtime_budget(db_session: Session) -> None:
+    configure_controlled_agent_runtime_budget(
+        db_session,
+        limit_usd=Decimal("10.000000"),
+        reservation_usd_per_call=Decimal("0.100000"),
+        status="active",
+        actor="pytest-admin",
+    )
+    db_session.commit()
+
+
 def test_llm_enabled_agent_uses_provider_output(
     client: TestClient,
     db_session: Session,
 ) -> None:
     lead = create_lead(db_session)
+    _configure_llm_runtime_budget(db_session)
     llm_payload = {
         "summary": "LLM-generated sales summary.",
         "safe_next_actions": ["Call next week."],
@@ -750,6 +764,7 @@ def test_llm_enabled_agent_falls_back_on_provider_error(
     db_session: Session,
 ) -> None:
     lead = create_lead(db_session)
+    _configure_llm_runtime_budget(db_session)
 
     fake_response = MagicMock()
     fake_response.status_code = 429
@@ -1274,6 +1289,15 @@ def test_llm_run_persists_provider_usage_as_diagnostic_evidence(
     monkeypatch,
 ) -> None:
     from app.services.llm_client import LLMResponse
+
+    configure_controlled_agent_runtime_budget(
+        db_session,
+        limit_usd=Decimal("1.000000"),
+        reservation_usd_per_call=Decimal("0.100000"),
+        status="active",
+        actor="pytest-admin",
+    )
+    db_session.commit()
 
     class FakeProvider:
         name = "deepseek"

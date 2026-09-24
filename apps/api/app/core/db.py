@@ -160,6 +160,7 @@ def register_models() -> None:
         OrganizationSkill,
     )
     from app.models.agent_lifecycle import OrganizationAgent  # noqa: F401
+    from app.models.runtime_cost import RuntimeBudget, RuntimeProviderCall  # noqa: F401
 
     _register_legacy_metadata_constraints()
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from uuid import UUID, uuid4
 
 from sqlmodel import Session, select
 
@@ -12,8 +13,22 @@ from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
 from app.services.eligibility_coach import evaluate_eligibility_output
 from app.services.eligibility_engine import evaluate_lead_eligibility
-from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
+from app.services.llm_client import (
+    LLMProviderConfigurationError,
+    LLMProviderError,
+    LLMProviderFactory,
+    LLMProviderResponseContractError,
+    LLMProviderTransportError,
+    is_llm_enabled,
+)
 from app.services.role_card_loader import build_system_prompt, get_agent_output_schema
+from app.services.runtime_costs import (
+    attach_runtime_provider_call_to_agent_run,
+    mark_runtime_provider_call_unattributed,
+    release_runtime_provider_call,
+    reserve_runtime_provider_call,
+    settle_runtime_provider_call,
+)
 
 
 PENDING_AGENT_OUTPUT_STATUSES = {
@@ -1869,15 +1884,47 @@ def _merge_with_safety(output: dict[str, Any], base: dict[str, Any]) -> dict[str
     return merged
 
 
-def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+def _llm_agent_handler(
+    payload: ControlledAgentRunRequest,
+    agent: dict[str, Any],
+    *,
+    session: Session,
+    agent_run_id: UUID | None,
+    runtime_attempt_number: int,
+) -> dict[str, Any]:
     base = _base_output(payload, agent)
     resolved_name = resolve_agent_name(payload.agent_name)
+    cost_call_id: UUID | None = None
 
     try:
         system_prompt = build_system_prompt(resolved_name)
         provider = LLMProviderFactory.get_provider()
         schema = get_agent_output_schema(resolved_name)
         response_format = {"type": "json_object"} if provider.name in {"deepseek", "moonshot"} else None
+        provider_model = str(
+            getattr(provider, "default_model", None)
+            or _active_model_for_audit()
+            or "unknown"
+        )
+        attempt_number = max(1, int(runtime_attempt_number))
+        call_key = (
+            f"agent_run:{agent_run_id}:attempt:{attempt_number}:provider:{provider.name}:model:{provider_model}"
+            if agent_run_id is not None
+            else f"sync:{uuid4()}"
+        )
+        cost_call = reserve_runtime_provider_call(
+            session,
+            call_key=call_key,
+            agent_run_id=agent_run_id,
+            work_item_id=payload.work_item_id,
+            agent_name=resolved_name,
+            department=str(agent["department"]),
+            provider=provider.name,
+            model=provider_model,
+            attempt_number=attempt_number,
+            actor=payload.actor,
+        )
+        cost_call_id = cost_call.id
 
         user_content = {
             "task": payload.task,
@@ -1885,10 +1932,38 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
             "required_output_schema": schema,
         }
 
-        llm_response = provider.complete(
-            system_prompt=system_prompt,
-            messages=[{"role": "user", "content": _json_dump(user_content)}],
-            response_format=response_format,
+        try:
+            llm_response = provider.complete(
+                system_prompt=system_prompt,
+                messages=[{"role": "user", "content": _json_dump(user_content)}],
+                response_format=response_format,
+            )
+        except LLMProviderConfigurationError as exc:
+            release_runtime_provider_call(
+                session, call_id=cost_call.id, error=exc, actor=payload.actor
+            )
+            raise
+        except (LLMProviderTransportError, LLMProviderResponseContractError) as exc:
+            mark_runtime_provider_call_unattributed(
+                session, call_id=cost_call.id, error=exc, actor=payload.actor
+            )
+            raise
+        except Exception as exc:
+            mark_runtime_provider_call_unattributed(
+                session, call_id=cost_call.id, error=exc, actor=payload.actor
+            )
+            raise
+
+        settle_runtime_provider_call(
+            session,
+            call_id=cost_call.id,
+            prompt_tokens=llm_response.prompt_tokens,
+            completion_tokens=llm_response.completion_tokens,
+            total_tokens=llm_response.total_tokens,
+            estimated_cost_usd=llm_response.estimated_cost_usd,
+            actual_cost_usd=None,
+            billing_evidence=False,
+            actor=payload.actor,
         )
 
         parsed = _safe_llm_json(llm_response.content)
@@ -2373,6 +2448,7 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
             "completion_tokens": llm_response.completion_tokens,
             "total_tokens": llm_response.total_tokens,
             "estimated_cost_usd": llm_response.estimated_cost_usd,
+            "runtime_provider_call_id": str(cost_call_id) if cost_call_id else None,
         }
         return output
 
@@ -2385,6 +2461,7 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
             "provider": settings.llm_provider or "unknown",
             "fallback_reason": f"{type(exc).__name__}: {exc}",
             "fallback_to_template": True,
+            "runtime_provider_call_id": str(cost_call_id) if cost_call_id else None,
         }
         return fallback
 
@@ -2428,6 +2505,8 @@ def run_controlled_agent(
     session: Session,
     payload: ControlledAgentRunRequest,
     existing_run: AgentRun | None = None,
+    *,
+    runtime_attempt_number: int = 1,
 ) -> ControlledAgentRunResponse:
     resolved_name = resolve_agent_name(payload.agent_name)
     if resolved_name not in CONTROLLED_AGENT_REGISTRY:
@@ -2441,8 +2520,14 @@ def run_controlled_agent(
 
     agent = CONTROLLED_AGENT_REGISTRY[resolved_name]
 
-    if _should_use_llm():
-        output = AGENT_HANDLERS[resolved_name](payload, agent)
+    if _should_use_llm() and AGENT_HANDLERS[resolved_name] is _llm_agent_handler:
+        output = _llm_agent_handler(
+            payload,
+            agent,
+            session=session,
+            agent_run_id=existing_run.id if existing_run is not None else None,
+            runtime_attempt_number=runtime_attempt_number,
+        )
     else:
         output = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
 
@@ -2455,6 +2540,7 @@ def run_controlled_agent(
         "task": payload.task,
         "context": payload.context,
         "actor": payload.actor,
+        "work_item_id": str(payload.work_item_id) if payload.work_item_id else None,
         "llm_provider": settings.llm_provider or None,
         "llm_model": _active_model_for_audit(),
     }
@@ -2503,6 +2589,12 @@ def run_controlled_agent(
     session.flush()
 
     llm_meta = output.get("_llm_meta")
+    if isinstance(llm_meta, dict) and llm_meta.get("runtime_provider_call_id"):
+        attach_runtime_provider_call_to_agent_run(
+            session,
+            call_id=UUID(str(llm_meta["runtime_provider_call_id"])),
+            agent_run_id=run.id,
+        )
     if isinstance(llm_meta, dict) and not llm_meta.get("fallback_to_template"):
         record_audit(
             session,
@@ -2535,6 +2627,7 @@ def run_controlled_agent(
             "agent_name": resolved_name,
             "lead_id": payload.lead_id,
             "workflow_run_id": payload.workflow_run_id,
+            "work_item_id": payload.work_item_id,
             "guardrails": agent["guardrails"],
             "requires_human_review": True,
             "llm_provider": settings.llm_provider or None,
@@ -2565,4 +2658,6 @@ def _active_model_for_audit() -> str | None:
         return settings.deepseek_model
     if provider == "moonshot":
         return settings.moonshot_model
+    if provider == "gemini":
+        return settings.gemini_model
     return None

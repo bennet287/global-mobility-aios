@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 
 import pytest
 from sqlmodel import Session
@@ -20,6 +21,7 @@ from app.services.organization_mobility_live_provider_evaluation import (
     live_provider_runtime_profiles,
 )
 from app.services.organization_mobility_objective_execution import execute_austria_specialists
+from app.services.runtime_costs import configure_controlled_agent_runtime_budget
 from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_SPECIALIST_POSITIONS,
     create_austria_mobility_objective,
@@ -83,6 +85,14 @@ def _fresh_grounded_plan(
     *,
     objective_key: str,
 ):
+    configure_controlled_agent_runtime_budget(
+        db_session,
+        limit_usd=Decimal("100.000000"),
+        reservation_usd_per_call=Decimal("0.100000"),
+        status="active",
+        actor="pytest-live-provider-evaluation",
+    )
+    db_session.commit()
     ensure_foundation_positions(
         db_session,
         actor="pytest-live-provider-evaluation",

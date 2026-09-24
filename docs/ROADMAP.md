@@ -6,9 +6,9 @@
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
 **Current checkpoint:** Phase 16 timeout/cancellation reliability is sealed through cooperative soft-timeout handling (PR #171, merge `14d7bfdd238ca93a10310541702c216fc9561f4b`), stale-running reconciliation (PR #173, merge `c4ff75f24801eb52a82da2ac09cc724ffe872534`), and explicit AgentRun cancellation (PR #176, merge `b867fb28c06c2f25390574b4e1a69211d1f622dd`); hard runtime budgets / actual cost metering is the next bounded runtime slice. System-1/AX evaluation remains recorded by PR #167.
-**Code migration head:** `0084_organization_agent_lifecycle`
+**Code migration head:** `0085_runtime_budget_cost_metering`
 
-<!-- CURRENT_MIGRATION_HEAD: 0084_organization_agent_lifecycle -->
+<!-- CURRENT_MIGRATION_HEAD: 0085_runtime_budget_cost_metering -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 

@@ -347,6 +347,7 @@ class ControlledAgentRunRequest(BaseModel):
     task: str
     lead_id: Optional[UUID] = None
     workflow_run_id: Optional[UUID] = None
+    work_item_id: Optional[UUID] = None
     context: dict[str, Any] = Field(default_factory=dict)
     actor: str = "system"
 

@@ -172,7 +172,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0084_organization_agent_lifecycle"
+            "0085_runtime_budget_cost_metering"
         )
         position_inspector = inspect(connection)
         position_indexes = {

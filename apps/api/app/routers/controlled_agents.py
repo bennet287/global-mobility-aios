@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import html
 import json
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 from urllib.parse import parse_qs
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -31,6 +32,12 @@ from app.services.controlled_agents import (
     run_controlled_agent,
 )
 from app.services.llm_client import LLMProviderFactory, is_llm_enabled
+from app.services.runtime_costs import (
+    RuntimeCostControlError,
+    configure_controlled_agent_runtime_budget,
+    get_controlled_agent_runtime_budget,
+    runtime_budget_snapshot,
+)
 from app.tasks import run_agent_task
 
 router = APIRouter()
@@ -68,6 +75,26 @@ REVIEW_STATUSES = {
 class AgentOutputReviewRequest(BaseModel):
     actor: str = "operator"
     note: str | None = None
+
+
+class RuntimeBudgetConfigurationRequest(BaseModel):
+    limit_usd: Decimal = Field(gt=0)
+    reservation_usd_per_call: Decimal = Field(gt=0)
+    status: str = "active"
+
+
+def _request_actor(request: Request) -> str:
+    context = getattr(request.state, "auth", None)
+    return str(getattr(context, "username", "api-operator"))
+
+
+def _require_runtime_budget_admin(request: Request) -> None:
+    context = getattr(request.state, "auth", None)
+    if str(getattr(context, "role", "read_only")) != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Runtime budget mutation requires the admin role",
+        )
 
 
 def _escape(value: Any) -> str:
@@ -586,6 +613,47 @@ def get_controlled_agents() -> dict:
     }
 
 
+@router.get("/api/v1/controlled-agents/runtime-budget")
+def get_controlled_agent_runtime_budget_endpoint(
+    session: Session = Depends(get_session),
+) -> dict:
+    budget = get_controlled_agent_runtime_budget(session)
+    if budget is None:
+        return {
+            "configured": False,
+            "scope_type": "global",
+            "scope_key": "controlled_agents_llm",
+            "status": "missing",
+        }
+    return {"configured": True, **runtime_budget_snapshot(session, budget)}
+
+
+@router.put("/api/v1/controlled-agents/runtime-budget")
+def configure_controlled_agent_runtime_budget_endpoint(
+    payload: RuntimeBudgetConfigurationRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    _require_runtime_budget_admin(request)
+    try:
+        budget = configure_controlled_agent_runtime_budget(
+            session,
+            limit_usd=payload.limit_usd,
+            reservation_usd_per_call=payload.reservation_usd_per_call,
+            status=payload.status,
+            actor=_request_actor(request),
+        )
+        session.commit()
+        session.refresh(budget)
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception:
+        session.rollback()
+        raise
+    return {"configured": True, **runtime_budget_snapshot(session, budget)}
+
+
 @router.get("/api/v1/controlled-agents/providers")
 def get_controlled_agent_providers() -> dict:
     active = LLMProviderFactory.active_provider_name()
@@ -624,6 +692,8 @@ def run_controlled_agent_endpoint(
                 "lead_id": str(exc.existing_run.lead_id) if exc.existing_run.lead_id else None,
             },
         ) from exc
+    except RuntimeCostControlError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
