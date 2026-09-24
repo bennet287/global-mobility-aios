@@ -7,6 +7,7 @@ import pytest
 from app.services.llm_client import (
     DeepSeekProvider,
     GeminiProvider,
+    LLMProviderConfigurationError,
     LLMProviderError,
     LLMProviderFactory,
     MoonshotProvider,
@@ -114,6 +115,49 @@ def test_deepseek_provider_success():
     assert resp.estimated_cost_usd is not None
     _, kwargs = fake_client.post.call_args
     assert "temperature" in kwargs["json"]
+
+
+@pytest.mark.parametrize(
+    ("provider_cls", "setting_name", "payload_name", "model"),
+    [
+        (DeepSeekProvider, "deepseek_max_output_tokens", "max_tokens", "deepseek-chat"),
+        (MoonshotProvider, "moonshot_max_completion_tokens", "max_completion_tokens", "kimi-k1-5"),
+    ],
+)
+def test_configured_output_ceiling_is_sent_before_provider_call(
+    provider_cls, setting_name, payload_name, model,
+):
+    provider = provider_cls(api_key="test-key", model=model)
+    fake_client = _make_fake_client(SAMPLE_CHAT_RESPONSE)
+    with patch("app.services.llm_client.settings") as mock_settings:
+        setattr(mock_settings, setting_name, 512)
+        mock_settings.llm_temperature = 0.2
+        mock_settings.llm_timeout_seconds = 30
+        with patch("httpx.Client", return_value=fake_client):
+            provider.complete("system", [{"role": "user", "content": "hi"}])
+    payload = fake_client.post.call_args.kwargs["json"]
+    assert payload[payload_name] == 512
+    assert len({"max_tokens", "max_completion_tokens"} & payload.keys()) == 1
+
+
+@pytest.mark.parametrize(
+    ("provider_cls", "setting_name", "model"),
+    [
+        (DeepSeekProvider, "deepseek_max_output_tokens", "deepseek-chat"),
+        (MoonshotProvider, "moonshot_max_completion_tokens", "kimi-k1-5"),
+    ],
+)
+@pytest.mark.parametrize("bad_limit", [0, -1, "512", True])
+def test_invalid_output_ceiling_fails_before_network_egress(
+    provider_cls, setting_name, model, bad_limit,
+):
+    provider = provider_cls(api_key="test-key", model=model)
+    with patch("app.services.llm_client.settings") as mock_settings:
+        setattr(mock_settings, setting_name, bad_limit)
+        with patch("httpx.Client") as client_cls:
+            with pytest.raises(LLMProviderConfigurationError, match="positive integer"):
+                provider.complete("system", [{"role": "user", "content": "hi"}])
+        client_cls.assert_not_called()
 
 
 def test_gemini_provider_success_uses_documented_openai_compatible_endpoint():

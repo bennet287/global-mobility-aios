@@ -1,5 +1,6 @@
 from typing import Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,10 +45,12 @@ class Settings(BaseSettings):
     deepseek_api_key_ref: str = ""
     deepseek_model: str = "deepseek-chat"
     deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_max_output_tokens: int | None = Field(default=None, ge=1)
     moonshot_api_key: str = ""
     moonshot_api_key_ref: str = ""
     moonshot_model: str = "kimi-k1-5"
     moonshot_base_url: str = "https://api.moonshot.cn/v1"
+    moonshot_max_completion_tokens: int | None = Field(default=None, ge=1)
     gemini_api_key: str = ""
     gemini_api_key_ref: str = ""
     gemini_model: str = "gemini-3.7-flash"
