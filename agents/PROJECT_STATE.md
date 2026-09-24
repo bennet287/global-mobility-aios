@@ -6,8 +6,8 @@
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
 **Live integration head:** resolve from GitHub before dependent work; do not treat a SHA copied into this file as self-updating truth.
 **Current programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
-**Active implementation:** none; provider-call attempt coverage is sealed
-**Next scheduled slice:** governed runtime allocation and enforceable per-call limits, with billing evidence kept distinct from estimates
+**Active implementation:** none; direct model-call coverage and opt-in provider call capacity are sealed
+**Next scheduled slice:** provider-specific pre-call output limits and monetary allocation prerequisites, with paid tools and billing evidence reconciled
 
 ## Current programme state
 
@@ -19,6 +19,7 @@
 - Phase 16.2 Runtime Reliability — SEALED by PR #166; deterministic failure classification precedes retry and only provider transport failures retry.
 - Phase 16.3A Runtime Economics Ledger — SEALED by PR #179 at merge `b42a0126aa5ee7c6e9733c1a6dd9240321af08ae`. Controlled AgentRun provider attempts are durably recorded before the paid call and settled with observed usage or unknown outcome. Estimates remain non-billing evidence.
 - Phase 16.3B Provider-call Coverage — SEALED by PR #181 at merge `258678f0ba13af2401d5039f8d5c5e6d97a56d2d`. The same attempt ledger covers every direct model-call site, including E.1/E.2/G.1 WorkItems, regulatory classification, consultant, and business advisory. Existing AgentRun evidence survives the table migration. Calls without AgentRuns carry an operation identity and honest work-item or request-local context. This grants no allocation or hard monetary budget; billed cost remains unknown without authoritative evidence.
+- Phase 16.3C Provider Call Capacity — SEALED by PR #183 at merge `c4ff79ff189d7f4a1521e226365cacc9b1c9f5e8`. An admin may enroll a provider with a cumulative call allowance or pause it. Each direct model-call attempt atomically consumes one slot before the provider call; exhausted or paused providers fail closed. Retry, failed, and unknown-outcome attempts retain their slot. Unenrolled providers keep their existing behavior. This operational call-count allowance grants no monetary budget or Board spending authority.
 - System-1 / orchestration evaluation — PR #167 MERGED. Jev and Laya remain benchmark candidates; Google AX remains a deferred execution-substrate evaluation. None is a production dependency.
 - AgentRun cooperative soft-timeout semantics — SEALED by PR #171. Existing Celery limits remain canonical: 240s soft / 300s hard. Soft timeout records durable `agent_run_runtime_timeout` evidence, terminates the existing AgentRun as `failed`, and is non-retryable.
 - AgentRun stale-running reconciliation — SEALED by PR #173 at merge `c4ff75f24801eb52a82da2ac09cc724ffe872534`. It uses existing AgentRun + AuditLog truth, waits for the 300s hard limit plus 60s grace, requires durable running-state evidence, records stale-running reconciliation, and deliberately does not infer that the underlying cause was definitely a hard kill.
@@ -34,7 +35,8 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - `CONTROLLED_AGENT_REGISTRY` = static implementation-definition truth.
 - `AuditLog` = existing durable audit/evidence boundary where the accepted service uses it.
 - Phase 16.1 provider usage evidence is observed runtime telemetry; `estimated_cost_usd` is not billed spend.
-- Phase 16.3A/B `ProviderCallAttempt` is one paid-call accounting ledger: controlled AgentRuns are keyed by run and attempt; other model calls have unique operation keys and source contexts. It does not grant budget or represent invoices; `billed_cost_usd` remains unknown without authoritative provider evidence.
+- Phase 16.3A/B `ProviderCallAttempt` is one paid-call accounting ledger: controlled AgentRuns are keyed by run and attempt; other model calls have unique operation keys and source contexts. It does not represent invoices; `billed_cost_usd` remains unknown without authoritative provider evidence.
+- Phase 16.3C `ProviderCallAllocation` is an opt-in, admin-operated per-provider call-count ceiling, consumed atomically with the attempt record. It does not measure money, grant Board spending authority, cover paid tools, or constrain an enrolled call's output tokens.
 - Phase 16.2 deterministic failure classification is authoritative for current retry behavior.
 - Cooperative soft timeout, stale-running reconciliation, and explicit cancellation are separate accepted controls with different evidence semantics.
 - Explicit cancellation is admin-only for the accepted API boundary. A Celery revoke request is best-effort transport control, not proof of process termination, rollback, or absence of prior external effects.
@@ -43,9 +45,9 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - Google AX may later provide replaceable execution infrastructure only after AIOS owns the required canonical runtime controls.
 - Deterministic AIOS policy remains authoritative. External decision/runtime systems receive no authority, permissions, credentials, budgets, autonomy, or assignment rights.
 
-## Next slice guardrails — governed allocation and hard runtime budgets
+## Next slice guardrails — output limits and monetary budget prerequisites
 
-Before implementing budget enforcement, use the Phase 16.3B ledger's coverage of direct model calls to reconcile existing allocation/budget concepts, retry/cancellation interactions, paid tools beyond model calls, and the exact authority boundary for granting or replenishing runtime spend. Request-local calls have no invented WorkItem or AgentRun owner.
+Phase 16.3C's call-count ceiling is already enforced for enrolled providers; it is neither a per-call output-token cap nor a financial allocation. Before implementing monetary budget enforcement, reconcile existing allocation/budget concepts, provider-specific pre-call output controls, retry/cancellation interactions, paid tools beyond model calls, and the exact authority boundary for granting or replenishing runtime spend. Request-local calls have no invented WorkItem or AgentRun owner.
 
 Do not promote `estimated_cost_usd` or token estimates into billing truth. Keep at least these facts separate:
 
@@ -53,7 +55,7 @@ Do not promote `estimated_cost_usd` or token estimates into billing truth. Keep 
 2. observed actual provider or paid-tool spend where authoritative evidence exists;
 3. estimated or unattributed cost where authoritative evidence does not exist.
 
-The slice must define how spend is attributed without double-counting retries or cancelled work, how remaining budget is computed only from authoritative evidence, which provider-specific pre-call limit is actually enforceable, which runtime boundary pauses or stops new paid execution when budget is exhausted, and how additional allocation can be requested without self-granting authority. If no authoritative cost and enforceable monetary ceiling exist, do not claim a hard USD budget. Cancellation does not imply refund or rollback of spend already incurred.
+The slice must define how spend is attributed without double-counting retries or cancelled work, how remaining budget is computed only from authoritative evidence, which provider-specific pre-call output limit is actually enforceable, which runtime boundary pauses or stops new paid execution when budget is exhausted, and how additional allocation can be requested without self-granting authority. If no authoritative cost and enforceable monetary ceiling exist, do not claim a hard USD budget. Cancellation does not imply refund or rollback of spend already incurred.
 
 Prefer extending existing canonical runtime/evidence models and services. Introduce a new durable budget/allocation record only if no existing canonical owner can truthfully represent authorized budget state.
 
