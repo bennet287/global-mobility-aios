@@ -6,7 +6,11 @@ from sqlmodel import Session
 
 from app.core.db import get_session
 from app.models.runtime_economics import ProviderCallAllocation
-from app.services.runtime_economics import RuntimeEconomicsError, authorize_provider_calls
+from app.services.runtime_economics import (
+    RuntimeEconomicsError,
+    authorize_provider_calls,
+    summarize_cost_evidence,
+)
 
 
 router = APIRouter(prefix="/api/v1/runtime-economics", tags=["runtime-economics"])
@@ -37,6 +41,14 @@ def _view(allocation: ProviderCallAllocation) -> dict:
         "updated_at": allocation.updated_at,
         "cost_basis": "call_count_not_money",
     }
+
+
+@router.get("/cost-evidence")
+def get_runtime_cost_evidence(
+    request: Request, session: Session = Depends(get_session),
+) -> dict:
+    _admin_actor(request)
+    return summarize_cost_evidence(session)
 
 
 @router.put("/providers/{provider}/capacity")
