@@ -60,6 +60,8 @@ class WorkflowStatus(str, Enum):
 class AgentRunStatus(str, Enum):
     queued = "queued"
     running = "running"
+    cancel_requested = "cancel_requested"
+    cancelled = "cancelled"
     pending_review = "pending_review"
     completed = "completed"  # legacy synchronous runs
     approved = "approved"

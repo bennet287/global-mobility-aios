@@ -6,13 +6,18 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from billiard.exceptions import SoftTimeLimitExceeded
-
+from celery import Task
 from sqlmodel import Session, select
 
 from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
 from app.schemas import ControlledAgentRunRequest
+from app.services.agent_run_cancellation import (
+    CANCEL_REQUESTED_STATUS,
+    CANCELLED_STATUS,
+    agent_run_cancellation_requested,
+)
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import (
     DuplicatePendingControlledAgentOutput,
@@ -28,15 +33,74 @@ from app.services.llm_client import (
 DEFAULT_STALE_AGENT_RUN_GRACE_SECONDS = 60
 
 
-@celery_app.task(bind=True, max_retries=2, default_retry_delay=30)
+class AgentRunTransportTask(Task):
+    """Bind Celery transport identity to the already-persisted AgentRun UUID."""
+
+    abstract = True
+
+    def apply_async(self, args=None, kwargs=None, task_id=None, **options):
+        if task_id is None and args:
+            task_id = str(args[0])
+        return super().apply_async(
+            args=args,
+            kwargs=kwargs,
+            task_id=task_id,
+            **options,
+        )
+
+
+@celery_app.task(
+    bind=True,
+    base=AgentRunTransportTask,
+    max_retries=2,
+    default_retry_delay=30,
+)
 def run_agent_task(self, agent_run_id: str) -> dict:
     """Celery task that executes a single AgentRun in the background."""
     run_id = UUID(agent_run_id)
 
     with Session(db_module.engine) as session:
-        run = session.get(AgentRun, run_id)
+        # The cancellation command takes the same row lock. This serializes the
+        # queued -> running claim against queued cancellation without a second
+        # runtime state store.
+        run = session.exec(
+            select(AgentRun)
+            .where(AgentRun.id == run_id)
+            .with_for_update()
+        ).one_or_none()
         if run is None:
             raise ValueError(f"AgentRun {agent_run_id} not found")
+
+        if run.status == CANCELLED_STATUS:
+            return {
+                "run_id": str(run.id),
+                "status": run.status,
+                "skipped": True,
+                "reason": "AgentRun was cancelled before worker claim.",
+            }
+        if run.status == CANCEL_REQUESTED_STATUS:
+            _transition_run(
+                session,
+                run,
+                CANCELLED_STATUS,
+                source="phase_16_runtime_cancellation",
+                transition_reason=(
+                    "Cancellation was requested before worker claim; execution was not started."
+                ),
+            )
+            return {
+                "run_id": str(run.id),
+                "status": run.status,
+                "skipped": True,
+                "reason": "Cancellation finalized before worker claim.",
+            }
+        if run.status != AgentRunStatus.queued.value:
+            return {
+                "run_id": str(run.id),
+                "status": run.status,
+                "skipped": True,
+                "reason": "AgentRun was not queued at worker claim.",
+            }
 
         _transition_run(session, run, AgentRunStatus.running)
 
@@ -52,6 +116,25 @@ def run_agent_task(self, agent_run_id: str) -> dict:
             )
 
             response = run_controlled_agent(session, payload, existing_run=run)
+            if agent_run_cancellation_requested(session, run.id):
+                session.refresh(run)
+                _transition_run(
+                    session,
+                    run,
+                    CANCELLED_STATUS,
+                    source="phase_16_runtime_cancellation",
+                    transition_reason=(
+                        "Cancellation was requested while execution was running; completed output "
+                        "was suppressed from human review. No rollback is claimed."
+                    ),
+                )
+                return {
+                    "run_id": str(run.id),
+                    "agent_name": response.agent_name,
+                    "status": run.status,
+                    "cancellation_observed_after_execution": True,
+                    "rollback_claimed": False,
+                }
             return {
                 "run_id": str(response.run_id),
                 "agent_name": response.agent_name,
@@ -59,10 +142,47 @@ def run_agent_task(self, agent_run_id: str) -> dict:
             }
 
         except DuplicatePendingControlledAgentOutput as exc:
+            if agent_run_cancellation_requested(session, run.id):
+                session.refresh(run)
+                _transition_run(
+                    session,
+                    run,
+                    CANCELLED_STATUS,
+                    source="phase_16_runtime_cancellation",
+                    transition_reason=(
+                        "Cancellation was requested while execution was running; the worker "
+                        "observed it before recording the duplicate-output failure. No rollback is claimed."
+                    ),
+                )
+                return {
+                    "run_id": str(run.id),
+                    "status": run.status,
+                    "cancellation_observed_during_failure": True,
+                    "rollback_claimed": False,
+                }
             _transition_run(session, run, AgentRunStatus.failed, error=str(exc))
             return {"run_id": str(run.id), "status": run.status, "error": str(exc)}
 
         except SoftTimeLimitExceeded:
+            if agent_run_cancellation_requested(session, run.id):
+                session.refresh(run)
+                _transition_run(
+                    session,
+                    run,
+                    CANCELLED_STATUS,
+                    source="phase_16_runtime_cancellation",
+                    transition_reason=(
+                        "Cancellation was requested while execution was running and was observed "
+                        "at the worker soft-timeout boundary. No rollback is claimed."
+                    ),
+                )
+                return {
+                    "run_id": str(run.id),
+                    "status": run.status,
+                    "cancellation_observed_at_timeout": True,
+                    "rollback_claimed": False,
+                }
+
             error = "AgentRun exceeded the worker soft time limit."
             record_audit(
                 session,
@@ -88,6 +208,25 @@ def run_agent_task(self, agent_run_id: str) -> dict:
             }
 
         except Exception as exc:
+            if agent_run_cancellation_requested(session, run.id):
+                session.refresh(run)
+                _transition_run(
+                    session,
+                    run,
+                    CANCELLED_STATUS,
+                    source="phase_16_runtime_cancellation",
+                    transition_reason=(
+                        "Cancellation was requested while execution was running; the worker "
+                        "observed the request before any retry was scheduled. No rollback is claimed."
+                    ),
+                )
+                return {
+                    "run_id": str(run.id),
+                    "status": run.status,
+                    "cancellation_observed_during_failure": True,
+                    "rollback_claimed": False,
+                }
+
             failure_class, retryable = _classify_failure(exc)
             record_audit(
                 session,
@@ -124,7 +263,7 @@ def reconcile_stale_agent_runs_task(
     limit: int = 100,
     grace_seconds: int = DEFAULT_STALE_AGENT_RUN_GRACE_SECONDS,
 ) -> dict:
-    """Fail closed AgentRuns stranded in running after the worker hard limit."""
+    """Fail closed stranded running runs and finalize stale cancellation requests."""
     with Session(db_module.engine) as session:
         return reconcile_stale_agent_runs(
             session,
@@ -140,7 +279,7 @@ def reconcile_stale_agent_runs(
     grace_seconds: int = DEFAULT_STALE_AGENT_RUN_GRACE_SECONDS,
     now: datetime | None = None,
 ) -> dict:
-    """Reconcile stale running state without guessing why the worker disappeared."""
+    """Reconcile stale runtime state without guessing why the worker disappeared."""
     hard_limit_seconds = int(celery_app.conf.task_time_limit or 0)
     if hard_limit_seconds <= 0:
         return {
@@ -158,7 +297,11 @@ def reconcile_stale_agent_runs(
 
     runs = session.exec(
         select(AgentRun)
-        .where(AgentRun.status == AgentRunStatus.running.value)
+        .where(
+            AgentRun.status.in_(
+                [AgentRunStatus.running.value, CANCEL_REQUESTED_STATUS]
+            )
+        )
         .order_by(AgentRun.created_at.asc())
         .limit(max(1, min(int(limit), 500)))
     ).all()
@@ -166,6 +309,43 @@ def reconcile_stale_agent_runs(
     reconciled = 0
     skipped_missing_running_evidence = 0
     for run in runs:
+        if run.status == CANCEL_REQUESTED_STATUS:
+            cancel_log = session.exec(
+                select(AuditLog)
+                .where(AuditLog.entity_type == "agent_run")
+                .where(AuditLog.entity_id == str(run.id))
+                .where(AuditLog.action == "agent_run_cancel_requested")
+                .order_by(AuditLog.created_at.desc())
+            ).first()
+            if cancel_log is None:
+                skipped_missing_running_evidence += 1
+                continue
+            cancel_requested_at = cancel_log.created_at
+            if cancel_requested_at.tzinfo is None:
+                cancel_requested_at = cancel_requested_at.replace(tzinfo=timezone.utc)
+            observed_age_seconds = max(
+                0,
+                int((observed_at - cancel_requested_at).total_seconds()),
+            )
+            if observed_age_seconds <= stale_after_seconds:
+                continue
+            session.refresh(run)
+            if run.status != CANCEL_REQUESTED_STATUS:
+                continue
+            _transition_run(
+                session,
+                run,
+                CANCELLED_STATUS,
+                source="phase_16_runtime_cancellation_reconciliation",
+                transition_reason=(
+                    "Cancellation request remained unresolved beyond the configured worker hard "
+                    "time limit plus grace; the run is closed as cancelled without inferring "
+                    "rollback of any work already performed."
+                ),
+            )
+            reconciled += 1
+            continue
+
         latest_status_log = session.exec(
             select(AuditLog)
             .where(AuditLog.entity_type == "agent_run")
@@ -247,14 +427,24 @@ def _classify_failure(exc: Exception) -> tuple[str, bool]:
 def _transition_run(
     session: Session,
     run: AgentRun,
-    status: AgentRunStatus,
+    status: AgentRunStatus | str,
     error: str | None = None,
+    *,
+    source: str = "celery_worker_v1.0",
+    transition_reason: str | None = None,
 ) -> None:
-    run.status = status.value
-    output = json.loads(run.output_json or "{}")
-    output["_status_history"] = output.get("_status_history", []) + [
-        {"status": status.value, "error": error}
-    ]
+    status_value = status.value if isinstance(status, AgentRunStatus) else str(status)
+    run.status = status_value
+    try:
+        output = json.loads(run.output_json or "{}")
+    except json.JSONDecodeError:
+        output = {}
+    if not isinstance(output, dict):
+        output = {}
+    history_entry = {"status": status_value, "error": error}
+    if transition_reason:
+        history_entry["reason"] = transition_reason
+    output["_status_history"] = output.get("_status_history", []) + [history_entry]
     if error:
         output["_last_error"] = error
     run.output_json = json.dumps(output, default=str, sort_keys=True)
@@ -269,11 +459,17 @@ def _transition_run(
         entity_id=str(run.id),
         after_state={
             "agent_name": run.agent_name,
-            "status": status.value,
+            "status": status_value,
             "lead_id": str(run.lead_id) if run.lead_id else None,
             "error": error,
+            "transport_task_id": str(run.id),
+            "transport_identity": "agent_run_id",
+            "rollback_claimed": False if status_value == CANCELLED_STATUS else None,
         },
-        reason=f"Agent run transitioned to {status.value} by background worker.",
-        source="celery_worker_v1.0",
+        reason=(
+            transition_reason
+            or f"Agent run transitioned to {status_value} by background worker."
+        ),
+        source=source,
     )
     session.commit()
