@@ -6,8 +6,8 @@
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
 **Live integration head:** resolve from GitHub before dependent work; do not treat a SHA copied into this file as self-updating truth.
 **Current programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
-**Active implementation:** none; direct model-call coverage, call capacity, opt-in output caps, and read-only cost-evidence visibility are sealed
-**Next scheduled slice:** source-linked billing reconciliation and paid-tool cost inventory before governed USD allocation; verify Gemini's output-cap contract separately
+**Active implementation:** none; direct model-call coverage, call capacity, opt-in output caps, cost-evidence visibility, billing correlation identity and external-call inventory are sealed
+**Next scheduled slice:** obtain itemized provider billing evidence and verified per-attempt matching; establish actual paid-tool contracts and cost attribution before governed USD allocation; verify Gemini's output-cap contract separately
 
 ## Current programme state
 
@@ -22,6 +22,7 @@
 - Phase 16.3C Provider Call Capacity — SEALED by PR #183 at merge `c4ff79ff189d7f4a1521e226365cacc9b1c9f5e8`. An admin may enroll a provider with a cumulative call allowance or pause it. Each direct model-call attempt atomically consumes one slot before the provider call; exhausted or paused providers fail closed. Retry, failed, and unknown-outcome attempts retain their slot. Unenrolled providers keep their existing behavior. This operational call-count allowance grants no monetary budget or Board spending authority.
 - Phase 16.3D Provider Output Caps — SEALED by PR #185 at merge `15735f3815d007390b1c5c87530881527450ae19`. Optional positive environment settings send DeepSeek `max_tokens` or Moonshot `max_completion_tokens` on each adapter request; invalid values stop before network egress. No cap is configured by default. Gemini's OpenAI-compatibility output-cap contract remains unverified. These caps do not bound input tokens, billed cost, or paid tools.
 - Phase 16.3E Cost Evidence Visibility — SEALED by PR #187 at merge `c2cf9614742f2d1338761946380f50a58756a39e`. An admin-only, read-only report aggregates the existing direct-model attempt ledger by provider, distinguishing observed usage, partial estimates, unknown outcomes, and unaudited billed values. Actual billed spend, authorized/remaining USD, and monetary enforceability stay unknown/blocked. Paid-tool cost coverage remains unreconciled.
+- Phase 16.3F Billing Correlation and External-Call Inventory — SEALED by PR #189 at merge `67a667181fbdb8b875fd6557589bb94649013f76`. Valid optional provider completion IDs now survive on the same per-attempt ledger and their coverage appears in the admin readout. The roadmap inventories identified API external-call paths and their existing evidence. An ID is not an invoice line; no authoritative billed amount, paid-tool charge, or hard USD budget is claimed.
 - System-1 / orchestration evaluation — PR #167 MERGED. Jev and Laya remain benchmark candidates; Google AX remains a deferred execution-substrate evaluation. None is a production dependency.
 - AgentRun cooperative soft-timeout semantics — SEALED by PR #171. Existing Celery limits remain canonical: 240s soft / 300s hard. Soft timeout records durable `agent_run_runtime_timeout` evidence, terminates the existing AgentRun as `failed`, and is non-retryable.
 - AgentRun stale-running reconciliation — SEALED by PR #173 at merge `c4ff75f24801eb52a82da2ac09cc724ffe872534`. It uses existing AgentRun + AuditLog truth, waits for the 300s hard limit plus 60s grace, requires durable running-state evidence, records stale-running reconciliation, and deliberately does not infer that the underlying cause was definitely a hard kill.
@@ -41,6 +42,7 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - Phase 16.3C `ProviderCallAllocation` is an opt-in, admin-operated per-provider call-count ceiling, consumed atomically with the attempt record. It does not measure money, grant Board spending authority, cover paid tools, or constrain an enrolled call's output tokens.
 - Phase 16.3D's independent, optional adapter settings cap generated tokens per DeepSeek/Moonshot request; they do not convert the call-count allowance into a financial budget.
 - Phase 16.3E's readout uses existing attempt truth; even a non-null `billed_cost_usd` lacks invoice/reference provenance and is not authoritative spend. It grants no spending authority or new runtime control.
+- Phase 16.3F preserves optional provider completion IDs for later correlation and records identified external-call cost exposure in the roadmap; neither is verified billing attribution.
 - Phase 16.2 deterministic failure classification is authoritative for current retry behavior.
 - Cooperative soft timeout, stale-running reconciliation, and explicit cancellation are separate accepted controls with different evidence semantics.
 - Explicit cancellation is admin-only for the accepted API boundary. A Celery revoke request is best-effort transport control, not proof of process termination, rollback, or absence of prior external effects.
@@ -51,7 +53,7 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 
 ## Next slice guardrails — monetary budget prerequisites and Gemini output-cap evidence
 
-Phase 16.3C's opt-in call-count ceiling and Phase 16.3D's optional DeepSeek/Moonshot per-call output limits are distinct controls, neither a financial allocation. Phase 16.3E exposes the missing evidence without manufacturing a spend number. Before monetary budget enforcement, inventory cost-bearing paid tools beyond direct model calls, obtain source-linked per-call provider billing/reconciliation where available, and define Board allocation authority, retry/cancellation treatment, and a provable pre-call monetary ceiling. Verify Gemini's compatible output-cap request contract before claiming a Gemini limit. Request-local calls have no invented WorkItem or AgentRun owner.
+Phase 16.3C's opt-in call-count ceiling and Phase 16.3D's optional DeepSeek/Moonshot per-call output limits are distinct controls, neither a financial allocation. Phase 16.3E exposes missing cost evidence, and Phase 16.3F preserves optional completion IDs and inventories identified external calls without manufacturing spend. Before monetary budget enforcement, obtain itemized provider billing evidence with a verifiable per-attempt join, confirm which external tools carry vendor charges, and define Board allocation authority, retry/cancellation treatment, and a provable pre-call monetary ceiling. Verify Gemini's compatible output-cap request contract before claiming a Gemini limit. Request-local calls have no invented WorkItem or AgentRun owner.
 
 Do not promote `estimated_cost_usd` or token estimates into billing truth. Keep at least these facts separate:
 
