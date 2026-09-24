@@ -1,0 +1,397 @@
+name: Temporary Phase 16 Runtime Economics Patch
+
+on:
+  push:
+    branches:
+      - phase16/runtime-economics-budget-metering
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase16/runtime-economics-budget-metering
+          fetch-depth: 0
+      - name: Apply exact bounded replacements
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected 1 exact match, found {count}")
+              return text.replace(old, new, 1)
+
+          controlled = Path("apps/api/app/services/controlled_agents.py")
+          text = controlled.read_text()
+          text = replace_once(
+              text,
+              "from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled\n",
+              "from app.services.llm_client import (\n"
+              "    LLMProviderConfigurationError,\n"
+              "    LLMProviderError,\n"
+              "    LLMProviderFactory,\n"
+              "    is_llm_enabled,\n"
+              ")\n"
+              "from app.services.runtime_economics import (\n"
+              "    RuntimeBudgetError,\n"
+              "    mark_agent_run_attempt_failure,\n"
+              "    reserve_agent_run_attempt,\n"
+              "    settle_agent_run_attempt,\n"
+              ")\n",
+              "controlled-agent imports",
+          )
+          text = replace_once(
+              text,
+              "def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:\n",
+              "def _llm_agent_handler(\n"
+              "    payload: ControlledAgentRunRequest,\n"
+              "    agent: dict[str, Any],\n"
+              "    *,\n"
+              "    session: Session,\n"
+              "    run: AgentRun,\n"
+              "    attempt_number: int,\n"
+              ") -> dict[str, Any]:\n",
+              "LLM handler signature",
+          )
+          text = replace_once(
+              text,
+              "        response_format = {\"type\": \"json_object\"} if provider.name in {\"deepseek\", \"moonshot\"} else None\n\n        user_content = {\n",
+              "        response_format = {\"type\": \"json_object\"} if provider.name in {\"deepseek\", \"moonshot\"} else None\n"
+              "        cost_entry = reserve_agent_run_attempt(\n"
+              "            session,\n"
+              "            run,\n"
+              "            attempt_number=attempt_number,\n"
+              "            agent_name=resolved_name,\n"
+              "            department=str(agent.get(\"department\")) if agent.get(\"department\") else None,\n"
+              "            provider=provider.name,\n"
+              "            model=getattr(provider, \"default_model\", _active_model_for_audit()),\n"
+              "            actor=payload.actor,\n"
+              "        )\n\n"
+              "        user_content = {\n",
+              "pre-call reservation",
+          )
+          text = replace_once(
+              text,
+              "        llm_response = provider.complete(\n"
+              "            system_prompt=system_prompt,\n"
+              "            messages=[{\"role\": \"user\", \"content\": _json_dump(user_content)}],\n"
+              "            response_format=response_format,\n"
+              "        )\n\n"
+              "        parsed = _safe_llm_json(llm_response.content)\n",
+              "        try:\n"
+              "            llm_response = provider.complete(\n"
+              "                system_prompt=system_prompt,\n"
+              "                messages=[{\"role\": \"user\", \"content\": _json_dump(user_content)}],\n"
+              "                response_format=response_format,\n"
+              "            )\n"
+              "        except LLMProviderConfigurationError:\n"
+              "            mark_agent_run_attempt_failure(\n"
+              "                session,\n"
+              "                cost_entry,\n"
+              "                actor=payload.actor,\n"
+              "                failure_class=\"provider_configuration\",\n"
+              "                external_execution_possible=False,\n"
+              "            )\n"
+              "            raise\n"
+              "        except Exception as exc:\n"
+              "            mark_agent_run_attempt_failure(\n"
+              "                session,\n"
+              "                cost_entry,\n"
+              "                actor=payload.actor,\n"
+              "                failure_class=type(exc).__name__,\n"
+              "                external_execution_possible=True,\n"
+              "            )\n"
+              "            raise\n\n"
+              "        settle_agent_run_attempt(session, cost_entry, llm_response, actor=payload.actor)\n\n"
+              "        parsed = _safe_llm_json(llm_response.content)\n",
+              "provider call settlement",
+          )
+          text = replace_once(
+              text,
+              "            \"estimated_cost_usd\": llm_response.estimated_cost_usd,\n        }\n        return output\n\n    except Exception as exc:\n",
+              "            \"estimated_cost_usd\": llm_response.estimated_cost_usd,\n"
+              "            \"billed_cost_usd\": llm_response.billed_cost_usd,\n"
+              "            \"billing_evidence\": llm_response.billing_evidence,\n"
+              "        }\n"
+              "        return output\n\n"
+              "    except RuntimeBudgetError:\n"
+              "        # Economic authority is a hard gate, not a provider outage.\n"
+              "        raise\n\n"
+              "    except Exception as exc:\n",
+              "LLM billing metadata and hard budget gate",
+          )
+
+          start = text.index("def run_controlled_agent(\n")
+          end = text.index("\n\ndef _active_model_for_audit()", start)
+          new_func = '''def run_controlled_agent(
+    session: Session,
+    payload: ControlledAgentRunRequest,
+    existing_run: AgentRun | None = None,
+    *,
+    attempt_number: int = 1,
+) -> ControlledAgentRunResponse:
+    resolved_name = resolve_agent_name(payload.agent_name)
+    if resolved_name not in CONTROLLED_AGENT_REGISTRY:
+        raise ValueError(f"Unknown controlled agent: {payload.agent_name}")
+
+    is_async = existing_run is not None
+    if not is_async and resolved_name == CLIENT_DRAFTING_AGENT:
+        existing_pending_run = _pending_client_drafting_run(session, payload)
+        if existing_pending_run:
+            raise DuplicatePendingControlledAgentOutput(existing_pending_run)
+
+    agent = CONTROLLED_AGENT_REGISTRY[resolved_name]
+    input_data = {
+        "agent_name": payload.agent_name,
+        "task": payload.task,
+        "context": payload.context,
+        "actor": payload.actor,
+        "llm_provider": settings.llm_provider or None,
+        "llm_model": _active_model_for_audit(),
+    }
+
+    if existing_run is not None:
+        run = existing_run
+        run.agent_name = resolved_name
+        run.task = payload.task
+        run.lead_id = payload.lead_id
+        run.workflow_run_id = payload.workflow_run_id
+        run.input_json = _json_dump(input_data)
+        session.add(run)
+        session.flush()
+    else:
+        # A canonical AgentRun must exist before any paid provider reservation can
+        # reference it. Creating it here does not grant spend; the economic service
+        # separately admits or denies the paid call.
+        run = AgentRun(
+            workflow_run_id=payload.workflow_run_id,
+            lead_id=payload.lead_id,
+            agent_name=resolved_name,
+            task=payload.task,
+            status=AgentRunStatus.completed.value,
+            input_json=_json_dump(input_data),
+            output_json=_json_dump({}),
+        )
+        session.add(run)
+        session.flush()
+
+    try:
+        if _should_use_llm():
+            handler = AGENT_HANDLERS[resolved_name]
+            if handler is _llm_agent_handler:
+                output = handler(
+                    payload,
+                    agent,
+                    session=session,
+                    run=run,
+                    attempt_number=attempt_number,
+                )
+            else:
+                output = handler(payload, agent)
+        else:
+            output = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+    except RuntimeBudgetError as exc:
+        if not is_async:
+            run.status = AgentRunStatus.failed.value
+            run.output_json = _json_dump(
+                {
+                    "_runtime_budget_blocked": True,
+                    "failure_class": "runtime_budget",
+                    "reason": str(exc),
+                }
+            )
+            session.add(run)
+            record_audit(
+                session,
+                actor=payload.actor,
+                action="agent_run_runtime_budget_blocked",
+                entity_type="agent_run",
+                entity_id=run.id,
+                after_state={
+                    "agent_name": resolved_name,
+                    "status": AgentRunStatus.failed.value,
+                    "failure_class": "runtime_budget",
+                    "paid_call_started": False,
+                },
+                reason=str(exc),
+                source="phase_16_runtime_economics",
+            )
+            session.commit()
+        raise
+
+    if resolved_name != payload.agent_name:
+        output["requested_agent_name"] = payload.agent_name
+        output["resolved_agent_name"] = resolved_name
+
+    if existing_run is not None:
+        run.status = AgentRunStatus.pending_review.value
+        run.output_json = _json_dump(output)
+        session.add(run)
+        # The worker already records queued/running transitions. Persist the terminal
+        # handoff to human review here because this service owns that real state change.
+        record_audit(
+            session,
+            actor=payload.actor,
+            action="agent_run_status_changed",
+            entity_type="agent_run",
+            entity_id=run.id,
+            after_state={
+                "agent_name": resolved_name,
+                "status": AgentRunStatus.pending_review.value,
+                "lead_id": str(payload.lead_id) if payload.lead_id else None,
+                "workflow_run_id": str(payload.workflow_run_id) if payload.workflow_run_id else None,
+            },
+            reason="Background controlled-agent execution completed and entered human review.",
+            source="phase_15_runtime_signals",
+        )
+    else:
+        run.status = AgentRunStatus.completed.value
+        run.output_json = _json_dump(output)
+        session.add(run)
+
+    session.flush()
+
+    llm_meta = output.get("_llm_meta")
+    if isinstance(llm_meta, dict) and not llm_meta.get("fallback_to_template"):
+        record_audit(
+            session,
+            actor=payload.actor,
+            action="agent_run_provider_usage_observed",
+            entity_type="agent_run",
+            entity_id=run.id,
+            after_state={
+                "provider": llm_meta.get("provider"),
+                "model": llm_meta.get("model"),
+                "finish_reason": llm_meta.get("finish_reason"),
+                "prompt_tokens": llm_meta.get("prompt_tokens"),
+                "completion_tokens": llm_meta.get("completion_tokens"),
+                "total_tokens": llm_meta.get("total_tokens"),
+                "estimated_cost_usd": llm_meta.get("estimated_cost_usd"),
+                "billed_cost_usd": llm_meta.get("billed_cost_usd"),
+                "billing_evidence": bool(llm_meta.get("billing_evidence")),
+            },
+            reason="Provider-reported runtime usage observed for controlled agent execution.",
+            source="phase_16_runtime_metering",
+        )
+
+    record_audit(
+        session,
+        actor=payload.actor,
+        action="controlled_agent_run",
+        entity_type="agent_run",
+        entity_id=run.id,
+        after_state={
+            "agent_name": resolved_name,
+            "lead_id": payload.lead_id,
+            "workflow_run_id": payload.workflow_run_id,
+            "guardrails": agent["guardrails"],
+            "requires_human_review": True,
+            "llm_provider": settings.llm_provider or None,
+            "llm_model": _active_model_for_audit(),
+            "async": is_async,
+            "attempt_number": attempt_number,
+        },
+        reason="Controlled AI agent executed as an internal workflow assistant.",
+        source="controlled_agents_v4.0",
+    )
+    session.commit()
+    session.refresh(run)
+
+    return ControlledAgentRunResponse(
+        run_id=run.id,
+        agent_name=resolved_name,
+        status=run.status,
+        output=output,
+        guardrails=agent["guardrails"],
+        requires_human_review=True,
+        message="Controlled agent output generated for internal review only.",
+        created_at=run.created_at,
+    )
+'''
+          text = text[:start] + new_func + text[end:]
+          text = replace_once(
+              text,
+              "    if provider == \"moonshot\":\n        return settings.moonshot_model\n    return None\n",
+              "    if provider == \"moonshot\":\n        return settings.moonshot_model\n    if provider == \"gemini\":\n        return settings.gemini_model\n    return None\n",
+              "Gemini audit model",
+          )
+          controlled.write_text(text)
+
+          tasks = Path("apps/api/app/tasks/agent_tasks.py")
+          text = tasks.read_text()
+          text = replace_once(
+              text,
+              "from app.services.llm_client import (\n    LLMProviderConfigurationError,\n    LLMProviderResponseContractError,\n    LLMProviderTransportError,\n)\n",
+              "from app.services.llm_client import (\n    LLMProviderConfigurationError,\n    LLMProviderResponseContractError,\n    LLMProviderTransportError,\n)\nfrom app.services.runtime_economics import RuntimeBudgetError\n",
+              "worker economics import",
+          )
+          text = replace_once(
+              text,
+              "            response = run_controlled_agent(session, payload, existing_run=run)\n",
+              "            response = run_controlled_agent(\n                session,\n                payload,\n                existing_run=run,\n                attempt_number=self.request.retries + 1,\n            )\n",
+              "worker attempt propagation",
+          )
+          text = replace_once(
+              text,
+              "    if isinstance(exc, LLMProviderResponseContractError):\n        return \"provider_response_contract\", False\n    return \"unknown\", False\n",
+              "    if isinstance(exc, LLMProviderResponseContractError):\n        return \"provider_response_contract\", False\n    if isinstance(exc, RuntimeBudgetError):\n        return \"runtime_budget\", False\n    return \"unknown\", False\n",
+              "worker budget failure classification",
+          )
+          tasks.write_text(text)
+
+          router = Path("apps/api/app/routers/controlled_agents.py")
+          text = router.read_text()
+          text = replace_once(
+              text,
+              "from app.services.llm_client import LLMProviderFactory, is_llm_enabled\n",
+              "from app.services.llm_client import LLMProviderFactory, is_llm_enabled\n"
+              "from app.services.runtime_economics import RuntimeBudgetError\n",
+              "controlled-agent router economics import",
+          )
+          text = replace_once(
+              text,
+              "    except DuplicatePendingControlledAgentOutput as exc:\n        raise HTTPException(\n",
+              "    except RuntimeBudgetError as exc:\n"
+              "        raise HTTPException(\n"
+              "            status_code=409,\n"
+              "            detail={\n"
+              "                \"message\": str(exc),\n"
+              "                \"failure_class\": \"runtime_budget\",\n"
+              "                \"paid_call_started\": False,\n"
+              "            },\n"
+              "        ) from exc\n"
+              "    except DuplicatePendingControlledAgentOutput as exc:\n"
+              "        raise HTTPException(\n",
+              "API budget conflict mapping",
+          )
+          text = replace_once(
+              text,
+              "    except DuplicatePendingControlledAgentOutput as exc:\n        return RedirectResponse(\n            url=f\"/admin/controlled-agents/runs/{exc.existing_run.id}?duplicate_guard=1\",\n            status_code=303,\n        )\n    return RedirectResponse(url=f\"/admin/controlled-agents/runs/{response.run_id}\", status_code=303)\n",
+              "    except RuntimeBudgetError as exc:\n"
+              "        raise HTTPException(status_code=409, detail=str(exc)) from exc\n"
+              "    except DuplicatePendingControlledAgentOutput as exc:\n"
+              "        return RedirectResponse(\n"
+              "            url=f\"/admin/controlled-agents/runs/{exc.existing_run.id}?duplicate_guard=1\",\n"
+              "            status_code=303,\n"
+              "        )\n"
+              "    return RedirectResponse(url=f\"/admin/controlled-agents/runs/{response.run_id}\", status_code=303)\n",
+              "operator budget conflict mapping",
+          )
+          router.write_text(text)
+          PY
+
+          python -m compileall -q apps/api/app/services/controlled_agents.py apps/api/app/tasks/agent_tasks.py apps/api/app/routers/controlled_agents.py
+          git rm .github/workflows/tmp-phase16-runtime-economics-patch.yml
+          git add apps/api/app/services/controlled_agents.py apps/api/app/tasks/agent_tasks.py apps/api/app/routers/controlled_agents.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Phase 16: enforce runtime economic gate [runtime-economics-patch]"
+          git push origin HEAD:phase16/runtime-economics-budget-metering
