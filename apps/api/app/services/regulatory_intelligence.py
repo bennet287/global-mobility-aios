@@ -41,6 +41,7 @@ from app.schemas import (
 )
 from app.services.audit_log import record_audit
 from app.services.llm_client import LLMProviderFactory, is_llm_enabled
+from app.services.runtime_economics import RuntimeEconomicsError, complete_recorded
 from app.services.official_sources import ensure_country_policy, normalize_country, normalize_domain
 
 
@@ -613,7 +614,10 @@ def _classification_candidate(
     }
     try:
         provider = LLMProviderFactory.get_provider()
-        response = provider.complete(
+        response = complete_recorded(
+            context_kind="regulatory_change",
+            context_id=str(change.id),
+            provider=provider,
             system_prompt=(
                 "You are a controlled regulatory-change classifier. Never invent a rule, date, threshold, "
                 "programme, or authority. Use only supplied diff evidence and express uncertainty in confidence."
@@ -648,6 +652,8 @@ def _classification_candidate(
             },
             "fallback_reason": None,
         }
+    except RuntimeEconomicsError:
+        raise
     except Exception as exc:
         fallback["fallback_reason"] = (
             "Model proposal failed validation or execution; deterministic fallback used "

@@ -17,6 +17,7 @@ from app.models.domain import (
     VerifiedRule,
 )
 from app.services.llm_client import LLMProvider, LLMProviderError, LLMProviderFactory, LLMResponse
+from app.services.runtime_economics import complete_recorded
 from app.services.organization_agent_runtime import (
     AgentRuntimeProfile,
     EmployeeRuntimeBinding,
@@ -468,7 +469,10 @@ def prepare_governed_mobility_pathway_brief(
 
     runtime = _runtime_provider(runtime_profile, provider)
     try:
-        response: LLMResponse = runtime.complete(
+        response: LLMResponse = complete_recorded(
+            context_kind="mobility_pathway_brief_work_item",
+            context_id=str(work_item_id),
+            provider=runtime,
             system_prompt=_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": canonical_json(governed_payload)}],
             response_format=response_format,

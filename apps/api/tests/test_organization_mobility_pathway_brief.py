@@ -22,6 +22,7 @@ from app.models.domain import (
     VerifiedRule,
     now_utc,
 )
+from app.models.runtime_economics import ProviderCallAttempt
 from app.services.llm_client import LLMProvider, LLMResponse
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
 from app.services.organization_command import canonical_json
@@ -304,6 +305,12 @@ def test_executes_first_governed_vertical_from_context_to_runtime_draft(db_sessi
     assert result.draft.human_review_required is True
     assert result.draft.canonical_commit_allowed is False
     assert len(provider.calls) == 1
+    paid_call = db_session.exec(select(ProviderCallAttempt)).one()
+    assert paid_call.agent_run_id is None
+    assert paid_call.context_kind == "mobility_pathway_brief_work_item"
+    assert paid_call.context_id == str(work.id)
+    assert paid_call.total_tokens == 123
+    assert paid_call.billed_cost_usd is None
 
 
 def test_runtime_prompt_contains_governed_truth_but_excludes_working_context_authority_claims(

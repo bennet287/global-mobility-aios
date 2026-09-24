@@ -29,6 +29,7 @@ from app.schemas_business_advisory import (
 )
 from app.services.audit_log import record_audit, to_audit_dict
 from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
+from app.services.runtime_economics import complete_recorded
 
 
 SCORE_SEMANTICS = (
@@ -1024,7 +1025,9 @@ def advise_on_business_mobility_situation(
     try:
         provider = LLMProviderFactory.get_provider()
         prompt = _build_solution_prompt(payload, pathways, programs, risk_flags)
-        response = provider.complete(
+        response = complete_recorded(
+            context_kind="business_advisory_request",
+            provider=provider,
             system_prompt=prompt,
             messages=[{"role": "user", "content": "Provide the structured recommendation."}],
             response_format={"type": "json_object"},

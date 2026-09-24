@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.models.domain import Lead
 from app.schemas import InhouseConsultantDecision
 from app.services.llm_client import LLMProviderError, LLMProviderFactory
+from app.services.runtime_economics import complete_recorded
 from app.services.role_card_loader import load_role_card
 
 
@@ -260,7 +261,9 @@ def consult(
 
     try:
         provider = LLMProviderFactory.get_provider()
-        response = provider.complete(
+        response = complete_recorded(
+            context_kind="inhouse_consultant_request",
+            provider=provider,
             system_prompt=system_prompt,
             messages=[{"role": "user", "content": user_message}],
             response_format={"type": "json_object"},

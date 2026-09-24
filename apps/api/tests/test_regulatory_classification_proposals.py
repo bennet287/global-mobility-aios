@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from types import SimpleNamespace
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -9,7 +8,8 @@ from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models.domain import AuditLog, RegulatoryChange, RegulatoryClassificationProposal
-from app.services.llm_client import LLMProviderFactory
+from app.models.runtime_economics import ProviderCallAttempt
+from app.services.llm_client import LLMProviderFactory, LLMResponse
 
 
 def _create_changed_source(client: TestClient) -> tuple[str, str]:
@@ -114,8 +114,11 @@ def test_model_assisted_proposal_validates_citations_and_preserves_fallback(
     change_id, original_proposal_id = _create_changed_source(client)
 
     class FakeProvider:
+        name = "fake-regulatory-provider"
+        default_model = "fake-classifier-v1"
+
         def complete(self, **_kwargs):
-            return SimpleNamespace(
+            return LLMResponse(
                 content=json.dumps({
                     "change_type": "salary_threshold_change",
                     "materiality": "critical",
@@ -130,7 +133,6 @@ def test_model_assisted_proposal_validates_citations_and_preserves_fallback(
                 prompt_tokens=120,
                 completion_tokens=60,
                 total_tokens=180,
-                estimated_cost_usd=0.001,
             )
 
     monkeypatch.setattr(settings, "regulatory_model_classification_enabled", True)
@@ -143,13 +145,19 @@ def test_model_assisted_proposal_validates_citations_and_preserves_fallback(
     )
     assert generated.status_code == 201
     proposal = generated.json()["classification_proposal"]
-    assert proposal["method"] == "model_assisted"
+    assert proposal["method"] == "model_assisted", proposal["fallback_reason"]
     assert proposal["provider"] == "fake-regulatory-provider"
     assert proposal["model"] == "fake-classifier-v1"
     assert proposal["confidence"] == 0.95
     assert proposal["proposed_materiality"] == "critical"
     assert proposal["fallback_reason"] is None
     assert {row["line_number"] for row in proposal["evidence"]} == {4, 5}
+    paid_call = db_session.exec(select(ProviderCallAttempt)).one()
+    assert paid_call.context_kind == "regulatory_change"
+    assert paid_call.context_id == change_id
+    assert paid_call.status == "observed"
+    assert paid_call.total_tokens == 180
+    assert paid_call.billed_cost_usd is None
 
     original = db_session.get(RegulatoryClassificationProposal, UUID(original_proposal_id))
     assert original is not None
@@ -158,13 +166,17 @@ def test_model_assisted_proposal_validates_citations_and_preserves_fallback(
 
 def test_invalid_model_output_falls_back_without_blocking_pipeline(
     client: TestClient,
+    db_session: Session,
     monkeypatch,
 ) -> None:
     change_id, _ = _create_changed_source(client)
 
     class InvalidProvider:
+        name = "fake-regulatory-provider"
+        default_model = "fake-classifier-v1"
+
         def complete(self, **_kwargs):
-            return SimpleNamespace(content="not-json")
+            return LLMResponse(content="not-json", provider=self.name, model=self.default_model)
 
     monkeypatch.setattr(settings, "regulatory_model_classification_enabled", True)
     monkeypatch.setattr(settings, "llm_provider", "deepseek")
@@ -179,3 +191,6 @@ def test_invalid_model_output_falls_back_without_blocking_pipeline(
     assert proposal["method"] == "deterministic"
     assert "deterministic fallback used" in proposal["fallback_reason"].lower()
     assert proposal["evidence"]
+    paid_call = db_session.exec(select(ProviderCallAttempt)).one()
+    assert paid_call.status == "observed"
+    assert paid_call.cost_basis == "unattributed"
