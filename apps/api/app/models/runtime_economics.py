@@ -43,6 +43,7 @@ class ProviderCallAttempt(SQLModel, table=True):
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
     total_tokens: Optional[int] = None
+    provider_response_id: Optional[str] = Field(default=None, index=True)
     estimated_cost_usd: Optional[Decimal] = Field(default=None, sa_type=Numeric(18, 9))
     billed_cost_usd: Optional[Decimal] = Field(default=None, sa_type=Numeric(18, 9))
     cost_basis: str = "unattributed"

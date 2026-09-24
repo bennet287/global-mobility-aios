@@ -137,6 +137,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
             isinstance(constraint, ForeignKeyConstraint) for constraint in metadata_table.constraints
         ) == len(inspector.get_foreign_keys(table_name))
     expected_extension_indexes = {
+        "provider_call_attempts": {"ix_provider_call_attempts_provider_response_id"},
         "organizational_work_items": {
             "ix_org_work_tenant_status_due",
             "ix_org_work_tenant_department_status",
@@ -174,7 +175,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0087_provider_call_capacity"
+            "0088_provider_response_identity"
         )
         position_inspector = inspect(connection)
         position_indexes = {

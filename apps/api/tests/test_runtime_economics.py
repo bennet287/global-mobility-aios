@@ -34,7 +34,7 @@ def test_cost_evidence_separates_partial_estimates_from_unverified_billing(
     db_session.add_all([
         ProviderCallAttempt(
             operation_key="economics:deepseek:1", attempt_no=1, provider="deepseek",
-            status="observed", total_tokens=20,
+            status="observed", total_tokens=20, provider_response_id="chatcmpl-observed",
             estimated_cost_usd=Decimal("0.000002000"),
         ),
         ProviderCallAttempt(
@@ -56,6 +56,7 @@ def test_cost_evidence_separates_partial_estimates_from_unverified_billing(
         "provider": "deepseek", "attempts": 2,
         "unsettled_or_unknown_attempts": 1,
         "usage_observed_attempts": 1,
+        "response_id_available_attempts": 1,
         "estimate_available_attempts": 1,
         "estimated_cost_usd_partial": "0.000002000",
         "unverified_billed_value_attempts": 1,
@@ -176,6 +177,7 @@ def test_non_agent_call_records_usage_and_rejects_replayed_operation_key(db_sess
             return LLMResponse(
                 content="{}", provider=self.name, model=self.default_model,
                 prompt_tokens=8, completion_tokens=2, total_tokens=10,
+                provider_response_id=" chatcmpl-123 ",
             )
 
     provider = Provider()
@@ -191,6 +193,7 @@ def test_non_agent_call_records_usage_and_rejects_replayed_operation_key(db_sess
     assert (entry.context_kind, entry.context_id) == ("regulatory_change", "change-123")
     assert entry.status == "observed"
     assert entry.total_tokens == 10
+    assert entry.provider_response_id == "chatcmpl-123"
     assert entry.billed_cost_usd is None
     with pytest.raises(RuntimeEconomicsError, match="duplicate paid call"):
         complete_recorded(**arguments)
