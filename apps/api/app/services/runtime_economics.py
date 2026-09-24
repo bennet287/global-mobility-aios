@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import update
+from sqlalchemy import case, func, update
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
@@ -14,6 +14,58 @@ from app.services.llm_client import LLMProvider, LLMResponse
 
 class RuntimeEconomicsError(RuntimeError):
     """A paid call must not proceed without durable accounting identity."""
+
+
+def summarize_cost_evidence(session: Session) -> dict:
+    """Read existing attempts without converting estimates or unaudited values into spend."""
+    rows = session.execute(
+        select(
+            ProviderCallAttempt.provider,
+            func.count(ProviderCallAttempt.id),
+            func.sum(case((ProviderCallAttempt.status != "observed", 1), else_=0)),
+            func.sum(case((ProviderCallAttempt.total_tokens.is_not(None), 1), else_=0)),
+            func.sum(case((ProviderCallAttempt.estimated_cost_usd.is_not(None), 1), else_=0)),
+            func.sum(ProviderCallAttempt.estimated_cost_usd),
+            func.sum(case((ProviderCallAttempt.billed_cost_usd.is_not(None), 1), else_=0)),
+        )
+        .group_by(ProviderCallAttempt.provider)
+        .order_by(ProviderCallAttempt.provider)
+    ).all()
+    providers = [
+        {
+            "provider": provider,
+            "attempts": attempts,
+            "unsettled_or_unknown_attempts": unknown,
+            "usage_observed_attempts": with_usage,
+            "estimate_available_attempts": with_estimate,
+            "estimated_cost_usd_partial": str(estimated_sum) if estimated_sum is not None else None,
+            # The model has no provider invoice/reference identity or verified per-call
+            # attribution. Even a manually filled billed_cost_usd column is not proof.
+            "unverified_billed_value_attempts": unverified_billed,
+            "actual_billed_cost_usd": None,
+        }
+        for (
+            provider, attempts, unknown, with_usage, with_estimate,
+            estimated_sum, unverified_billed,
+        ) in rows
+    ]
+    return {
+        "scope": "direct_model_calls_only",
+        "providers": providers,
+        "paid_tool_cost_coverage": "unreconciled",
+        "monetary_budget": {
+            "enforceable": False,
+            "authorized_usd": None,
+            "actual_spend_usd": None,
+            "remaining_usd": None,
+            "blockers": [
+                "authoritative_per_call_billing_evidence_missing",
+                "paid_tool_cost_coverage_unreconciled",
+                "board_monetary_allocation_not_modeled",
+                "provable_pre_call_monetary_ceiling_missing",
+            ],
+        },
+    }
 
 
 def authorize_provider_calls(

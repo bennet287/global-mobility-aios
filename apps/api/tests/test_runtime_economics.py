@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
@@ -10,6 +12,59 @@ from app.schemas import ControlledAgentRunRequest
 from app.services.controlled_agents import run_controlled_agent
 from app.services.llm_client import LLMResponse
 from app.services.runtime_economics import RuntimeEconomicsError, complete_recorded
+
+
+def test_cost_evidence_is_admin_only_and_empty_spend_is_unknown(client) -> None:
+    endpoint = "/api/v1/runtime-economics/cost-evidence"
+    client.headers["X-GMAI-Role"] = "read_only"
+    assert client.get(endpoint).status_code == 403
+    client.headers["X-GMAI-Role"] = "admin"
+    report = client.get(endpoint).json()
+    assert report["scope"] == "direct_model_calls_only"
+    assert report["providers"] == []
+    assert report["paid_tool_cost_coverage"] == "unreconciled"
+    assert report["monetary_budget"]["enforceable"] is False
+    assert report["monetary_budget"]["actual_spend_usd"] is None
+    assert report["monetary_budget"]["remaining_usd"] is None
+
+
+def test_cost_evidence_separates_partial_estimates_from_unverified_billing(
+    client, db_session: Session,
+) -> None:
+    db_session.add_all([
+        ProviderCallAttempt(
+            operation_key="economics:deepseek:1", attempt_no=1, provider="deepseek",
+            status="observed", total_tokens=20,
+            estimated_cost_usd=Decimal("0.000002000"),
+        ),
+        ProviderCallAttempt(
+            operation_key="economics:deepseek:2", attempt_no=1, provider="deepseek",
+            status="outcome_unknown",
+            # An unattributed column value is still not an invoice or proof.
+            billed_cost_usd=Decimal("1.230000000"), cost_basis="provider_billed",
+        ),
+        ProviderCallAttempt(
+            operation_key="economics:gemini:1", attempt_no=1, provider="gemini",
+            status="observed", total_tokens=10,
+        ),
+    ])
+    db_session.commit()
+
+    report = client.get("/api/v1/runtime-economics/cost-evidence").json()
+    deepseek, gemini = report["providers"]
+    assert deepseek == {
+        "provider": "deepseek", "attempts": 2,
+        "unsettled_or_unknown_attempts": 1,
+        "usage_observed_attempts": 1,
+        "estimate_available_attempts": 1,
+        "estimated_cost_usd_partial": "0.000002000",
+        "unverified_billed_value_attempts": 1,
+        "actual_billed_cost_usd": None,
+    }
+    assert gemini["estimated_cost_usd_partial"] is None
+    assert gemini["actual_billed_cost_usd"] is None
+    assert report["monetary_budget"]["actual_spend_usd"] is None
+    assert report["monetary_budget"]["enforceable"] is False
 
 
 def test_controlled_run_records_usage_even_when_output_is_malformed(
