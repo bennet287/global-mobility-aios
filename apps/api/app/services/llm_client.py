@@ -21,6 +21,8 @@ class LLMResponse:
     completion_tokens: int | None = None
     total_tokens: int | None = None
     raw_response: dict[str, Any] = field(default_factory=dict, repr=False)
+    # Opaque provider completion identity; no invoice or charge is implied.
+    provider_response_id: str | None = None
 
     @property
     def estimated_cost_usd(self) -> float | None:
@@ -191,6 +193,11 @@ class _OpenAICompatibleProvider(LLMProvider):
             prompt_tokens=usage.get("prompt_tokens"),
             completion_tokens=usage.get("completion_tokens"),
             total_tokens=usage.get("total_tokens"),
+            provider_response_id=(
+                data["id"].strip()
+                if isinstance(data.get("id"), str) and 0 < len(data["id"].strip()) <= 255
+                else None
+            ),
             raw_response=data,
         )
 

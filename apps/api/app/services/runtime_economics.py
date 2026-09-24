@@ -24,6 +24,7 @@ def summarize_cost_evidence(session: Session) -> dict:
             func.count(ProviderCallAttempt.id),
             func.sum(case((ProviderCallAttempt.status != "observed", 1), else_=0)),
             func.sum(case((ProviderCallAttempt.total_tokens.is_not(None), 1), else_=0)),
+            func.sum(case((ProviderCallAttempt.provider_response_id.is_not(None), 1), else_=0)),
             func.sum(case((ProviderCallAttempt.estimated_cost_usd.is_not(None), 1), else_=0)),
             func.sum(ProviderCallAttempt.estimated_cost_usd),
             func.sum(case((ProviderCallAttempt.billed_cost_usd.is_not(None), 1), else_=0)),
@@ -37,15 +38,16 @@ def summarize_cost_evidence(session: Session) -> dict:
             "attempts": attempts,
             "unsettled_or_unknown_attempts": unknown,
             "usage_observed_attempts": with_usage,
+            "response_id_available_attempts": with_response_id,
             "estimate_available_attempts": with_estimate,
             "estimated_cost_usd_partial": str(estimated_sum) if estimated_sum is not None else None,
-            # The model has no provider invoice/reference identity or verified per-call
-            # attribution. Even a manually filled billed_cost_usd column is not proof.
+            # A completion ID is a correlation handle, not an invoice line or
+            # verified per-call attribution. A manually filled value is not proof.
             "unverified_billed_value_attempts": unverified_billed,
             "actual_billed_cost_usd": None,
         }
         for (
-            provider, attempts, unknown, with_usage, with_estimate,
+            provider, attempts, unknown, with_usage, with_response_id, with_estimate,
             estimated_sum, unverified_billed,
         ) in rows
     ]
@@ -214,6 +216,9 @@ def _settle(entry_id: UUID, response: LLMResponse | None) -> None:
             entry.prompt_tokens = response.prompt_tokens
             entry.completion_tokens = response.completion_tokens
             entry.total_tokens = response.total_tokens
+            response_id = response.provider_response_id
+            if isinstance(response_id, str) and 0 < len(response_id.strip()) <= 255:
+                entry.provider_response_id = response_id.strip()
             if response.estimated_cost_usd is not None:
                 entry.estimated_cost_usd = Decimal(str(response.estimated_cost_usd))
                 entry.cost_basis = "estimated"

@@ -112,9 +112,20 @@ def test_deepseek_provider_success():
     assert resp.model == "deepseek-chat"
     assert resp.content == '{"summary": "test"}'
     assert resp.total_tokens == 120
+    assert resp.provider_response_id == "chatcmpl-test"
     assert resp.estimated_cost_usd is not None
     _, kwargs = fake_client.post.call_args
     assert "temperature" in kwargs["json"]
+
+
+@pytest.mark.parametrize("response_id", [None, "", 123, "x" * 256])
+def test_missing_or_invalid_completion_id_is_not_treated_as_billing_evidence(response_id):
+    provider = DeepSeekProvider(api_key="ds-key", model="deepseek-chat")
+    response_data = {**SAMPLE_CHAT_RESPONSE, "id": response_id}
+    with patch("httpx.Client", return_value=_make_fake_client(response_data)):
+        response = provider.complete("system", [{"role": "user", "content": "hi"}])
+    assert response.provider_response_id is None
+    assert response.total_tokens == 120
 
 
 @pytest.mark.parametrize(
