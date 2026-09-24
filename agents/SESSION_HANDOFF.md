@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`hard runtime budgets / actual cost metering through the existing governed runtime and evidence boundaries`
+`governed allocation and hard per-call budget enforcement after reconciling other paid paths and billing evidence`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #176 — explicit AgentRun cancellation, merge `b867fb28c06c2f25390574b4e1a69211d1f622dd`.
+- PR #179 — controlled AgentRun provider-attempt ledger, merge `b42a0126aa5ee7c6e9733c1a6dd9240321af08ae`.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,13 +31,13 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 16 boundary and budget/metering guardrails.
 3. Read the Phase 16 scheduling and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the accepted Phase 16.1 provider-usage evidence path, every real paid execution path, and any existing budget/allocation models before designing new state.
+4. Inspect the sealed Phase 16.3A controlled-AgentRun ledger, every other real paid execution path, and any existing budget/allocation models before designing new state.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing cost, usage, allocation, budget, retry and cancellation evidence before adding models or abstractions.
 
 ## Runtime cost truth boundary
 
-`estimated_cost_usd` remains diagnostic evidence, not billing truth. Keep authorized budget, observed actual provider/tool spend, and estimates/unattributed cost separate. Budget exhaustion may stop or pause new paid execution only through an explicit governed runtime boundary; an agent may request more allocation but may not grant itself budget. Cancellation does not imply refund or rollback of spend already incurred.
+`estimated_cost_usd` remains diagnostic evidence, not billing truth. The sealed ledger accounts for controlled AgentRun attempts only; other provider consumers need separately governed attribution. Keep authorized budget, observed actual provider/tool spend, and estimates/unattributed cost separate. Budget exhaustion may stop or pause new paid execution only through an explicit governed runtime boundary; an agent may request more allocation but may not grant itself budget. Cancellation does not imply refund or rollback of spend already incurred.
 
 Explicit AgentRun cancellation is already sealed by PR #176. Its non-terminating Celery revoke and no-rollback semantics remain intact while budget controls are added.
 
