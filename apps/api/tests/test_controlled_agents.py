@@ -717,6 +717,7 @@ def test_llm_enabled_agent_uses_provider_output(
         mock_settings.deepseek_api_key = "ds-key"
         mock_settings.deepseek_model = "deepseek-chat"
         mock_settings.deepseek_base_url = "https://api.deepseek.com"
+        mock_settings.deepseek_max_output_tokens = 1024
         mock_settings.llm_temperature = 0.2
         mock_settings.llm_timeout_seconds = 30
         mock_settings.llm_fallback_to_template = True
@@ -743,6 +744,7 @@ def test_llm_enabled_agent_uses_provider_output(
     assert data["output"]["secrets_access_allowed"] is False
     assert data["output"]["_llm_meta"]["provider"] == "deepseek"
     assert data["output"]["_llm_meta"]["model"] == "deepseek-chat"
+    assert fake_client.post.call_args.kwargs["json"]["max_tokens"] == 1024
 
 
 def test_llm_enabled_agent_falls_back_on_provider_error(
@@ -769,6 +771,7 @@ def test_llm_enabled_agent_falls_back_on_provider_error(
         mock_settings.deepseek_api_key = "ds-key"
         mock_settings.deepseek_model = "deepseek-chat"
         mock_settings.deepseek_base_url = "https://api.deepseek.com"
+        mock_settings.deepseek_max_output_tokens = None
         mock_settings.llm_temperature = 0.2
         mock_settings.llm_timeout_seconds = 30
         mock_settings.llm_fallback_to_template = True

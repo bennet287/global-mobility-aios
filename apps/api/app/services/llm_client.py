@@ -102,6 +102,8 @@ class _OpenAICompatibleProvider(LLMProvider):
     api_key: str
     default_model: str
     include_temperature: bool = True
+    output_limit_setting: str | None = None
+    output_limit_parameter: str | None = None
 
     def __init__(self, api_key: str, default_model: str, base_url: str | None = None):
         self.api_key = api_key
@@ -130,6 +132,15 @@ class _OpenAICompatibleProvider(LLMProvider):
             payload["temperature"] = settings.llm_temperature
         if response_format:
             payload["response_format"] = response_format
+        if self.output_limit_setting is not None:
+            limit = getattr(settings, self.output_limit_setting)
+            if limit is not None:
+                if type(limit) is not int or limit < 1:
+                    raise LLMProviderConfigurationError(
+                        f"{self.output_limit_setting} must be a positive integer."
+                    )
+                assert self.output_limit_parameter is not None
+                payload[self.output_limit_parameter] = limit
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -187,6 +198,8 @@ class _OpenAICompatibleProvider(LLMProvider):
 class DeepSeekProvider(_OpenAICompatibleProvider):
     name = "deepseek"
     base_url = "https://api.deepseek.com"
+    output_limit_setting = "deepseek_max_output_tokens"
+    output_limit_parameter = "max_tokens"
 
     def __init__(
         self,
@@ -211,6 +224,8 @@ class DeepSeekProvider(_OpenAICompatibleProvider):
 class MoonshotProvider(_OpenAICompatibleProvider):
     name = "moonshot"
     base_url = "https://api.moonshot.cn/v1"
+    output_limit_setting = "moonshot_max_completion_tokens"
+    output_limit_parameter = "max_completion_tokens"
 
     def __init__(
         self,
