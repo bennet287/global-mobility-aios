@@ -2,15 +2,73 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from uuid import UUID, uuid4
 
+from sqlalchemy import update
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core import db as db_module
-from app.models.runtime_economics import ProviderCallAttempt
+from app.models.runtime_economics import ProviderCallAllocation, ProviderCallAttempt
+from app.services.audit_log import record_audit
 from app.services.llm_client import LLMProvider, LLMResponse
 
 
 class RuntimeEconomicsError(RuntimeError):
     """A paid call must not proceed without durable accounting identity."""
+
+
+def authorize_provider_calls(
+    session: Session, *, provider: str, authorized_calls: int,
+    paused: bool, actor: str, reason: str,
+) -> ProviderCallAllocation:
+    """Set the cumulative call allowance; a repeated request cannot grant extra slots."""
+    if provider not in {"deepseek", "moonshot", "gemini"}:
+        raise RuntimeEconomicsError("Unsupported provider for governed call capacity")
+    if authorized_calls < 0 or authorized_calls > 1_000_000:
+        raise RuntimeEconomicsError("Authorized call count must be between 0 and 1,000,000")
+    allocation = session.get(ProviderCallAllocation, provider)
+    if allocation is not None and authorized_calls < allocation.authorized_calls:
+        raise RuntimeEconomicsError("An authorized call allowance cannot be reduced; pause it instead")
+    if allocation is not None and authorized_calls == allocation.authorized_calls and paused == allocation.paused:
+        return allocation
+    before = (
+        {"authorized_calls": allocation.authorized_calls, "paused": allocation.paused}
+        if allocation is not None else None
+    )
+    if allocation is None:
+        allocation = ProviderCallAllocation(
+            provider=provider, authorized_calls=authorized_calls, paused=paused,
+            authorized_by=actor, reason=reason,
+        )
+        session.add(allocation)
+    else:
+        # Concurrent grants cannot move the authorization backwards.
+        updated = session.execute(
+            update(ProviderCallAllocation)
+            .where(ProviderCallAllocation.provider == provider)
+            .where(ProviderCallAllocation.authorized_calls <= authorized_calls)
+            .values(
+                authorized_calls=authorized_calls, paused=paused,
+                authorized_by=actor, reason=reason,
+                updated_at=datetime.now(timezone.utc),
+            )
+            .returning(ProviderCallAllocation.provider)
+        ).scalar_one_or_none()
+        if updated is None:
+            raise RuntimeEconomicsError("Concurrent authorization changed; refresh the allowance")
+        session.refresh(allocation)
+    record_audit(
+        session, action="provider_call_capacity_authorized", entity_type="provider_call_allocation",
+        entity_id=provider, actor=actor, reason=reason, before_state=before,
+        after_state={"authorized_calls": authorized_calls, "used_calls": allocation.used_calls,
+                     "paused": paused, "cost_basis": "call_count_not_money"},
+    )
+    try:
+        session.commit()
+    except IntegrityError as exc:
+        session.rollback()
+        raise RuntimeEconomicsError("Concurrent authorization changed; refresh the allowance") from exc
+    session.refresh(allocation)
+    return allocation
 
 
 def complete_recorded(
@@ -44,8 +102,24 @@ def complete_recorded(
         )
         if session.exec(prior).first():
             raise RuntimeEconomicsError("Provider attempt already recorded; refusing duplicate paid call")
+        # When an admin has enrolled this provider, reserve one call atomically
+        # with the attempt row. A failed or interrupted call retains its slot:
+        # there is no provider refund evidence at this boundary.
+        allocation = session.get(ProviderCallAllocation, provider.name)
+        if allocation is not None:
+            reserved = session.execute(
+                update(ProviderCallAllocation)
+                .where(ProviderCallAllocation.provider == provider.name)
+                .where(ProviderCallAllocation.paused.is_(False))
+                .where(ProviderCallAllocation.used_calls < ProviderCallAllocation.authorized_calls)
+                .values(used_calls=ProviderCallAllocation.used_calls + 1)
+                .returning(ProviderCallAllocation.provider)
+            ).scalar_one_or_none()
+            if reserved is None:
+                raise RuntimeEconomicsError("Provider call capacity exhausted or paused; refusing paid call")
         entry = ProviderCallAttempt(
             agent_run_id=run_id,
+            allocation_provider=provider.name if allocation is not None else None,
             operation_key=operation_key,
             context_kind=context_kind,
             context_id=context_id,

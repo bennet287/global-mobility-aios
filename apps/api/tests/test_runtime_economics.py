@@ -1,9 +1,11 @@
 import pytest
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 from billiard.exceptions import SoftTimeLimitExceeded
 from sqlmodel import Session, select
 
-from app.models.domain import AgentRun, AgentRunStatus
-from app.models.runtime_economics import AgentRunProviderAttempt, ProviderCallAttempt
+from app.models.domain import AgentRun, AgentRunStatus, AuditLog
+from app.models.runtime_economics import AgentRunProviderAttempt, ProviderCallAllocation, ProviderCallAttempt
 from app.schemas import ControlledAgentRunRequest
 from app.services.controlled_agents import run_controlled_agent
 from app.services.llm_client import LLMResponse
@@ -159,3 +161,105 @@ def test_non_agent_failed_call_preserves_unknown_outcome(db_session: Session) ->
     assert entry.status == "outcome_unknown"
     assert entry.cost_basis == "unattributed"
     assert entry.billed_cost_usd is None
+
+
+def test_admin_authorizes_call_slots_without_inflating_replayed_grants(client, db_session: Session) -> None:
+    endpoint = "/api/v1/runtime-economics/providers/deepseek/capacity"
+    client.headers["X-GMAI-Role"] = "read_only"
+    assert client.put(endpoint, json={"authorized_calls": 1, "reason": "Admin authorizes one call"}).status_code == 403
+    assert client.get(endpoint).status_code == 403
+    client.headers["X-GMAI-Role"] = "admin"
+    payload = {"authorized_calls": 1, "reason": "Admin authorizes one call"}
+    assert client.put(endpoint, json=payload).json()["remaining_calls"] == 1
+    assert client.put(endpoint, json=payload).json()["remaining_calls"] == 1
+    assert client.put(endpoint, json={"authorized_calls": 0, "reason": "Try to retract"}).status_code == 409
+    assert len(db_session.exec(select(AuditLog).where(AuditLog.action == "provider_call_capacity_authorized")).all()) == 1
+
+    class Provider:
+        name = "deepseek"
+        default_model = "deepseek-chat"
+        calls = 0
+
+        def complete(self, **kwargs):
+            self.calls += 1
+            return LLMResponse(content="{}", provider=self.name, model=self.default_model, total_tokens=6)
+
+    provider = Provider()
+    arguments = dict(
+        context_kind="business_advisory_request", provider=provider,
+        operation_key="business_advisory_request:bounded-1",
+        system_prompt="test", messages=[], response_format=None,
+    )
+    complete_recorded(**arguments)
+    assert client.get(endpoint).json()["remaining_calls"] == 0
+    with pytest.raises(RuntimeEconomicsError, match="duplicate paid call"):
+        complete_recorded(**arguments)
+    with pytest.raises(RuntimeEconomicsError, match="exhausted or paused"):
+        complete_recorded(**{**arguments, "operation_key": "business_advisory_request:bounded-2"})
+    assert provider.calls == 1
+    paid_call = db_session.exec(select(ProviderCallAttempt)).one()
+    assert paid_call.allocation_provider == "deepseek"
+    assert paid_call.billed_cost_usd is None
+
+    assert client.put(endpoint, json={"authorized_calls": 2, "reason": "Admin granted one more"}).json()["remaining_calls"] == 1
+    assert client.put(endpoint, json={"authorized_calls": 2, "paused": True, "reason": "Pause"}).json()["paused"] is True
+    with pytest.raises(RuntimeEconomicsError, match="exhausted or paused"):
+        complete_recorded(**{**arguments, "operation_key": "business_advisory_request:bounded-2"})
+    assert provider.calls == 1
+    assert client.put(endpoint, json={"authorized_calls": 2, "paused": False, "reason": "Resume"}).json()["remaining_calls"] == 1
+    complete_recorded(**{**arguments, "operation_key": "business_advisory_request:bounded-2"})
+    assert provider.calls == 2
+    assert client.get(endpoint).json()["remaining_calls"] == 0
+
+
+def test_unknown_outcome_consumes_authorized_slot(db_session: Session) -> None:
+    db_session.add(ProviderCallAllocation(
+        provider="gemini", authorized_calls=1, authorized_by="admin", reason="Bounded trial",
+    ))
+    db_session.commit()
+
+    class Provider:
+        name = "gemini"
+
+        def complete(self, **kwargs):
+            raise ConnectionError("Provider outcome unknown")
+
+    args = dict(context_kind="inhouse_consultant_request", provider=Provider(),
+                system_prompt="test", messages=[], response_format=None)
+    with pytest.raises(ConnectionError):
+        complete_recorded(**args)
+    with pytest.raises(RuntimeEconomicsError, match="exhausted or paused"):
+        complete_recorded(**args)
+    row = db_session.exec(select(ProviderCallAttempt)).one()
+    assert row.allocation_provider == "gemini"
+    assert row.status == "outcome_unknown"
+    db_session.refresh(db_session.get(ProviderCallAllocation, "gemini"))
+    assert db_session.get(ProviderCallAllocation, "gemini").used_calls == 1
+
+
+def test_simultaneous_calls_cannot_exceed_one_authorized_slot(db_session: Session) -> None:
+    db_session.add(ProviderCallAllocation(
+        provider="deepseek", authorized_calls=1, authorized_by="admin", reason="One call",
+    ))
+    db_session.commit()
+    crossed = Event()
+    release = Event()
+
+    class Provider:
+        name = "deepseek"
+
+        def complete(self, **kwargs):
+            crossed.set()
+            assert release.wait(5)
+            return LLMResponse(content="{}", provider=self.name, model="deepseek-chat")
+
+    args = dict(context_kind="regulatory_change", provider=Provider(),
+                system_prompt="test", messages=[], response_format=None)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(complete_recorded, **args)
+        assert crossed.wait(5)
+        with pytest.raises(RuntimeEconomicsError, match="exhausted or paused"):
+            complete_recorded(**args)
+        release.set()
+        first.result(timeout=5)
+    assert len(db_session.exec(select(ProviderCallAttempt)).all()) == 1

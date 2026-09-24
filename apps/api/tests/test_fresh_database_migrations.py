@@ -106,6 +106,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
 
     inspector = inspect(create_engine(database_url))
     durable_tables = {
+        "provider_call_allocations",
         "provider_call_attempts",
         "organization_activity_streams",
         "organization_activities",
@@ -173,7 +174,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0086_provider_call_attempt_coverage"
+            "0087_provider_call_capacity"
         )
         position_inspector = inspect(connection)
         position_indexes = {
