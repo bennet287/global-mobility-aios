@@ -14,6 +14,7 @@ from app.services.agent_run_cancellation import (
     request_agent_run_cancellation,
     request_agent_run_transport_revoke,
 )
+from app.services.runtime_economics import get_agent_run_budget_snapshot
 
 router = APIRouter()
 
@@ -47,6 +48,17 @@ def get_agent_run(agent_run_id: UUID, session: Session = Depends(get_session)) -
     if not run:
         raise HTTPException(status_code=404, detail="Agent run not found")
     return run
+
+
+@router.get("/agent-runs/{agent_run_id}/budget")
+def get_agent_run_budget(
+    agent_run_id: UUID,
+    session: Session = Depends(get_session),
+) -> dict:
+    run = session.get(AgentRun, agent_run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Agent run not found")
+    return get_agent_run_budget_snapshot(session, run.id)
 
 
 @router.post("/agent-runs/{agent_run_id}/cancel")
