@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.2
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True
+    # Paid controlled-agent execution is fail-closed unless both values are positive.
+    # These are authorization envelopes, not provider invoice truth.
+    llm_agent_run_budget_usd: float = 0.0
+    llm_attempt_reservation_usd: float = 0.0
 
     # SecretsPort — bounded Technology Radar V1.3.5 Wave E1 pilot.
     # Direct values remain backward-compatible. A *_REF value opts a credential into
