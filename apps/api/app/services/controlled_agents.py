@@ -2,21 +2,25 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from uuid import UUID
 
+from billiard.exceptions import SoftTimeLimitExceeded
 from sqlmodel import Session, select
 
 from app.agents.registry import AGENT_ALIASES, CONTROLLED_AGENT_REGISTRY
 from app.core.config import settings
-from app.models.domain import AgentRun, AgentRunStatus
+from app.models.domain import AgentRun, AgentRunStatus, AuditLog
 from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
 from app.services.eligibility_coach import evaluate_eligibility_output
 from app.services.eligibility_engine import evaluate_lead_eligibility
 from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
 from app.services.role_card_loader import build_system_prompt, get_agent_output_schema
+from app.services.runtime_economics import RuntimeEconomicsError, complete_recorded
 
 
 PENDING_AGENT_OUTPUT_STATUSES = {
+    AgentRunStatus.running.value,
     AgentRunStatus.completed.value,
     AgentRunStatus.pending_review.value,
 }
@@ -1869,7 +1873,13 @@ def _merge_with_safety(output: dict[str, Any], base: dict[str, Any]) -> dict[str
     return merged
 
 
-def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+def _llm_agent_handler(
+    payload: ControlledAgentRunRequest,
+    agent: dict[str, Any],
+    *,
+    run_id: UUID,
+    attempt_no: int,
+) -> dict[str, Any]:
     base = _base_output(payload, agent)
     resolved_name = resolve_agent_name(payload.agent_name)
 
@@ -1885,7 +1895,10 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
             "required_output_schema": schema,
         }
 
-        llm_response = provider.complete(
+        llm_response = complete_recorded(
+            run_id=run_id,
+            attempt_no=attempt_no,
+            provider=provider,
             system_prompt=system_prompt,
             messages=[{"role": "user", "content": _json_dump(user_content)}],
             response_format=response_format,
@@ -2376,6 +2389,8 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
         }
         return output
 
+    except (RuntimeEconomicsError, SoftTimeLimitExceeded):
+        raise
     except Exception as exc:
         if not settings.llm_fallback_to_template:
             raise
@@ -2391,37 +2406,6 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
 
 def _should_use_llm() -> bool:
     return is_llm_enabled() and settings.llm_fallback_to_template is not None
-
-
-AGENT_HANDLERS = {
-    "truth_explanation_agent": _llm_agent_handler,
-    "document_checklist_agent": _llm_agent_handler,
-    "client_drafting_agent": _llm_agent_handler,
-    "sales_summary_agent": _llm_agent_handler,
-    "operations_coordination_agent": _llm_agent_handler,
-    "business_intelligence_agent": _llm_agent_handler,
-    "vp_engineering_agent": _llm_agent_handler,
-    "lead_architect_agent": _llm_agent_handler,
-    "product_manager_agent": _llm_agent_handler,
-    "design_agent_agent": _llm_agent_handler,
-    "security_lead_agent": _llm_agent_handler,
-    "threat_analyst_agent": _llm_agent_handler,
-    "soc_lead_agent": _llm_agent_handler,
-    "soc_analyst_agent": _llm_agent_handler,
-    "creative_director_agent": _llm_agent_handler,
-    "marketing_manager_agent": _llm_agent_handler,
-    "financial_analyst_agent": _llm_agent_handler,
-    "accounting_lead_agent": _llm_agent_handler,
-    "pr_comms_lead_agent": _llm_agent_handler,
-    "government_relations_lead_agent": _llm_agent_handler,
-    "hr_lead_agent": _llm_agent_handler,
-    "culture_recruitment_lead_agent": _llm_agent_handler,
-    "general_counsel_agent": _llm_agent_handler,
-    "public_policy_compliance_lead_agent": _llm_agent_handler,
-    "application_readiness_agent": _llm_agent_handler,
-    "eligibility_coach": _llm_agent_handler,
-    "eligibility_agent": _eligibility_agent,
-}
 
 
 def run_controlled_agent(
@@ -2441,8 +2425,39 @@ def run_controlled_agent(
 
     agent = CONTROLLED_AGENT_REGISTRY[resolved_name]
 
-    if _should_use_llm():
-        output = AGENT_HANDLERS[resolved_name](payload, agent)
+    use_llm = _should_use_llm()
+    if use_llm:
+        if existing_run is None:
+            # Give synchronous calls the same durable AgentRun identity as workers.
+            run = AgentRun(
+                workflow_run_id=payload.workflow_run_id,
+                lead_id=payload.lead_id,
+                agent_name=resolved_name,
+                task=payload.task,
+                status=AgentRunStatus.running.value,
+            )
+            session.add(run)
+            session.commit()
+            session.refresh(run)
+        else:
+            run = existing_run
+        prior_failures = session.exec(
+            select(AuditLog).where(
+                AuditLog.entity_type == "agent_run",
+                AuditLog.entity_id == str(run.id),
+                AuditLog.action == "agent_run_failure_classified",
+            )
+        ).all()
+        try:
+            output = _llm_agent_handler(
+                payload, agent, run_id=run.id, attempt_no=len(prior_failures) + 1
+            )
+        except Exception:
+            if existing_run is None:
+                run.status = AgentRunStatus.failed.value
+                session.add(run)
+                session.commit()
+            raise
     else:
         output = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
 
@@ -2488,7 +2503,7 @@ def run_controlled_agent(
             reason="Background controlled-agent execution completed and entered human review.",
             source="phase_15_runtime_signals",
         )
-    else:
+    elif not use_llm:
         run = AgentRun(
             workflow_run_id=payload.workflow_run_id,
             lead_id=payload.lead_id,
@@ -2498,6 +2513,11 @@ def run_controlled_agent(
             input_json=_json_dump(input_data),
             output_json=_json_dump(output),
         )
+        session.add(run)
+    else:
+        run.status = AgentRunStatus.completed.value
+        run.input_json = _json_dump(input_data)
+        run.output_json = _json_dump(output)
         session.add(run)
 
     session.flush()
