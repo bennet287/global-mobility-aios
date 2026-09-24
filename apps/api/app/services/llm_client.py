@@ -20,6 +20,11 @@ class LLMResponse:
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
     total_tokens: int | None = None
+    # Only adapters with explicit provider billing evidence may populate these.
+    # Current chat-completion adapters leave them unset/false rather than promoting
+    # token-price estimates into invoice truth.
+    billed_cost_usd: float | None = None
+    billing_evidence: bool = False
     raw_response: dict[str, Any] = field(default_factory=dict, repr=False)
 
     @property
