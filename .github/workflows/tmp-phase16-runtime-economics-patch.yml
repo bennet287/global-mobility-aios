@@ -17,381 +17,166 @@ jobs:
         with:
           ref: phase16/runtime-economics-budget-metering
           fetch-depth: 0
-      - name: Apply exact bounded replacements
+      - name: Apply bounded exact replacements
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(text: str, old: str, new: str, label: str) -> str:
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected 1 exact match, found {count}")
-              return text.replace(old, new, 1)
-
-          controlled = Path("apps/api/app/services/controlled_agents.py")
-          text = controlled.read_text()
-          text = replace_once(
-              text,
-              "from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled\n",
-              "from app.services.llm_client import (\n"
-              "    LLMProviderConfigurationError,\n"
-              "    LLMProviderError,\n"
-              "    LLMProviderFactory,\n"
-              "    is_llm_enabled,\n"
-              ")\n"
-              "from app.services.runtime_economics import (\n"
-              "    RuntimeBudgetError,\n"
-              "    mark_agent_run_attempt_failure,\n"
-              "    reserve_agent_run_attempt,\n"
-              "    settle_agent_run_attempt,\n"
-              ")\n",
-              "controlled-agent imports",
-          )
-          text = replace_once(
-              text,
-              "def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:\n",
-              "def _llm_agent_handler(\n"
-              "    payload: ControlledAgentRunRequest,\n"
-              "    agent: dict[str, Any],\n"
-              "    *,\n"
-              "    session: Session,\n"
-              "    run: AgentRun,\n"
-              "    attempt_number: int,\n"
-              ") -> dict[str, Any]:\n",
-              "LLM handler signature",
-          )
-          text = replace_once(
-              text,
-              "        response_format = {\"type\": \"json_object\"} if provider.name in {\"deepseek\", \"moonshot\"} else None\n\n        user_content = {\n",
-              "        response_format = {\"type\": \"json_object\"} if provider.name in {\"deepseek\", \"moonshot\"} else None\n"
-              "        cost_entry = reserve_agent_run_attempt(\n"
-              "            session,\n"
-              "            run,\n"
-              "            attempt_number=attempt_number,\n"
-              "            agent_name=resolved_name,\n"
-              "            department=str(agent.get(\"department\")) if agent.get(\"department\") else None,\n"
-              "            provider=provider.name,\n"
-              "            model=getattr(provider, \"default_model\", _active_model_for_audit()),\n"
-              "            actor=payload.actor,\n"
-              "        )\n\n"
-              "        user_content = {\n",
-              "pre-call reservation",
-          )
-          text = replace_once(
-              text,
-              "        llm_response = provider.complete(\n"
-              "            system_prompt=system_prompt,\n"
-              "            messages=[{\"role\": \"user\", \"content\": _json_dump(user_content)}],\n"
-              "            response_format=response_format,\n"
-              "        )\n\n"
-              "        parsed = _safe_llm_json(llm_response.content)\n",
-              "        try:\n"
-              "            llm_response = provider.complete(\n"
-              "                system_prompt=system_prompt,\n"
-              "                messages=[{\"role\": \"user\", \"content\": _json_dump(user_content)}],\n"
-              "                response_format=response_format,\n"
-              "            )\n"
-              "        except LLMProviderConfigurationError:\n"
-              "            mark_agent_run_attempt_failure(\n"
-              "                session,\n"
-              "                cost_entry,\n"
-              "                actor=payload.actor,\n"
-              "                failure_class=\"provider_configuration\",\n"
-              "                external_execution_possible=False,\n"
-              "            )\n"
-              "            raise\n"
-              "        except Exception as exc:\n"
-              "            mark_agent_run_attempt_failure(\n"
-              "                session,\n"
-              "                cost_entry,\n"
-              "                actor=payload.actor,\n"
-              "                failure_class=type(exc).__name__,\n"
-              "                external_execution_possible=True,\n"
-              "            )\n"
-              "            raise\n\n"
-              "        settle_agent_run_attempt(session, cost_entry, llm_response, actor=payload.actor)\n\n"
-              "        parsed = _safe_llm_json(llm_response.content)\n",
-              "provider call settlement",
-          )
-          text = replace_once(
-              text,
-              "            \"estimated_cost_usd\": llm_response.estimated_cost_usd,\n        }\n        return output\n\n    except Exception as exc:\n",
-              "            \"estimated_cost_usd\": llm_response.estimated_cost_usd,\n"
-              "            \"billed_cost_usd\": llm_response.billed_cost_usd,\n"
-              "            \"billing_evidence\": llm_response.billing_evidence,\n"
-              "        }\n"
-              "        return output\n\n"
-              "    except RuntimeBudgetError:\n"
-              "        # Economic authority is a hard gate, not a provider outage.\n"
-              "        raise\n\n"
-              "    except Exception as exc:\n",
-              "LLM billing metadata and hard budget gate",
-          )
-
-          start = text.index("def run_controlled_agent(\n")
-          end = text.index("\n\ndef _active_model_for_audit()", start)
-          new_func = '''def run_controlled_agent(
-    session: Session,
-    payload: ControlledAgentRunRequest,
-    existing_run: AgentRun | None = None,
-    *,
-    attempt_number: int = 1,
-) -> ControlledAgentRunResponse:
-    resolved_name = resolve_agent_name(payload.agent_name)
-    if resolved_name not in CONTROLLED_AGENT_REGISTRY:
-        raise ValueError(f"Unknown controlled agent: {payload.agent_name}")
-
-    is_async = existing_run is not None
-    if not is_async and resolved_name == CLIENT_DRAFTING_AGENT:
-        existing_pending_run = _pending_client_drafting_run(session, payload)
-        if existing_pending_run:
-            raise DuplicatePendingControlledAgentOutput(existing_pending_run)
-
-    agent = CONTROLLED_AGENT_REGISTRY[resolved_name]
-    input_data = {
-        "agent_name": payload.agent_name,
-        "task": payload.task,
-        "context": payload.context,
-        "actor": payload.actor,
-        "llm_provider": settings.llm_provider or None,
-        "llm_model": _active_model_for_audit(),
-    }
-
-    if existing_run is not None:
-        run = existing_run
-        run.agent_name = resolved_name
-        run.task = payload.task
-        run.lead_id = payload.lead_id
-        run.workflow_run_id = payload.workflow_run_id
-        run.input_json = _json_dump(input_data)
-        session.add(run)
-        session.flush()
-    else:
-        # A canonical AgentRun must exist before any paid provider reservation can
-        # reference it. Creating it here does not grant spend; the economic service
-        # separately admits or denies the paid call.
-        run = AgentRun(
-            workflow_run_id=payload.workflow_run_id,
-            lead_id=payload.lead_id,
-            agent_name=resolved_name,
-            task=payload.task,
-            status=AgentRunStatus.completed.value,
-            input_json=_json_dump(input_data),
-            output_json=_json_dump({}),
-        )
-        session.add(run)
-        session.flush()
-
-    try:
-        if _should_use_llm():
-            handler = AGENT_HANDLERS[resolved_name]
-            if handler is _llm_agent_handler:
-                output = handler(
-                    payload,
-                    agent,
-                    session=session,
-                    run=run,
-                    attempt_number=attempt_number,
-                )
-            else:
-                output = handler(payload, agent)
-        else:
-            output = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
-    except RuntimeBudgetError as exc:
-        if not is_async:
-            run.status = AgentRunStatus.failed.value
-            run.output_json = _json_dump(
-                {
-                    "_runtime_budget_blocked": True,
-                    "failure_class": "runtime_budget",
-                    "reason": str(exc),
-                }
-            )
-            session.add(run)
-            record_audit(
-                session,
-                actor=payload.actor,
-                action="agent_run_runtime_budget_blocked",
-                entity_type="agent_run",
-                entity_id=run.id,
-                after_state={
-                    "agent_name": resolved_name,
-                    "status": AgentRunStatus.failed.value,
-                    "failure_class": "runtime_budget",
-                    "paid_call_started": False,
-                },
-                reason=str(exc),
-                source="phase_16_runtime_economics",
-            )
-            session.commit()
-        raise
-
-    if resolved_name != payload.agent_name:
-        output["requested_agent_name"] = payload.agent_name
-        output["resolved_agent_name"] = resolved_name
-
-    if existing_run is not None:
-        run.status = AgentRunStatus.pending_review.value
-        run.output_json = _json_dump(output)
-        session.add(run)
-        # The worker already records queued/running transitions. Persist the terminal
-        # handoff to human review here because this service owns that real state change.
-        record_audit(
-            session,
-            actor=payload.actor,
-            action="agent_run_status_changed",
-            entity_type="agent_run",
-            entity_id=run.id,
-            after_state={
-                "agent_name": resolved_name,
-                "status": AgentRunStatus.pending_review.value,
-                "lead_id": str(payload.lead_id) if payload.lead_id else None,
-                "workflow_run_id": str(payload.workflow_run_id) if payload.workflow_run_id else None,
-            },
-            reason="Background controlled-agent execution completed and entered human review.",
-            source="phase_15_runtime_signals",
-        )
-    else:
-        run.status = AgentRunStatus.completed.value
-        run.output_json = _json_dump(output)
-        session.add(run)
-
-    session.flush()
-
-    llm_meta = output.get("_llm_meta")
-    if isinstance(llm_meta, dict) and not llm_meta.get("fallback_to_template"):
-        record_audit(
-            session,
-            actor=payload.actor,
-            action="agent_run_provider_usage_observed",
-            entity_type="agent_run",
-            entity_id=run.id,
-            after_state={
-                "provider": llm_meta.get("provider"),
-                "model": llm_meta.get("model"),
-                "finish_reason": llm_meta.get("finish_reason"),
-                "prompt_tokens": llm_meta.get("prompt_tokens"),
-                "completion_tokens": llm_meta.get("completion_tokens"),
-                "total_tokens": llm_meta.get("total_tokens"),
-                "estimated_cost_usd": llm_meta.get("estimated_cost_usd"),
-                "billed_cost_usd": llm_meta.get("billed_cost_usd"),
-                "billing_evidence": bool(llm_meta.get("billing_evidence")),
-            },
-            reason="Provider-reported runtime usage observed for controlled agent execution.",
-            source="phase_16_runtime_metering",
-        )
-
-    record_audit(
-        session,
-        actor=payload.actor,
-        action="controlled_agent_run",
-        entity_type="agent_run",
-        entity_id=run.id,
-        after_state={
-            "agent_name": resolved_name,
-            "lead_id": payload.lead_id,
-            "workflow_run_id": payload.workflow_run_id,
-            "guardrails": agent["guardrails"],
-            "requires_human_review": True,
-            "llm_provider": settings.llm_provider or None,
-            "llm_model": _active_model_for_audit(),
-            "async": is_async,
-            "attempt_number": attempt_number,
-        },
-        reason="Controlled AI agent executed as an internal workflow assistant.",
-        source="controlled_agents_v4.0",
-    )
-    session.commit()
-    session.refresh(run)
-
-    return ControlledAgentRunResponse(
-        run_id=run.id,
-        agent_name=resolved_name,
-        status=run.status,
-        output=output,
-        guardrails=agent["guardrails"],
-        requires_human_review=True,
-        message="Controlled agent output generated for internal review only.",
-        created_at=run.created_at,
-    )
-'''
-          text = text[:start] + new_func + text[end:]
-          text = replace_once(
-              text,
-              "    if provider == \"moonshot\":\n        return settings.moonshot_model\n    return None\n",
-              "    if provider == \"moonshot\":\n        return settings.moonshot_model\n    if provider == \"gemini\":\n        return settings.gemini_model\n    return None\n",
-              "Gemini audit model",
-          )
-          controlled.write_text(text)
-
-          tasks = Path("apps/api/app/tasks/agent_tasks.py")
-          text = tasks.read_text()
-          text = replace_once(
-              text,
-              "from app.services.llm_client import (\n    LLMProviderConfigurationError,\n    LLMProviderResponseContractError,\n    LLMProviderTransportError,\n)\n",
-              "from app.services.llm_client import (\n    LLMProviderConfigurationError,\n    LLMProviderResponseContractError,\n    LLMProviderTransportError,\n)\nfrom app.services.runtime_economics import RuntimeBudgetError\n",
-              "worker economics import",
-          )
-          text = replace_once(
-              text,
-              "            response = run_controlled_agent(session, payload, existing_run=run)\n",
-              "            response = run_controlled_agent(\n                session,\n                payload,\n                existing_run=run,\n                attempt_number=self.request.retries + 1,\n            )\n",
-              "worker attempt propagation",
-          )
-          text = replace_once(
-              text,
-              "    if isinstance(exc, LLMProviderResponseContractError):\n        return \"provider_response_contract\", False\n    return \"unknown\", False\n",
-              "    if isinstance(exc, LLMProviderResponseContractError):\n        return \"provider_response_contract\", False\n    if isinstance(exc, RuntimeBudgetError):\n        return \"runtime_budget\", False\n    return \"unknown\", False\n",
-              "worker budget failure classification",
-          )
-          tasks.write_text(text)
-
-          router = Path("apps/api/app/routers/controlled_agents.py")
-          text = router.read_text()
-          text = replace_once(
-              text,
-              "from app.services.llm_client import LLMProviderFactory, is_llm_enabled\n",
-              "from app.services.llm_client import LLMProviderFactory, is_llm_enabled\n"
-              "from app.services.runtime_economics import RuntimeBudgetError\n",
-              "controlled-agent router economics import",
-          )
-          text = replace_once(
-              text,
-              "    except DuplicatePendingControlledAgentOutput as exc:\n        raise HTTPException(\n",
-              "    except RuntimeBudgetError as exc:\n"
-              "        raise HTTPException(\n"
-              "            status_code=409,\n"
-              "            detail={\n"
-              "                \"message\": str(exc),\n"
-              "                \"failure_class\": \"runtime_budget\",\n"
-              "                \"paid_call_started\": False,\n"
-              "            },\n"
-              "        ) from exc\n"
-              "    except DuplicatePendingControlledAgentOutput as exc:\n"
-              "        raise HTTPException(\n",
-              "API budget conflict mapping",
-          )
-          text = replace_once(
-              text,
-              "    except DuplicatePendingControlledAgentOutput as exc:\n        return RedirectResponse(\n            url=f\"/admin/controlled-agents/runs/{exc.existing_run.id}?duplicate_guard=1\",\n            status_code=303,\n        )\n    return RedirectResponse(url=f\"/admin/controlled-agents/runs/{response.run_id}\", status_code=303)\n",
-              "    except RuntimeBudgetError as exc:\n"
-              "        raise HTTPException(status_code=409, detail=str(exc)) from exc\n"
-              "    except DuplicatePendingControlledAgentOutput as exc:\n"
-              "        return RedirectResponse(\n"
-              "            url=f\"/admin/controlled-agents/runs/{exc.existing_run.id}?duplicate_guard=1\",\n"
-              "            status_code=303,\n"
-              "        )\n"
-              "    return RedirectResponse(url=f\"/admin/controlled-agents/runs/{response.run_id}\", status_code=303)\n",
-              "operator budget conflict mapping",
-          )
-          router.write_text(text)
-          PY
-
-          python -m compileall -q apps/api/app/services/controlled_agents.py apps/api/app/tasks/agent_tasks.py apps/api/app/routers/controlled_agents.py
-          git rm .github/workflows/tmp-phase16-runtime-economics-patch.yml
-          git add apps/api/app/services/controlled_agents.py apps/api/app/tasks/agent_tasks.py apps/api/app/routers/controlled_agents.py
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git commit -m "Phase 16: enforce runtime economic gate [runtime-economics-patch]"
-          git push origin HEAD:phase16/runtime-economics-budget-metering
+          cat > /tmp/patch.b64 <<'B64'
+          ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpkZWYgcmVwbGFjZV9vbmNlKHRleHQ6IHN0ciwgb2xkOiBzdHIsIG5ldzogc3RyLCBsYWJlbDogc3RyKSAtPiBzdHI6
+          CiAgICBjb3VudCA9IHRleHQuY291bnQob2xkKQogICAgaWYgY291bnQgIT0gMToKICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KGYie2xhYmVsfTogZXhwZWN0ZWQgMSBl
+          eGFjdCBtYXRjaCwgZm91bmQge2NvdW50fSIpCiAgICByZXR1cm4gdGV4dC5yZXBsYWNlKG9sZCwgbmV3LCAxKQoKY29udHJvbGxlZCA9IFBhdGgoImFwcHMvYXBpL2Fw
+          cC9zZXJ2aWNlcy9jb250cm9sbGVkX2FnZW50cy5weSIpCnRleHQgPSBjb250cm9sbGVkLnJlYWRfdGV4dCgpCnRleHQgPSByZXBsYWNlX29uY2UoCiAgICB0ZXh0LAog
+          ICAgImZyb20gYXBwLnNlcnZpY2VzLmxsbV9jbGllbnQgaW1wb3J0IExMTVByb3ZpZGVyRXJyb3IsIExMTVByb3ZpZGVyRmFjdG9yeSwgaXNfbGxtX2VuYWJsZWRcbiIs
+          CiAgICAiZnJvbSBhcHAuc2VydmljZXMubGxtX2NsaWVudCBpbXBvcnQgKFxuIgogICAgIiAgICBMTF1Qcm92aWRlckNvbmZpZ3VyYXRpb25FcnJvcixcbiIKICAgICIg
+          ICAgTExNUHJvdmlkZXJFcnJvcixcbiIKICAgICIgICAgTExNUHJvdmlkZXJGYWN0b3J5LFxuIgogICAgIiAgICBpc19sbG1fZW5hYmxlZCxcbiIKICAgICIpXG4iCiAg
+          ICAiZnJvbSBhcHAuc2VydmljZXMucnVudGltZV9lY29ub21pY3MgaW1wb3J0IChcbiIKICAgICIgICAgUnVudGltZUJ1ZGdldEVycm9yLFxuIgogICAgIiAgICBtYXJr
+          X2FnZW50X3J1bl9hdHRlbXB0X2ZhaWx1cmUsXG4iCiAgICAiICAgIHJlc2VydmVfYWdlbnRfcnVuX2F0dGVtcHQsXG4iCiAgICAiICAgIHNldHRsZV9hZ2VudF9ydW5f
+          YXR0ZW1wdyxcbiIKICAgICIpXG4iLAogICAgImNvbnRyb2xsZWQtYWdlbnQgaW1wb3J0cyIsCikKdGV4dCA9IHJlcGxhY2Vfb25jZSgKICAgIHRleHQsCiAgICAiZGVm
+          IF9sbG1fYWdlbnRfaGFuZGxlcihwYXlsb2FkOiBDb250cm9sbGVkQWdlbnRSdW5SZXF1ZXN0LCBhZ2VudDogZGljdFtzdHIsIEFueV0pIC0+IGRpY3Rbc3RyLCBBbnld
+          OlxuIiwKICAgICJkZWYgX2xsbV9hZ2VudF9oYW5kbGVyKFxuIgogICAgIiAgICBwYXlsb2FkOiBDb250cm9sbGVkQWdlbnRSdW5SZXF1ZXN0LFxuIgogICAgIiAgICBh
+          Z2VudDogZGljdFtzdHIsIEFueV0sXG4iCiAgICAiICAgICosXG4iCiAgICAiICAgIHNlc3Npb246IFNlc3Npb24sXG4iCiAgICAiICAgIHJ1bjogQWdlbnRSdW4sXG4i
+          CiAgICAiICAgIGF0dGVtcHRfbnVtYmVyOiBpbnQsXG4iCiAgICAiKSAtPiBkaWN0W3N0ciwgQW55XTpcbiIsCiAgICAiTExNIGhhbmRsZXIgc2lnbmF0dXJlIiwKKQp0
+          ZXh0ID0gcmVwbGFjZV9vbmNlKAogICAgdGV4dCwKICAgICcgICAgICAgIHJlc3BvbnNlX2Zvcm1hdCA9IHsidHlwZSI6ICJqc29uX29iamVjdCJ9IGlmIHByb3ZpZGVy
+          Lm5hbWUgaW4geyJkZWVwc2VlayIsICJtb29uc2hvdCJ9IGVsc2UgTm9uZVxuXG4gICAgICAgIHVzZXJfY29udGVudCA9IHtcbicsCiAgICAnICAgICAgICByZXNwb25z
+          ZV9mb3JtYXQgPSB7InR5cGUiOiAianNvbl9vYmplY3QifSBpZiBwcm92aWRlci5uYW1lIGluIHsiZGVlcHNlZWsiLCAibW9vbnNob3QifSBlbHNlIE5vbmVcbiIKICAg
+          ICcgICAgICAgIGNvc3RfZW50cnkgPSByZXNlcnZlX2FnZW50X3J1bl9hdHRlbXB0KFxuJwogICAgJyAgICAgICAgICAgIHNlc3Npb24sXG4nCiAgICAnICAgICAgICAg
+          ICAgcnVuLFxuJwogICAgJyAgICAgICAgICAgIGF0dGVtcHRfbnVtYmVyPWF0dGVtcHRfbnVtYmVyLFxuJwogICAgJyAgICAgICAgICAgIGFnZW50X25hbWU9cmVzb2x2
+          ZWRfbmFtZSxcbiIKICAgICcgICAgICAgICAgICBkZXBhcnRtZW50PXN0cihhZ2VudC5nZXQoImRlcGFydG1lbnQiKSkgaWYgYWdlbnQuZ2V0KCJkZXBhcnRtZW50Iikg
+          ZWxzZSBOb25lLFxuJwogICAgJyAgICAgICAgICAgIHByb3ZpZGVyPXByb3ZpZGVyLm5hbWUsXG4nCiAgICAnICAgICAgICAgICAgbW9kZWw9Z2V0YXR0cihwcm92aWRl
+          ciwgImRlZmF1bHRfbW9kZWwiLCBfYWN0aXZlX21vZGVsX2Zvcl9hdWRpdCgpKSxcbiIKICAgICcgICAgICAgICAgICBhY3Rvcj1wYXlsb2FkLmFjdG9yLFxuJwogICAg
+          JyAgICAgICAgKVxuXG4nCiAgICAnICAgICAgICB1c2VyX2NvbnRlbnQgPSB7XG4nLAogICAgInByZS1jYWxsIHJlc2VydmF0aW9uIiwKKQp0ZXh0ID0gcmVwbGFjZV9v
+          bmNlKAogICAgdGV4dCwKICAgICcgICAgICAgIGxsbV9yZXNwb25zZSA9IHByb3ZpZGVyLmNvbXBsZXRlKFxuJwogICAgJyAgICAgICAgICAgIHN5c3RlbV9wcm9tcHQ9
+          c3lzdGVtX3Byb21wdCxcbiIKICAgICcgICAgICAgICAgICBtZXNzYWdlcz1beyJyb2xlIjogInVzZXIiLCAiY29udGVudCI6IF9qc29uX2R1bXAodXNlcl9jb250ZW50
+          KX1dLFxuJwogICAgJyAgICAgICAgICAgIHJlc3BvbnNlX2Zvcm1hdD1yZXNwb25zZV9mb3JtYXQsXG4nCiAgICAnICAgICAgICApXG5cbiIKICAgICcgICAgICAgIHBh
+          cnNlZCA9IF9zYWZlX2xsbV9qc29uKGxsbV9yZXNwb25zZS5jb250ZW50KVxuJywKICAgICcgICAgICAgIHRyeTpcbiIKICAgICcgICAgICAgICAgICBsbG1fcmVzcG9u
+          c2UgPSBwcm92aWRlci5jb21wbGV0ZShcbiIKICAgICcgICAgICAgICAgICAgICAgc3lzdGVtX3Byb21wdD1zeXN0ZW1fcHJvbXB0LFxuJwogICAgJyAgICAgICAgICAg
+          ICAgICBtZXNzYWdlcz1beyJyb2xlIjogInVzZXIiLCAiY29udGVudCI6IF9qc29uX2R1bXAodXNlcl9jb250ZW50KX1dLFxuJwogICAgJyAgICAgICAgICAgICAgICBy
+          ZXNwb25zZV9mb3JtYXQ9cmVzcG9uc2VfZm9ybWF0LFxuJwogICAgJyAgICAgICAgICAgIClcbiIKICAgICcgICAgICAgIGV4Y2VwdCBMTF1Qcm92aWRlckNvbmZpZ3Vy
+          YXRpb25FcnJvcjpcbiIKICAgICcgICAgICAgICAgICBtYXJrX2FnZW50X3J1bl9hdHRlbXB0X2ZhaWx1cmUoXG4nCiAgICAnICAgICAgICAgICAgICAgIHNlc3Npb24s
+          XG4nCiAgICAnICAgICAgICAgICAgICAgIGNvc3RfZW50cnksXG4nCiAgICAnICAgICAgICAgICAgICAgIGFjdG9yPXBheWxvYWQuYWN0b3IsXG4nCiAgICAnICAgICAg
+          ICAgICAgICAgIGZhaWx1cmVfY2xhc3M9InByb3ZpZGVyX2NvbmZpZ3VyYXRpb24iLFxuJwogICAgJyAgICAgICAgICAgICAgICBleHRlcm5hbF9leGVjdXRpb25fcG9z
+          c2libGU9RmFsc2UsXG4nCiAgICAnICAgICAgICAgICAgKVxuJwogICAgJyAgICAgICAgICAgIHJhaXNlXG4nCiAgICAnICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGV4
+          YzpcbiIKICAgICcgICAgICAgICAgICBtYXJrX2FnZW50X3J1bl9hdHRlbXB0X2ZhaWx1cmUoXG4nCiAgICAnICAgICAgICAgICAgICAgIHNlc3Npb24sXG4nCiAgICAn
+          ICAgICAgICAgICAgICAgY29zdF9lbnRyeSxcbiIKICAgICcgICAgICAgICAgICAgICAgYWN0b3I9cGF5bG9hZC5hY3RvcixcbiIKICAgICcgICAgICAgICAgICAgICAgZmFp
+          bHVyZV9jbGFzcz10eXBlKGV4YykuX19uYW1lX18sXG4nCiAgICAnICAgICAgICAgICAgICAgIGV4dGVybmFsX2V4ZWN1dGlvbl9wb3NzaWJsZT1UcnVlLFxuJwogICAg
+          JyAgICAgICAgICAgIClcbiIKICAgICcgICAgICAgICAgICByYWlzZVxuXG4nCiAgICAnICAgICAgICBzZXR0bGVfYWdlbnRfcnVuX2F0dGVtcHQoc2Vzc2lvbiwgY29z
+          dF9lbnRyeSwgbGxtX3Jlc3BvbnNlLCBhY3Rvcj1wYXlsb2FkLmFjdG9yKVxuXG4nCiAgICAnICAgICAgICBwYXJzZWQgPSBfc2FmZV9sbG1fanNvbihsbG1fcmVzcG9u
+          c2UuY29udGVudClcbicsCiAgICAicHJvdmlkZXIgY2FsbCBzZXR0bGVtZW50IiwKKQp0ZXh0ID0gcmVwbGFjZV9vbmNlKAogICAgdGV4dCwKICAgICcgICAgICAgICAg
+          ICAiZXN0aW1hdGVkX2Nvc3RfdXNkIjogbGxtX3Jlc3BvbnNlLmVzdGltYXRlZF9jb3N0X3VzZCxcbicKICAgICcgICAgICAgIH1cbiIKICAgICcgICAgICAgIHJldHVy
+          biBvdXRwdXRcblxuJwogICAgJyAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGV4YzpcbicsCiAgICAnICAgICAgICAgICAgImVzdGltYXRlZF9jb3N0X3VzZCI6IGxsbV9y
+          ZXNwb25zZS5lc3RpbWF0ZWRfY29zdF91c2QsXG4nCiAgICAnICAgICAgICAgICAgImJpbGxlZF9jb3N0X3VzZCI6IGxsbV9yZXNwb25zZS5iaWxsZWRfY29zdF91c2Qs
+          XG4nCiAgICAnICAgICAgICAgICAgImJpbGxpbmdfZXZpZGVuY2UiOiBsbG1fcmVzcG9uc2UuYmlsbGluZ19ldmlkZW5jZSxcbiIKICAgICcgICAgICAgIH1cbiIKICAg
+          ICcgICAgICAgIHJldHVybiBvdXRwdXRcblxuJwogICAgJyAgICBleGNlcHQgUnVudGltZUJ1ZGdldEVycm9yOlxuJwogICAgJyAgICAgICAgIyBFY29ub21pYyBhdXRo
+          b3JpdHkgaXMgYSBoYXJkIGdhdGUsIG5vdCBhIHByb3ZpZGVyIG91dGFnZS5cbiIKICAgICcgICAgICAgIHJhaXNlXG5cbicKICAgICcgICAgZXhjZXB0IEV4Y2VwdGlv
+          biBhcyBleGM6XG4nLAogICAgIkxMTSBiaWxsaW5nIG1ldGFkYXRhIGFuZCBoYXJkIGJ1ZGdldCBnYXRlIiwKKQoKc3RhcnQgPSB0ZXh0LmluZGV4KCJkZWYgcnVuX2Nv
+          bnRyb2xsZWRfYWdlbnQoXG4iKQplbmQgPSB0ZXh0LmluZGV4KCJcblxuZGVmIF9hY3RpdmVfbW9kZWxfZm9yX2F1ZGl0KCkiLCBzdGFydCkKbmV3X2Z1bmMgPSAnJydk
+          ZWYgcnVuX2NvbnRyb2xsZWRfYWdlbnQoCiAgICBzZXNzaW9uOiBTZXNzaW9uLAogICAgcGF5bG9hZDogQ29udHJvbGxlZEFnZW50UnVuUmVxdWVzdCwKICAgIGV4aXN0
+          aW5nX3J1bjogQWdlbnRSdW4gfCBOb25lID0gTm9uZSwKICAgICosCiAgICBhdHRlbXB0X251bWJlcjogaW50ID0gMSwKKSAtPiBDb250cm9sbGVkQWdlbnRSdW5SZXNw
+          b25zZToKICAgIHJlc29sdmVkX25hbWUgPSByZXNvbHZlX2FnZW50X25hbWUocGF5bG9hZC5hZ2VudF9uYW1lKQogICAgaWYgcmVzb2x2ZWRfbmFtZSBub3QgaW4gQ09O
+          VFJPTExFRF9BR0VOVF9SRUdJU1RSWToKICAgICAgICByYWlzZSBWYWx1ZUVycm9yKGYiVW5rbm93biBjb250cm9sbGVkIGFnZW50OiB7cGF5bG9hZC5hZ2VudF9uYW1l
+          fSIpCgogICAgaXNfYXN5bmMgPSBleGlzdGluZ19ydW4gaXMgbm90IE5vbmUKICAgIGlmIG5vdCBpc19hc3luYyBhbmQgcmVzb2x2ZWRfbmFtZSA9PSBDTElFTlRfRFJBRl
+          RJTkdfQUdFTlQ6CiAgICAgICAgZXhpc3RpbmdfcGVuZGluZ19ydW4gPSBfcGVuZGluZ19jbGllbnRfZHJhZnRpbmdfcnVuKHNlc3Npb24sIHBheWxvYWQpCiAgICAgICAg
+          aWYgZXhpc3RpbmdfcGVuZGluZ19ydW46CiAgICAgICAgICAgIHJhaXNlIER1cGxpY2F0ZVBlbmRpbmdDb250cm9sbGVkQWdlbnRPdXRwdXQoZXhpc3RpbmdfcGVuZGlu
+          Z19ydW4pCgogICAgYWdlbnQgPSBDT05UUk9MTEVEX0FHRU5UX1JFR0lTVFJZW3Jlc29sdmVkX25hbWVdCiAgICBpbnB1dF9kYXRhID0gewogICAgICAgICJhZ2VudF9u
+          YW1lIjogcGF5bG9hZC5hZ2VudF9uYW1lLAogICAgICAgICJ0YXNrIjogcGF5bG9hZC50YXNrLAogICAgICAgICJjb250ZXh0IjogcGF5bG9hZC5jb250ZXh0LAogICAg
+          ICAgICJhY3RvciI6IHBheWxvYWQuYWN0b3IsCiAgICAgICAgImxsbV9wcm92aWRlciI6IHNldHRpbmdzLmxsbV9wcm92aWRlciBvciBOb25lLAogICAgICAgICJsbG1f
+          bW9kZWwiOiBfYWN0aXZlX21vZGVsX2Zvcl9hdWRpdCgpLAogICAgfQoKICAgIGlmIGV4aXN0aW5nX3J1biBpcyBub3QgTm9uZToKICAgICAgICBydW4gPSBleGlzdGlu
+          Z19ydW4KICAgICAgICBydW4uYWdlbnRfbmFtZSA9IHJlc29sdmVkX25hbWUKICAgICAgICBydW4udGFzayA9IHBheWxvYWQudGFzawogICAgICAgIHJ1bi5sZWFkX2lk
+          ID0gcGF5bG9hZC5sZWFkX2lkCiAgICAgICAgcnVuLndvcmtmbG93X3J1bl9pZCA9IHBheWxvYWQud29ya2Zsb3dfcnVuX2lkCiAgICAgICAgcnVuLmlucHV0X2pzb24g
+          PSBfanNvbl9kdW1wKGlucHV0X2RhdGEpCiAgICAgICAgc2Vzc2lvbi5hZGQocnVuKQogICAgICAgIHNlc3Npb24uZmx1c2goKQogICAgZWxzZToKICAgICAgICAjIEEg
+          Y2Fub25pY2FsIEFnZW50UnVuIG11c3QgZXhpc3QgYmVmb3JlIGFueSBwYWlkIHByb3ZpZGVyIHJlc2VydmF0aW9uIGNhbgogICAgICAgICMgcmVmZXJlbmNlIGl0LiBD
+          cmVhdGluZyBpdCBoZXJlIGRvZXMgbm90IGdyYW50IHNwZW5kOyB0aGUgZWNvbm9taWMgc2VydmljZQogICAgICAgICMgc2VwYXJhdGVseSBhZG1pdHMgb3IgZGVuaWVz
+          IHRoZSBwYWlkIGNhbGwuCiAgICAgICAgcnVuID0gQWdlbnRSdW4oCiAgICAgICAgICAgIHdvcmtmbG93X3J1bl9pZD1wYXlsb2FkLndvcmtmbG93X3J1bl9pZCwKICAg
+          ICAgICAgICAgbGVhZF9pZD1wYXlsb2FkLmxlYWRfaWQsCiAgICAgICAgICAgIGFnZW50X25hbWU9cmVzb2x2ZWRfbmFtZSwKICAgICAgICAgICAgdGFzaz1wYXlsb2Fk
+          LnRhc2ssCiAgICAgICAgICAgIHN0YXR1cz1BZ2VudFJ1blN0YXR1cy5jb21wbGV0ZWQudmFsdWUsCiAgICAgICAgICAgIGlucHV0X2pzb249X2pzb25fZHVtcChpbnB1
+          dF9kYXRhKSwKICAgICAgICAgICAgb3V0cHV0X2pzb249X2pzb25fZHVtcCh7fSksCiAgICAgICAgKQogICAgICAgIHNlc3Npb24uYWRkKHJ1bikKICAgICAgICBzZXNz
+          aW9uLmZsdXNoKCkKCiAgICB0cnk6CiAgICAgICAgaWYgX3Nob3VsZF91c2VfbGxtKCk6CiAgICAgICAgICAgIGhhbmRsZXIgPSBBR0VOVF9IQU5ETEVSU1tyZXNvbHZl
+          ZF9uYW1lXQogICAgICAgICAgICBpZiBoYW5kbGVyIGlzIF9sbG1fYWdlbnRfaGFuZGxlcjoKICAgICAgICAgICAgICAgIG91dHB1dCA9IGhhbmRsZXIoCiAgICAgICAg
+          ICAgICAgICAgICAgcGF5bG9hZCwKICAgICAgICAgICAgICAgICAgICBhZ2VudCwKICAgICAgICAgICAgICAgICAgICBzZXNzaW9uPXNlc3Npb24sCiAgICAgICAgICAg
+          ICAgICAgICAgcnVuPXJ1biwKICAgICAgICAgICAgICAgICAgICBhdHRlbXB0X251bWJlcj1hdHRlbXB0X251bWJlciwKICAgICAgICAgICAgICAgICkKICAgICAgICAg
+          ICAgZWxzZToKICAgICAgICAgICAgICAgIG91dHB1dCA9IGhhbmRsZXIocGF5bG9hZCwgYWdlbnQpCiAgICAgICAgZWxzZToKICAgICAgICAgICAgb3V0cHV0ID0gREVU
+          RVJNSU5JU1RJQ19IQU5ETEVSU1tyZXNvbHZlZF9uYW1lXShwYXlsb2FkLCBhZ2VudCkKICAgIGV4Y2VwdCBSdW50aW1lQnVkZ2V0RXJyb3IgYXMgZXhjOgogICAgICAg
+          IGlmIG5vdCBpc19hc3luYzoKICAgICAgICAgICAgcnVuLnN0YXR1cyA9IEFnZW50UnVuU3RhdHVzLmZhaWxlZC52YWx1ZQogICAgICAgICAgICBydW4ub3V0cHV0X2pz
+          b24gPSBfanNvbl9kdW1wKAogICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICJfcnVudGltZV9idWRnZXRfYmxvY2tlZCI6IFRydWUsCiAgICAgICAg
+          ICAgICAgICAgICAgImZhaWx1cmVfY2xhc3MiOiAicnVudGltZV9idWRnZXQiLAogICAgICAgICAgICAgICAgICAgICJyZWFzb24iOiBzdHIoZXhjKSwKICAgICAgICAg
+          ICAgICAgIH0KICAgICAgICAgICAgKQogICAgICAgICAgICBzZXNzaW9uLmFkZChydW4pCiAgICAgICAgICAgIHJlY29yZF9hdWRpdCgKICAgICAgICAgICAgICAgIHNl
+          c3Npb24sCiAgICAgICAgICAgICAgICBhY3Rvcj1wYXlsb2FkLmFjdG9yLAogICAgICAgICAgICAgICAgYWN0aW9uPSJhZ2VudF9ydW5fcnVudGltZV9idWRnZXRfYmxv
+          Y2tlZCIsCiAgICAgICAgICAgICAgICBlbnRpdHlfdHlwZT0iYWdlbnRfcnVuIiwKICAgICAgICAgICAgICAgIGVudGl0eV9pZD1ydW4uaWQsCiAgICAgICAgICAgICAg
+          ICBhZnRlcl9zdGF0ZT17CiAgICAgICAgICAgICAgICAgICAgImFnZW50X25hbWUiOiByZXNvbHZlZF9uYW1lLAogICAgICAgICAgICAgICAgICAgICJzdGF0dXMiOiBB
+          Z2VudFJ1blN0YXR1cy5mYWlsZWQudmFsdWUsCiAgICAgICAgICAgICAgICAgICAgImZhaWx1cmVfY2xhc3MiOiAicnVudGltZV9idWRnZXQiLAogICAgICAgICAgICAg
+          ICAgICAgICJwYWlkX2NhbGxfc3RhcnRlZCI6IEZhbHNlLAogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgIHJlYXNvbj1zdHIoZXhjKSwKICAgICAgICAg
+          ICAgICAgIHNvdXJjZT0icGhhc2VfMTZfcnVudGltZV9lY29ub21pY3MiLAogICAgICAgICAgICApCiAgICAgICAgICAgIHNlc3Npb24uY29tbWl0KCkKICAgICAgICBy
+          YWlzZQoKICAgIGlmIHJlc29sdmVkX25hbWUgIT0gcGF5bG9hZC5hZ2VudF9uYW1lOgogICAgICAgIG91dHB1dFsicmVxdWVzdGVkX2FnZW50X25hbWUiXSA9IHBheWxv
+          YWQuYWdlbnRfbmFtZQogICAgICAgIG91dHB1dFsicmVzb2x2ZWRfYWdlbnRfbmFtZSJdID0gcmVzb2x2ZWRfbmFtZQoKICAgIGlmIGV4aXN0aW5nX3J1biBpcyBub3Qg
+          Tm9uZToKICAgICAgICBydW4uc3RhdHVzID0gQWdlbnRSdW5TdGF0dXMucGVuZGluZ19yZXZpZXcudmFsdWUKICAgICAgICBydW4ub3V0cHV0X2pzb24gPSBfanNvbl9k
+          dW1wKG91dHB1dCkKICAgICAgICBzZXNzaW9uLmFkZChydW4pCiAgICAgICAgcmVjb3JkX2F1ZGl0KAogICAgICAgICAgICBzZXNzaW9uLAogICAgICAgICAgICBhY3Rv
+          cj1wYXlsb2FkLmFjdG9yLAogICAgICAgICAgICBhY3Rpb249ImFnZW50X3J1bl9zdGF0dXNfY2hhbmdlZCIsCiAgICAgICAgICAgIGVudGl0eV90eXBlPSJhZ2VudF9y
+          dW4iLAogICAgICAgICAgICBlbnRpdHlfaWQ9cnVuLmlkLAogICAgICAgICAgICBhZnRlcl9zdGF0ZT17CiAgICAgICAgICAgICAgICAiYWdlbnRfbmFtZSI6IHJlc29s
+          dmVkX25hbWUsCiAgICAgICAgICAgICAgICAic3RhdHVzIjogQWdlbnRSdW5TdGF0dXMucGVuZGluZ19yZXZpZXcudmFsdWUsCiAgICAgICAgICAgICAgICAibGVhZF9p
+          ZCI6IHN0cihwYXlsb2FkLmxlYWRfaWQpIGlmIHBheWxvYWQubGVhZF9pZCBlbHNlIE5vbmUsCiAgICAgICAgICAgICAgICAid29ya2Zsb3dfcnVuX2lkIjogc3RyKHBh
+          eWxvYWQud29ya2Zsb3dfcnVuX2lkKSBpZiBwYXlsb2FkLndvcmtmbG93X3J1bl9pZCBlbHNlIE5vbmUsCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHJlYXNvbj0i
+          QmFja2dyb3VuZCBjb250cm9sbGVkLWFnZW50IGV4ZWN1dGlvbiBjb21wbGV0ZWQgYW5kIGVudGVyZWQgaHVtYW4gcmV2aWV3LiIsCiAgICAgICAgICAgIHNvdXJjZT0i
+          cGhhc2VfMTVfcnVudGltZV9zaWduYWxzIiwKICAgICAgICApCiAgICBlbHNlOgogICAgICAgIHJ1bi5zdGF0dXMgPSBBZ2VudFJ1blN0YXR1cy5jb21wbGV0ZWQudmFs
+          dWUKICAgICAgICBydW4ub3V0cHV0X2pzb24gPSBfanNvbl9kdW1wKG91dHB1dCkKICAgICAgICBzZXNzaW9uLmFkZChydW4pCgogICAgc2Vzc2lvbi5mbHVzaCgpCgog
+          ICAgbGxtX21ldGEgPSBvdXRwdXQuZ2V0KCJfbGxtX21ldGEiKQogICAgaWYgaXNpbnN0YW5jZShsbG1fbWV0YSwgZGljdCkgYW5kIG5vdCBsbG1fbWV0YS5nZXQoImZh
+          bGxiYWNrX3RvX3RlbXBsYXRlIik6CiAgICAgICAgcmVjb3JkX2F1ZGl0KAogICAgICAgICAgICBzZXNzaW9uLAogICAgICAgICAgICBhY3Rvcj1wYXlsb2FkLmFjdG9y
+          LAogICAgICAgICAgICBhY3Rpb249ImFnZW50X3J1bl9wcm92aWRlcl91c2FnZV9vYnNlcnZlZCIsCiAgICAgICAgICAgIGVudGl0eV90eXBlPSJhZ2VudF9ydW4iLAog
+          ICAgICAgICAgICBlbnRpdHlfaWQ9cnVuLmlkLAogICAgICAgICAgICBhZnRlcl9zdGF0ZT17CiAgICAgICAgICAgICAgICAicHJvdmlkZXIiOiBsbG1fbWV0YS5nZXQo
+          InByb3ZpZGVyIiksCiAgICAgICAgICAgICAgICAibW9kZWwiOiBsbG1fbWV0YS5nZXQoIm1vZGVsIiksCiAgICAgICAgICAgICAgICAiZmluaXNoX3JlYXNvbiI6IGxs
+          bV9tZXRhLmdldCgiZmluaXNoX3JlYXNvbiIpLAogICAgICAgICAgICAgICAgInByb21wdF90b2tlbnMiOiBsbG1fbWV0YS5nZXQoInByb21wdF90b2tlbnMiKSwKICAg
+          ICAgICAgICAgICAgICJjb21wbGV0aW9uX3Rva2VucyI6IGxsbV9tZXRhLmdldCgiY29tcGxldGlvbl90b2tlbnMiKSwKICAgICAgICAgICAgICAgICJ0b3RhbF90b2tl
+          bnMiOiBsbG1fbWV0YS5nZXQoInRvdGFsX3Rva2VucyIpLAogICAgICAgICAgICAgICAgImVzdGltYXRlZF9jb3N0X3VzZCI6IGxsbV9tZXRhLmdldCgiZXN0aW1hdGVk
+          X2Nvc3RfdXNkIiksCiAgICAgICAgICAgICAgICAiYmlsbGVkX2Nvc3RfdXNkIjogbGxtX21ldGEuZ2V0KCJiaWxsZWRfY29zdF91c2QiKSwKICAgICAgICAgICAgICAg
+          ICJiaWxsaW5nX2V2aWRlbmNlIjogYm9vbChsbG1fbWV0YS5nZXQoImJpbGxpbmdfZXZpZGVuY2UiKSksCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHJlYXNvbj0i
+          UHJvdmlkZXItcmVwb3J0ZWQgcnVudGltZSB1c2FnZSBvYnNlcnZlZCBmb3IgY29udHJvbGxlZCBhZ2VudCBleGVjdXRpb24uIiwKICAgICAgICAgICAgc291cmNlPSJw
+          aGFzZV8xNl9ydW50aW1lX21ldGVyaW5nIiwKICAgICAgICApCgogICAgcmVjb3JkX2F1ZGl0KAogICAgICAgIHNlc3Npb24sCiAgICAgICAgYWN0b3I9cGF5bG9hZC5h
+          Y3RvciwKICAgICAgICBhY3Rpb249ImNvbnRyb2xsZWRfYWdlbnRfcnVuIiwKICAgICAgICBlbnRpdHlfdHlwZT0iYWdlbnRfcnVuIiwKICAgICAgICBlbnRpdHlfaWQ9
+          cnVuLmlkLAogICAgICAgIGFmdGVyX3N0YXRlPXsKICAgICAgICAgICAgImFnZW50X25hbWUiOiByZXNvbHZlZF9uYW1lLAogICAgICAgICAgICAibGVhZF9pZCI6IHBh
+          eWxvYWQubGVhZF9pZCwKICAgICAgICAgICAgIndvcmtmbG93X3J1bl9pZCI6IHBheWxvYWQud29ya2Zsb3dfcnVuX2lkLAogICAgICAgICAgICAiZ3VhcmRyYWlscyI6
+          IGFnZW50WyJndWFyZHJhaWxzIl0sCiAgICAgICAgICAgICJyZXF1aXJlc19odW1hbl9yZXZpZXciOiBUcnVlLAogICAgICAgICAgICAibGxtX3Byb3ZpZGVyIjogc2V0
+          dGluZ3MubGxtX3Byb3ZpZGVyIG9yIE5vbmUsCiAgICAgICAgICAgICJsbG1fbW9kZWwiOiBfYWN0aXZlX21vZGVsX2Zvcl9hdWRpdCgpLAogICAgICAgICAgICAiYXN5
+          bmMiOiBpc19hc3luYywKICAgICAgICAgICAgImF0dGVtcHRfbnVtYmVyIjogYXR0ZW1wdF9udW1iZXIsCiAgICAgICAgfSwKICAgICAgICByZWFzb249IkNvbnRyb2xs
+          ZWQgQUkgYWdlbnQgZXhlY3V0ZWQgYXMgYW4gaW50ZXJuYWwgd29ya2Zsb3cgYXNzaXN0YW50LiIsCiAgICAgICAgc291cmNlPSJjb250cm9sbGVkX2FnZW50c192NC4w
+          IiwKICAgICkKICAgIHNlc3Npb24uY29tbWl0KCkKICAgIHNlc3Npb24ucmVmcmVzaChydW4pCgogICAgcmV0dXJuIENvbnRyb2xsZWRBZ2VudFJ1blJlc3BvbnNlKAog
+          ICAgICAgIHJ1bl9pZD1ydW4uaWQsCiAgICAgICAgYWdlbnRfbmFtZT1yZXNvbHZlZF9uYW1lLAogICAgICAgIHN0YXR1cz1ydW4uc3RhdHVzLAogICAgICAgIG91dHB1
+          dD1vdXRwdXQsCiAgICAgICAgZ3VhcmRyYWlscz1hZ2VudFsiZ3VhcmRyYWlscyJdLAogICAgICAgIHJlcXVpcmVzX2h1bWFuX3Jldmlldz1UcnVlLAogICAgICAgIG1l
+          c3NhZ2U9IkNvbnRyb2xsZWQgYWdlbnQgb3V0cHV0IGdlbmVyYXRlZCBmb3IgaW50ZXJuYWwgcmV2aWV3IG9ubHkuIiwKICAgICAgICBjcmVhdGVkX2F0PXJ1bi5jcmVh
+          dGVkX2F0LAogICAgKQonJwp0ZXh0ID0gdGV4dFs6c3RhcnRdICsgbmV3X2Z1bmMgKyB0ZXh0W2VuZDpdCnRleHQgPSByZXBsYWNlX29uY2UoCiAgICB0ZXh0LAogICAg
+          JyAgICBpZiBwcm92aWRlciA9PSAibW9vbnNob3QiOlxuICAgICAgICByZXR1cm4gc2V0dGluZ3MubW9vbnNob3RfbW9kZWxcbiAgICByZXR1cm4gTm9uZVxuJywKICAg
+          ICcgICAgaWYgcHJvdmlkZXIgPT0gIm1vb25zaG90IjpcbiAgICAgICAgcmV0dXJuIHNldHRpbmdzLm1vb25zaG90X21vZGVsXG4gICAgaWYgcHJvdmlkZXIgPT0gImdl
+          bWluaSI6XG4gICAgICAgIHJldHVybiBzZXR0aW5ncy5nZW1pbmlfbW9kZWxcbiAgICByZXR1cm4gTm9uZVxuJywKICAgICJHZW1pbmkgYXVkaXQgbW9kZWwiLAopCmNv
+          bnRyb2xsZWQud3JpdGVfdGV4dCh0ZXh0KQoKdGFza3MgPSBQYXRoKCJhcHBzL2FwaS9hcHAvdGFza3MvYWdlbnRfdGFza3MucHkiKQp0ZXh0ID0gdGFza3MucmVhZF90
+          ZXh0KCkKdGV4dCA9IHJlcGxhY2Vfb25jZSgKICAgIHRleHQsCiAgICAiZnJvbSBhcHAuc2VydmljZXMubGxtX2NsaWVudCBpbXBvcnQgKFxuIgogICAgIiAgICBMTFNQ
+          cm92aWRlckNvbmZpZ3VyYXRpb25FcnJvcixcbiIKICAgICIgICAgTExNUHJvdmlkZXJSZXNwb25zZUNvbnRyYWN0RXJyb3IsXG4iCiAgICAiICAgIExMTVByb3ZpZGVy
+          VHJhbnNwb3J0RXJyb3IsXG4iCiAgICAiKVxuIiwKICAgICJmcm9tIGFwcC5zZXJ2aWNlcy5sbG1fY2xpZW50IGltcG9ydCAoXG4iCiAgICAiICAgIExMTVByb3ZpZGVy
+          Q29uZmlndXJhdGlvbkVycm9yLFxuIgogICAgIiAgICBMTF1Qcm92aWRlclJlc3BvbnNlQ29udHJhY3RFcnJvcixcbiIKICAgICIgICAgTExNUHJvdmlkZXJUcmFuc3Bv
+          cnRFcnJvcixcbiIKICAgICIpXG4iCiAgICAiZnJvbSBhcHAuc2VydmljZXMucnVudGltZV9lY29ub21pY3MgaW1wb3J0IFJ1bnRpbWVCdWRnZXRFcnJvclxuIiwKICAg
+          ICJ3b3JrZXIgZWNvbm9taWNzIGltcG9ydCIsCikKdGV4dCA9IHJlcGxhY2Vfb25jZSgKICAgIHRleHQsCiAgICAiICAgICAgICAgICAgcmVzcG9uc2UgPSBydW5fY29u
+          dHJvbGxlZF9hZ2VudChzZXNzaW9uLCBwYXlsb2FkLCBleGlzdGluZ19ydW49cnVuKVxuIiwKICAgICIgICAgICAgICAgICByZXNwb25zZSA9IHJ1bl9jb250cm9sbGVk
+          X2FnZW50KFxuIgogICAgIiAgICAgICAgICAgICAgICBzZXNzaW9uLFxuIgogICAgIiAgICAgICAgICAgICAgICBwYXlsb2FkLFxuIgogICAgIiAgICAgICAgICAgICAgICBl
+          eGlzdGluZ19ydW49cnVuLFxuIgogICAgIiAgICAgICAgICAgICAgICBhdHRlbXB0X251bWJlcj1zZWxmLnJlcXVlc3QucmV0cmllcyArIDEsXG4iCiAgICAiICAgICAg
+          ICAgICAgKVxuIiwKICAgICJ3b3JrZXIgYXR0ZW1wdCBwcm9wYWdhdGlvbiIsCikKdGV4dCA9IHJlcGxhY2Vfb25jZSgKICAgIHRleHQsCiAgICAnICAgIGlmIGlzaW5z
+          dGFuY2UoZXhjLCBMTF1Qcm92aWRlclJlc3BvbnNlQ29udHJhY3RFcnJvcik6XG4gICAgICAgIHJldHVybiAicHJvdmlkZXJfcmVzcG9uc2VfY29udHJhY3QiLCBGYWxz
+          ZVxuICAgIHJldHVybiAidW5rbm93biIsIEZhbHNlXG4nLAogICAgJyAgICBpZiBpc2luc3RhbmNlKGV4YywgTExNUHJvdmlkZXJSZXNwb25zZUNvbnRyYWN0RXJyb3Ip
+          OlxuICAgICAgICByZXR1cm4gInByb3ZpZGVyX3Jlc3BvbnNlX2NvbnRyYWN0IiwgRmFsc2VcbiAgICBpZiBpc2luc3RhbmNlKGV4YywgUnVudGltZUJ1ZGdldEVycm9y
+          KTpcbiAgICAgICAgcmV0dXJuICJydW50aW1lX2J1ZGdldCIsIEZhbHNlXG4gICAgcmV0dXJuICJ1bmtub3duIiwgRmFsc2VcbiAnLAogICAgIndvcmtlciBidWRnZXQg
+          ZmFpbHVyZSBjbGFzc2lmaWNhdGlvbiIsCikKdGFza3Mud3JpdGVfdGV4dCh0ZXh0KQoKcm91dGVyID0gUGF0aCgiYXBwcy9hcGkvYXBwL3JvdXRlcnMvY29udHJvbGxl
+          ZF9hZ2VudHMucHkiKQp0ZXh0ID0gcm91dGVyLnJlYWRfdGV4dCgpCnRleHQgPSByZXBsYWNlX29uY2UoCiAgICB0ZXh0LAogICAgImZyb20gYXBwLnNlcnZpY2VzLmxs
+          bV9jbGllbnQgaW1wb3J0IExMTVByb3ZpZGVyRmFjdG9yeSwgaXNfbGxtX2VuYWJsZWRcbiIsCiAgICAiZnJvbSBhcHAuc2VydmljZXMubGxtX2NsaWVudCBpbXBvcnQg
+          TExNUHJvdmlkZXJGYWN0b3J5LCBpc19sbG1fZW5hYmxlZFxuIgogICAgImZyb20gYXBwLnNlcnZpY2VzLnJ1bnRpbWVfZWNvbm9taWNzIGltcG9ydCBSdW50aW1lQnVk
+          Z2V0RXJyb3JcbiIsCiAgICAiY29udHJvbGxlZC1hZ2VudCByb3V0ZXIgZWNvbm9taWNzIGltcG9ydCIsCikKdGV4dCA9IHJlcGxhY2Vfb25jZSgKICAgIHRleHQsCiAg
+          ICAiICAgIGV4Y2VwdCBEdXBsaWNhdGVQZW5kaW5nQ29udHJvbGxlZEFnZW50T3V0cHV0IGFzIGV4YzpcbiAgICAgICAgcmFpc2UgSFRUUEV4Y2VwdGlvbihcbiIsCiAg
+          ICAiICAgIGV4Y2VwdCBSdW50aW1lQnVkZ2V0RXJyb3IgYXMgZXhjOlxuIgogICAgIiAgICAgICAgcmFpc2UgSFRUUEV4Y2VwdGlvbihcbiIKICAgICIgICAgICAgICAg
+          ICBzdGF0dXNfY29kZT00MDksXG4iCiAgICAiICAgICAgICAgICAgZGV0YWlsPXtcbiIKICAgICIgICAgICAgICAgICAgICAgXCJtZXNzYWdlXCI6IHN0cihleGMpLFxuIgog
+          ICAgIiAgICAgICAgICAgICAgICBcImZhaWx1cmVfY2xhc3NcIjogXCJydW50aW1lX2J1ZGdldFwiLFxuIgogICAgIiAgICAgICAgICAgICAgICBcInBhaWRfY2FsbF9z
+          dGFydGVkXCI6IEZhbHNlLFxuIgogICAgIiAgICAgICAgICAgIH0sXG4iCiAgICAiICAgICAgICApIGZyb20gZXhjXG4iCiAgICAiICAgIGV4Y2VwdCBEdXBsaWNhdGVQ
+          ZW5kaW5nQ29udHJvbGxlZEFnZW50T3V0cHV0IGFzIGV4YzpcbiIKICAgICIgICAgICAgIHJhaXNlIEhUVFBFeGNlcHRpb24oXG4iLAogICAgIkFQSSBidWRnZXQgY29u
+          ZmxpY3QgbWFwcGluZyIsCikKdGV4dCA9IHJlcGxhY2Vfb25jZSgKICAgIHRleHQsCiAgICAnICAgIGV4Y2VwdCBEdXBsaWNhdGVQZW5kaW5nQ29udHJvbGxlZEFnZW50
+          T3V0cHV0IGFzIGV4YzpcbiAgICAgICAgcmV0dXJuIFJlZGlyZWN0UmVzcG9uc2UoXG4gICAgICAgICAgICB1cmw9ZiIvYWRtaW4vY29udHJvbGxlZC1hZ2VudHMvcnVu
+          cy97ZXhjLmV4aXN0aW5nX3J1bi5pZH0/ZHVwbGljYXRlX2d1YXJkPTEiLFxuICAgICAgICAgICAgc3RhdHVzX2NvZGU9MzAzLFxuICAgICAgICApXG4gICAgcmV0dXJu
+          IFJlZGlyZWN0UmVzcG9uc2UodXJsPWYiL2FkbWluL2NvbnRyb2xsZWQtYWdlbnRzL3J1bnMve3Jlc3BvbnNlLnJ1bl9pZH0iLCBzdGF0dXNfY29kZT0zMDMpXG4nLAog
+          ICAgJyAgICBleGNlcHQgUnVudGltZUJ1ZGdldEVycm9yIGFzIGV4YzpcbiAgICAgICAgcmFpc2UgSFRUUEV4Y2VwdGlvbihzdGF0dXNfY29kZT00MDksIGRldGFpbD1z
+          dHIoZXhjKSkgZnJvbSBleGNcbiAgICBleGNlcHQgRHVwbGljYXRlUGVuZGluZ0NvbnRyb2xsZWRBZ2VudE91dHB1dCBhcyBleGM6XG4gICAgICAgIHJldHVybiBSZWRp
+          cmVjdFJlc3BvbnNlKFxuICAgICAgICAgICAgdXJsPWYiL2FkbWluL2NvbnRyb2xsZWQtYWdlbnRzL3J1bnMve2V4Yy5leGlzdGluZ19ydW4uaWR9P2R1cGxpY2F0ZV9n
+          dWFyZD0xIixcbiAgICAgICAgICAgIHN0YXR1c19jb2RlPTMwMyxcbiAgICAgICAgKVxuICAgIHJldHVybiBSZWRpcmVjdFJlc3BvbnNlKHVybD1mIi9hZG1pbi9jb250
+          cm9sbGVkLWFnZW50cy9ydW5zL3tyZXNwb25zZS5ydW5faWR9Iiwgc3RhdHVzX2NvZGU9MzAzKVxuJywKICAgICJvcGVyYXRvciBidWRnZXQgY29uZmxpY3QgbWFwcGlu
+          ZyIsCikKcm91dGVyLndyaXRlX3RleHQodGV4dCkK
