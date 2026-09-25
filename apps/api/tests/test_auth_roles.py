@@ -17,6 +17,25 @@ def test_public_client_routes_do_not_require_operator_auth(raw_client: TestClien
 def test_public_prefix_does_not_match_similarly_named_private_path() -> None:
     assert is_public_path("/api/v1/public/intake") is True
     assert is_public_path("/api/v1/publicity") is False
+    assert is_public_path("/api/partner/v1/intake") is True
+    assert is_public_path("/debug/controlled-agents") is False
+
+
+def test_debug_routes_require_admin_without_exposing_configuration(raw_client: TestClient) -> None:
+    # These routes include provider/model and storage configuration in their payloads.
+    for path in ("/debug/controlled-agents", "/debug/document-uploads"):
+        unauthenticated = raw_client.get(path)
+        assert unauthenticated.status_code == 401
+
+        raw_client.headers.update({"X-GMAI-Role": "read_only", "X-GMAI-User": "viewer"})
+        forbidden = raw_client.get(path)
+        assert forbidden.status_code == 403
+        assert forbidden.json()["allowed_roles"] == ["admin"]
+        raw_client.headers.clear()
+
+    raw_client.headers.update({"X-GMAI-Role": "admin", "X-GMAI-User": "operator"})
+    assert raw_client.get("/debug/controlled-agents").status_code == 200
+    assert raw_client.get("/debug/document-uploads").status_code == 200
 
 
 def test_admin_page_redirects_to_login_without_auth(raw_client: TestClient) -> None:
