@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import ValidationError
 from sqlmodel import Session, select
@@ -13,7 +13,7 @@ from app.core.config import settings
 from app.models.domain import Lead
 from app.schemas import InhouseConsultantDecision
 from app.services.llm_client import LLMProviderError, LLMProviderFactory
-from app.services.runtime_economics import complete_recorded
+from app.services.runtime_economics import complete_recorded, mark_request_operation_finished
 from app.services.role_card_loader import load_role_card
 
 
@@ -258,16 +258,26 @@ def consult(
 
     system_prompt = _build_system_prompt()
     user_message = _build_user_message(message, conversation_history, leads, lead_hint)
+    operation_key = f"inhouse_consultant_request:{uuid4()}"
 
     try:
         provider = LLMProviderFactory.get_provider()
-        response = complete_recorded(
-            context_kind="inhouse_consultant_request",
-            provider=provider,
-            system_prompt=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-            response_format={"type": "json_object"},
-        )
+        try:
+            response = complete_recorded(
+                context_kind="inhouse_consultant_request",
+                operation_key=operation_key,
+                provider=provider,
+                system_prompt=system_prompt,
+                messages=[{"role": "user", "content": user_message}],
+                response_format={"type": "json_object"},
+            )
+        finally:
+            # This is owner execution-end evidence only. It does not claim the
+            # provider succeeded, failed, charged, refunded, or returned zero usage.
+            mark_request_operation_finished(
+                operation_key=operation_key,
+                context_kind="inhouse_consultant_request",
+            )
         parsed = json.loads(response.content)
         decision = InhouseConsultantDecision(**parsed)
     except (LLMProviderError, json.JSONDecodeError, ValidationError, KeyError, TypeError):
