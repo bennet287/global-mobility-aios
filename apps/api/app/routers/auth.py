@@ -75,6 +75,7 @@ async def login(request: Request):
     response.set_cookie(
         settings.auth_session_cookie,
         create_session_token(username=username, role=role),
+        max_age=settings.auth_session_ttl_seconds,
         httponly=True,
         secure=settings.is_production(),
         samesite="lax",
