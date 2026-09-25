@@ -594,7 +594,7 @@ def get_controlled_agent_providers() -> dict:
         "active_provider": active,
         "active_model": _active_model(),
         "available_providers": LLMProviderFactory.available_providers(),
-        "switch_instruction": "Set LLM_PROVIDER in .env to 'deepseek' or 'moonshot' and restart.",
+        "switch_instruction": "Configure separate provider API credentials and quota before setting LLM_PROVIDER in .env; restart after the change. Leave it empty for deterministic templates.",
     }
 
 
@@ -932,7 +932,7 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
       <div class="card">
         <h2>LLM Provider</h2>
         <p>{provider_badge}{_escape(model_text)}</p>
-        <p>Active provider can be switched via <code>LLM_PROVIDER</code> in <code>.env</code>. Empty provider falls back to deterministic templates.</p>
+        <p>Remote providers require separate API credentials and account quota. A chat subscription does not provide API access. Set <code>LLM_PROVIDER</code> in <code>.env</code> only after configuring the provider; leave it empty for deterministic templates.</p>
       </div>
       <div class="card">
         <h2>Batch Agent Actions</h2>

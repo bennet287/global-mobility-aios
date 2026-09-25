@@ -7,7 +7,7 @@
 **Live integration head:** resolve from GitHub before dependent work; do not treat a SHA copied into this file as self-updating truth.
 **Current programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
 **Active implementation:** none; direct model-call coverage, call capacity, opt-in output caps, cost-evidence visibility, billing correlation identity and external-call inventory are sealed
-**Next scheduled slice:** obtain itemized provider billing evidence and verified per-attempt matching; establish actual paid-tool contracts and cost attribution before governed USD allocation; verify Gemini's output-cap contract separately
+**Next scheduled slice:** scope provider circuit breakers against the existing attempt and failure-classification boundary; reconcile stale provider attempts without inferring charges. Itemized billing joins and vendor cost attribution remain prerequisites for governed USD allocation; verify Gemini's output-cap contract separately.
 
 ## Current programme state
 
@@ -51,7 +51,9 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - Google AX may later provide replaceable execution infrastructure only after AIOS owns the required canonical runtime controls.
 - Deterministic AIOS policy remains authoritative. External decision/runtime systems receive no authority, permissions, credentials, budgets, autonomy, or assignment rights.
 
-## Next slice guardrails — monetary budget prerequisites and Gemini output-cap evidence
+## Next slice guardrails — provider failure control and monetary budget prerequisites
+
+Provider circuit breakers should operate at a defined provider scope, observe classified failures rather than infer failure from an unknown billing outcome, and use existing durable runtime evidence. Define recovery and concurrent-call behavior before changing the paid-call boundary. Reconcile stranded `started` provider attempts as unknown outcomes without claiming a refund, zero usage, or a billable charge. Existing AgentRun reconciliation does not settle these provider attempts.
 
 Phase 16.3C's opt-in call-count ceiling and Phase 16.3D's optional DeepSeek/Moonshot per-call output limits are distinct controls, neither a financial allocation. Phase 16.3E exposes missing cost evidence, and Phase 16.3F preserves optional completion IDs and inventories identified external calls without manufacturing spend. Before monetary budget enforcement, obtain itemized provider billing evidence with a verifiable per-attempt join, confirm which external tools carry vendor charges, and define Board allocation authority, retry/cancellation treatment, and a provable pre-call monetary ceiling. Verify Gemini's compatible output-cap request contract before claiming a Gemini limit. Request-local calls have no invented WorkItem or AgentRun owner.
 

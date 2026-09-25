@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
 
-    # Remote LLM providers (switchable based on active subscription/free-tier access)
+    # Remote API providers require their own credentials and account quota/billing;
+    # a consumer chat subscription does not grant API access.
     llm_provider: str = ""  # "deepseek", "moonshot", or "gemini"; empty = deterministic template only
     deepseek_api_key: str = ""
     deepseek_api_key_ref: str = ""
