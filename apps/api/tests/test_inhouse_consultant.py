@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from sqlmodel import Session, select
 
+from app.models.domain import AuditLog
 from app.models.runtime_economics import ProviderCallAttempt
 from app.services import inhouse_consultant as consultant_module
 from app.services.inhouse_consultant import _match_lead, consult
@@ -97,5 +98,15 @@ def test_llm_consult_records_request_owner_completion(monkeypatch, db_session: S
     attempt = db_session.exec(select(ProviderCallAttempt)).one()
     assert attempt.context_kind == "inhouse_consultant_request"
     assert attempt.operation_key is not None
-    assert attempt.operation_finished_at is not None
     assert attempt.status == "observed"
+
+    completion = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.action == "provider_request_operation_finished")
+        .where(AuditLog.entity_type == "provider_call_attempt")
+        .where(AuditLog.entity_id == str(attempt.id))
+    ).one()
+    evidence = completion.after_state_json or ""
+    assert '"provider_outcome_inferred": false' in evidence
+    assert '"billed_cost_known": false' in evidence
+    assert '"call_slot_released": false' in evidence
