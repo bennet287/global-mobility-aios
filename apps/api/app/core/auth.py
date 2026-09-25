@@ -4,6 +4,7 @@ import base64
 import hashlib
 import hmac
 import json
+import time
 from dataclasses import dataclass
 from typing import Optional, Set
 
@@ -12,6 +13,9 @@ from fastapi.responses import JSONResponse, RedirectResponse, Response
 
 from app.core.auth_policy import ROLES, is_public_path, required_roles
 from app.core.config import settings
+
+
+SESSION_TOKEN_VERSION = 1
 
 
 @dataclass(frozen=True)
@@ -35,10 +39,22 @@ def _signature(payload: str) -> str:
     return hmac.new(secret, payload.encode("ascii"), hashlib.sha256).hexdigest()
 
 
+def _now_epoch_seconds() -> int:
+    return int(time.time())
+
+
 def create_session_token(username: str, role: str) -> str:
     role = normalize_role(role) or "read_only"
+    issued_at = _now_epoch_seconds()
+    expires_at = issued_at + settings.auth_session_ttl_seconds
     payload = _b64encode(json.dumps(
-        {"username": username, "role": role},
+        {
+            "v": SESSION_TOKEN_VERSION,
+            "username": username,
+            "role": role,
+            "iat": issued_at,
+            "exp": expires_at,
+        },
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8"))
@@ -56,6 +72,20 @@ def parse_session_token(token: str) -> Optional[AuthContext]:
         data = json.loads(_b64decode(payload).decode("utf-8"))
     except Exception:
         return None
+
+    if data.get("v") != SESSION_TOKEN_VERSION:
+        return None
+    issued_at = data.get("iat")
+    expires_at = data.get("exp")
+    if type(issued_at) is not int or type(expires_at) is not int:
+        return None
+    if expires_at <= issued_at:
+        return None
+    if expires_at - issued_at > settings.auth_session_ttl_seconds:
+        return None
+    if _now_epoch_seconds() >= expires_at:
+        return None
+
     username = str(data.get("username") or "").strip()
     role = normalize_role(data.get("role"))
     if not username or not role:
