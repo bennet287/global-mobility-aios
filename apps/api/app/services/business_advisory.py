@@ -4,6 +4,7 @@ import json
 import re
 from datetime import datetime, timezone
 from typing import Any
+from uuid import uuid4
 
 from sqlmodel import Session, select
 
@@ -29,7 +30,7 @@ from app.schemas_business_advisory import (
 )
 from app.services.audit_log import record_audit, to_audit_dict
 from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
-from app.services.runtime_economics import complete_recorded
+from app.services.runtime_economics import complete_recorded, mark_request_operation_finished
 
 
 SCORE_SEMANTICS = (
@@ -1022,16 +1023,26 @@ def advise_on_business_mobility_situation(
     if not is_llm_enabled():
         return _fallback_solution(payload, pathways, programs, risk_flags)
 
+    operation_key = f"business_advisory_request:{uuid4()}"
     try:
         provider = LLMProviderFactory.get_provider()
         prompt = _build_solution_prompt(payload, pathways, programs, risk_flags)
-        response = complete_recorded(
-            context_kind="business_advisory_request",
-            provider=provider,
-            system_prompt=prompt,
-            messages=[{"role": "user", "content": "Provide the structured recommendation."}],
-            response_format={"type": "json_object"},
-        )
+        try:
+            response = complete_recorded(
+                context_kind="business_advisory_request",
+                operation_key=operation_key,
+                provider=provider,
+                system_prompt=prompt,
+                messages=[{"role": "user", "content": "Provide the structured recommendation."}],
+                response_format={"type": "json_object"},
+            )
+        finally:
+            # This is owner execution-end evidence only. It does not claim the
+            # provider succeeded, failed, charged, refunded, or returned zero usage.
+            mark_request_operation_finished(
+                operation_key=operation_key,
+                context_kind="business_advisory_request",
+            )
         data = json.loads(response.content)
         rec_visa_routes = _parse_visa_routes(data["recommended_solution"].get("visa_routes"))
         rec_visa_route = data["recommended_solution"].get("visa_route") or _visa_route_string(rec_visa_routes)
