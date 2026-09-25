@@ -10,6 +10,7 @@ from app.services.llm_client import (
     LLMProviderConfigurationError,
     LLMProviderError,
     LLMProviderFactory,
+    LLMProviderTransportError,
     MoonshotProvider,
     is_llm_enabled,
 )
@@ -221,15 +222,26 @@ def test_explicit_empty_provider_key_fails_before_network_egress(provider_cls, m
     client_cls.assert_not_called()
 
 
-def test_deepseek_provider_http_error():
+@pytest.mark.parametrize(
+    ("status_code", "error_type"),
+    [
+        (400, LLMProviderConfigurationError),
+        (401, LLMProviderConfigurationError),
+        (402, LLMProviderConfigurationError),
+        (408, LLMProviderTransportError),
+        (429, LLMProviderTransportError),
+        (503, LLMProviderTransportError),
+    ],
+)
+def test_deepseek_provider_http_error(status_code, error_type):
     provider = DeepSeekProvider(api_key="ds-key", model="deepseek-chat")
 
     fake_response = MagicMock()
-    fake_response.status_code = 401
-    fake_response.text = "Unauthorized"
+    fake_response.status_code = status_code
+    fake_response.text = "Provider error"
     request = httpx.Request("POST", "https://api.deepseek.com/chat/completions")
     fake_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-        "Unauthorized", request=request, response=fake_response
+        "Provider error", request=request, response=fake_response
     )
 
     fake_client = MagicMock()
@@ -238,7 +250,7 @@ def test_deepseek_provider_http_error():
     fake_client.__exit__ = MagicMock(return_value=False)
 
     with patch("httpx.Client", return_value=fake_client):
-        with pytest.raises(LLMProviderError, match="API returned"):
+        with pytest.raises(error_type, match="API returned"):
             provider.complete("system", [{"role": "user", "content": "hi"}])
 
 

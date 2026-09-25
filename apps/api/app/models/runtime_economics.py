@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, Numeric, UniqueConstraint
+from sqlalchemy import CheckConstraint, Numeric, UniqueConstraint, false, text
 from sqlmodel import Field, SQLModel
 
 
@@ -56,7 +56,7 @@ AgentRunProviderAttempt = ProviderCallAttempt
 
 
 class ProviderCallAllocation(SQLModel, table=True):
-    """Admin-authorized count of provider calls, not a monetary allocation."""
+    """Admin-authorized call count and provider-scoped operational admission state."""
 
     __tablename__ = "provider_call_allocations"
     __table_args__ = (
@@ -65,12 +65,16 @@ class ProviderCallAllocation(SQLModel, table=True):
             "used_calls >= 0 AND used_calls <= authorized_calls",
             name="ck_provider_call_allocation_used",
         ),
+        CheckConstraint("breaker_failures >= 0", name="ck_provider_call_allocation_breaker_failures"),
     )
 
     provider: str = Field(primary_key=True)
     authorized_calls: int
     used_calls: int = 0
     paused: bool = False
+    breaker_open: bool = Field(default=False, sa_column_kwargs={"server_default": false()})
+    breaker_failures: int = Field(default=0, sa_column_kwargs={"server_default": text("0")})
+    breaker_opened_at: Optional[datetime] = None
     authorized_by: str
     reason: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

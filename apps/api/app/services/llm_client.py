@@ -158,7 +158,15 @@ class _OpenAICompatibleProvider(LLMProvider):
                 )
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            raise LLMProviderTransportError(
+            # Client/account/request errors cannot be repaired by automatic
+            # retry or by opening a transport circuit. Rate limits, request
+            # timeout and server errors are provider-side transient failures.
+            error_type = (
+                LLMProviderTransportError
+                if exc.response.status_code in {408, 429} or exc.response.status_code >= 500
+                else LLMProviderConfigurationError
+            )
+            raise error_type(
                 f"{self.name} API returned {exc.response.status_code}: {exc.response.text}"
             ) from exc
         except httpx.RequestError as exc:
