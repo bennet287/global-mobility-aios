@@ -88,9 +88,25 @@ def test_webhook_request_pins_validated_address_and_preserves_tls_identity(
         def __exit__(self, exc_type, exc, tb) -> None:
             return None
 
-        def send(self, request: httpx.Request, *, follow_redirects: bool):
+        def request(
+            self,
+            method: str,
+            url: str,
+            *,
+            content: bytes | None = None,
+            headers: dict[str, str] | None = None,
+            extensions: dict[str, Any] | None = None,
+            follow_redirects: bool = False,
+        ):
+            request = httpx.Request(
+                method,
+                url,
+                content=content,
+                headers=headers,
+                extensions=extensions,
+            )
             captured["request"] = request
-            captured["send_follow_redirects"] = follow_redirects
+            captured["request_follow_redirects"] = follow_redirects
             return httpx.Response(204, request=request)
 
     monkeypatch.setattr(
@@ -120,7 +136,7 @@ def test_webhook_request_pins_validated_address_and_preserves_tls_identity(
         "follow_redirects": False,
         "trust_env": False,
     }
-    assert captured["send_follow_redirects"] is False
+    assert captured["request_follow_redirects"] is False
 
 
 def test_webhook_request_preserves_non_default_port_in_host_header(
