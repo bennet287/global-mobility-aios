@@ -5,7 +5,7 @@
 **Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 17 — Agent Security Assurance
-**Current checkpoint:** Phase 17A bounded authenticated sessions and Phase 17B admin-only debug routes are sealed by PR #198 and PR #200. Phase 16 request-local completion evidence is sealed only for the in-house consultant and business advisory (PR #194 and PR #196); other request-local paths without a real owner-completion signal remain unreconciled by age alone. Source-linked billed cost, verified paid-tool charges, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open Phase 16 prerequisites rather than claimed capabilities. System-1/AX evaluation remains recorded by PR #167.
+**Current checkpoint:** Phase 17A bounded authenticated sessions, Phase 17B admin-only debug routes, and Phase 17C admin-only connector control are sealed by PR #198, PR #200, and PR #203. Phase 16 request-local completion evidence is sealed only for the in-house consultant and business advisory (PR #194 and PR #196); other request-local paths without a real owner-completion signal remain unreconciled by age alone. Source-linked billed cost, verified paid-tool charges, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open Phase 16 prerequisites rather than claimed capabilities. System-1/AX evaluation remains recorded by PR #167.
 **Code migration head:** `0089_provider_circuit_breaker`
 
 <!-- CURRENT_MIGRATION_HEAD: 0089_provider_circuit_breaker -->
@@ -515,6 +515,8 @@ Agentic-AI threat modelling, identity/authorization, secure tool invocation, pro
 
 Begin Phase 17 by mapping the real existing trust boundaries and controls rather than creating a new security layer by assumption: actor/role identity, `OrganizationAgent` identity, authorization/permission checks, credentials/secrets, connector and tool invocation, native-skill provenance and allowed/denied tools, model-input/output trust, source/provenance boundaries and durable audit. Reuse canonical owners where they already exist; introduce new durable security state only for a concrete gap that no current authority/evidence owner can truthfully represent. Control strength must be risk-tiered, with the strongest enforcement at credential, external-mutation and other consequential boundaries.
 
+PR #203 seals the connector-control slice: only admins may create automation connector configs, change their status, or run an active connector health check. Operator delivery dispatch continues through its existing permission and audit gates. The webhook adapter still needs a separately justified destination and connection-time address control; configuration authority alone does not establish safe egress. The CodeQL workflow added by PR #202 scans the active integration branch and its pull requests, but a successful scan does not seal the runtime trust boundaries in this phase.
+
 ### Phase 18 — Enterprise Governance, Risk & Compliance
 
 Risk linkage, policy/control ownership, audit-ready evidence export, approval/exception lineage, incident tracking, capability authorization reviews and justified standards mappings.
@@ -703,7 +705,7 @@ We also do not optimize for “maximum autonomy” as a vanity metric. We do not
 ## 14. Immediate order of work
 
 ```text
-1. Continue Phase 17 after sealed session-expiry and debug-route controls by inspecting real external-tool invocation and untrusted-content crossings. Select the smallest concrete enforceable gap after repository inspection; reuse canonical identity, authority, permission and audit controls rather than creating parallel security truth.
+1. Continue Phase 17 after sealed session-expiry, debug-route and connector-control slices by inspecting the webhook destination and connection-time address boundary and untrusted-content crossings. Select the smallest concrete enforceable gap after repository inspection; reuse canonical identity, authority, permission and audit controls rather than creating parallel security truth.
 2. Obtain an authoritative itemized billing source and prove a unique per-attempt match when paid API usage exists; determine real vendor charges for paid-tool boundaries before governed monetary allocation. Verify Gemini's per-call output-cap contract separately; DeepSeek/Moonshot output caps are optional and sealed. Keep authorized monetary allocation, opt-in call-count capacity, observed actual spend and estimates/unattributed cost distinct. Do not claim a hard monetary budget without authoritative cost evidence and a provable pre-call ceiling.
 3. Keep lifecycle identity separate from static agent definitions, `AgentRun` execution history, work assignment, credentials, permissions, authority and autonomy.
 4. Add session/subagent/compaction lifecycle evidence only together with a real canonical runtime operation; never create a signal-only duplicate truth store.

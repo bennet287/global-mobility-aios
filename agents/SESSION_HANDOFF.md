@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`inspect real external-tool invocation and untrusted-content crossings, then select the smallest enforceable Phase 17 control using existing identity, authority, permission and audit truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
+`inspect remaining webhook destination and connection-time address control and untrusted-content crossings, then select the smallest enforceable Phase 17 control using existing identity, authority, permission and audit truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #200 — admin-only debug-route access, merged as `cd4c444ea86033baab4f0b64244c3b10362a0ad0`. Existing auth policy protects debug payloads; public client and partner paths retain their existing access.
+- PR #203 — admin-only automation connector control, merged as `ae94753d4f82182b02553a625938c054499ea0be`. Existing auth policy now protects connector creation, status changes and active health checks; operator delivery dispatch retains its existing gate. Destination and connection-time address safety remain open.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
