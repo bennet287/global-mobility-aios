@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`inspect the existing identity/authorization, permission, connector/tool-invocation, native-skill, provenance and audit controls; threat-model the real trust crossings, then select the smallest enforceable Phase 17 gap without creating parallel authority/security truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
+`inspect why /debug is currently included in the public-path authentication policy, enumerate the actual debug-route payloads and production exposure, then select the smallest justified Phase 17 hardening without creating parallel identity/authority/security truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #196 — business-advisory request completion evidence, merged as `0a43dbb2fad7bac5ba64c4cda3e8eb336e9145d7`, extending the explicit request-owner completion pattern already sealed for the in-house consultant by PR #194.
+- PR #198 — bounded authenticated session lifetime, merged as `b553d067160130b6b6b56bb710691697bc3bf8d0`. Existing signed application sessions are versioned and expire under one bounded TTL policy; old timeless cookies fail closed and require a fresh login.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,7 +31,7 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
 3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect existing identity/authorization, permission, connector/tool invocation, native-skill, provenance and audit controls before designing any new security state.
+4. Inspect the existing auth public-path rules and concrete `/debug` routes before changing exposure; keep public client/partner APIs distinct from debug surfaces.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
 
