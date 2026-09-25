@@ -4,7 +4,9 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-from app.core.auth import is_public_path
+import app.core.auth as auth_module
+from app.core.auth import create_session_token, is_public_path, parse_session_token
+from app.core.config import settings
 
 
 def test_public_client_routes_do_not_require_operator_auth(raw_client: TestClient) -> None:
@@ -90,6 +92,31 @@ def test_only_admin_or_reviewer_can_mutate_jurisdiction_assessments(raw_client: 
     assert allowed.status_code == 400
 
 
+def test_session_token_expires_at_configured_ttl(monkeypatch) -> None:
+    issued_at = 1_000_000
+    monkeypatch.setattr(auth_module.time, "time", lambda: float(issued_at))
+
+    token = create_session_token(username="admin", role="operator")
+    context = parse_session_token(token)
+    assert context is not None
+    assert context.username == "admin"
+    assert context.role == "operator"
+
+    monkeypatch.setattr(
+        auth_module.time,
+        "time",
+        lambda: float(issued_at + settings.auth_session_ttl_seconds - 1),
+    )
+    assert parse_session_token(token) is not None
+
+    monkeypatch.setattr(
+        auth_module.time,
+        "time",
+        lambda: float(issued_at + settings.auth_session_ttl_seconds),
+    )
+    assert parse_session_token(token) is None
+
+
 def test_local_login_sets_session_cookie(raw_client: TestClient) -> None:
     response = raw_client.post(
         "/auth/login",
@@ -99,7 +126,9 @@ def test_local_login_sets_session_cookie(raw_client: TestClient) -> None:
 
     assert response.status_code == 303
     assert response.headers["location"] == "/admin/v2"
-    assert "gmai_session=" in response.headers.get("set-cookie", "")
+    set_cookie = response.headers.get("set-cookie", "")
+    assert "gmai_session=" in set_cookie
+    assert f"Max-Age={settings.auth_session_ttl_seconds}" in set_cookie
 
 
 def test_source_authority_reassignment_is_admin_or_reviewer_only(
