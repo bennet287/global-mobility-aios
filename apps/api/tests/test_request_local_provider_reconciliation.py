@@ -59,10 +59,16 @@ def test_request_owner_completion_reconciles_unknown_without_releasing_call_slot
             ProviderCallAttempt.operation_key == "inhouse_consultant_request:finished"
         )
     ).one()
-    assert finished.operation_finished_at is not None
+    completion_logs = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.action == "provider_request_operation_finished")
+        .where(AuditLog.entity_type == "provider_call_attempt")
+        .where(AuditLog.entity_id == str(finished.id))
+    ).all()
+    assert len(completion_logs) == 1
     assert finished.status == "started"
 
-    # A request-local completion marker is the execution-end signal, so it does
+    # A request-local completion audit is the execution-end signal, so it does
     # not borrow the AgentRun hard-limit clock. Age alone still cannot close the
     # unmarked request-local attempt.
     result = reconcile_stranded_provider_attempts(
@@ -98,7 +104,7 @@ def test_request_owner_completion_reconciles_unknown_without_releasing_call_slot
         .where(AuditLog.entity_id == str(finished.id))
     ).one()
     evidence = log.after_state_json or ""
-    assert '"execution_end_signal": "request_operation_finished"' in evidence
+    assert '"execution_end_signal": "provider_request_operation_finished"' in evidence
     assert '"cause_inferred": false' in evidence
     assert '"failure_class_inferred": false' in evidence
     assert '"billed_cost_known": false' in evidence
