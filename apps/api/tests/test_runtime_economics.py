@@ -11,7 +11,9 @@ from app.models.domain import AgentRun, AgentRunStatus, AuditLog
 from app.models.runtime_economics import AgentRunProviderAttempt, ProviderCallAllocation, ProviderCallAttempt
 from app.schemas import ControlledAgentRunRequest
 from app.services.controlled_agents import run_controlled_agent
-from app.services.llm_client import LLMResponse
+from app.services.llm_client import (
+    LLMProviderConfigurationError, LLMProviderTransportError, LLMResponse,
+)
 from app.services.runtime_economics import (
     RuntimeEconomicsError, _settle, complete_recorded, reconcile_stranded_provider_attempts,
 )
@@ -403,3 +405,166 @@ def test_beat_reuses_agent_reconciliation_and_closes_old_terminal_attempt(
     assert result["provider_attempts"]["reconciled"] == 1
     db_session.refresh(attempt)
     assert attempt.status == "outcome_unknown"
+
+
+def test_enrolled_provider_circuit_trips_without_granting_money_or_more_calls(
+    client, db_session: Session,
+) -> None:
+    capacity = "/api/v1/runtime-economics/providers/deepseek/capacity"
+    reset = "/api/v1/runtime-economics/providers/deepseek/circuit/reset"
+    assert client.put(capacity, json={
+        "authorized_calls": 5, "reason": "Five test calls",
+    }).json()["breaker_open"] is False
+
+    class TransportFailure:
+        name = "deepseek"
+        calls = 0
+
+        def complete(self, **kwargs):
+            self.calls += 1
+            raise LLMProviderTransportError("transient failure")
+
+    provider = TransportFailure()
+    args = dict(context_kind="business_advisory_request", provider=provider,
+                system_prompt="test", messages=[], response_format=None)
+    for attempt in range(3):
+        with pytest.raises(LLMProviderTransportError):
+            complete_recorded(**args, operation_key=f"breaker:test:{attempt}")
+    db_session.expire_all()
+    state = client.get(capacity).json()
+    assert state["breaker_open"] is True
+    assert state["breaker_failures"] == state["breaker_failure_threshold"] == 3
+    assert state["paused"] is False
+    assert state["used_calls"] == 3
+    assert state["remaining_calls"] == 2
+    assert state["breaker_scope"] == "admin_enrolled_provider_only"
+    assert state["breaker_opened_at"] is not None
+    with pytest.raises(RuntimeEconomicsError, match="Provider circuit open"):
+        complete_recorded(**args, operation_key="breaker:test:blocked")
+    assert provider.calls == 3
+    assert len(db_session.exec(select(ProviderCallAttempt)).all()) == 3
+    trips = db_session.exec(select(AuditLog)
+        .where(AuditLog.action == "provider_circuit_opened")).all()
+    assert len(trips) == 1
+    assert '"billed_cost_known": false' in (trips[0].after_state_json or "")
+    assert client.get("/api/v1/runtime-economics/cost-evidence").json()[
+        "monetary_budget"
+    ]["enforceable"] is False
+
+    # A call-capacity edit cannot accidentally clear the independent circuit.
+    assert client.put(capacity, json={
+        "authorized_calls": 6, "reason": "Increase call capacity",
+    }).json()["breaker_open"] is True
+    client.headers["X-GMAI-Role"] = "read_only"
+    assert client.post(reset, json={"reason": "Review incident"}).status_code == 403
+    client.headers["X-GMAI-Role"] = "admin"
+    assert client.post(reset, json={"reason": " "}).status_code == 422
+    resumed = client.post(reset, json={"reason": "Reviewed transport incident"}).json()
+    assert resumed["breaker_open"] is False
+    assert resumed["breaker_failures"] == 0
+    assert resumed["used_calls"] == 3
+    assert resumed["authorized_calls"] == 6
+    assert client.post(reset, json={"reason": "Repeated reset"}).status_code == 200
+    assert len(db_session.exec(select(AuditLog)
+        .where(AuditLog.action == "provider_circuit_reset")).all()) == 1
+
+
+def test_breaker_counts_only_consecutive_classified_failures_and_is_provider_scoped(
+    db_session: Session,
+) -> None:
+    db_session.add(ProviderCallAllocation(
+        provider="moonshot", authorized_calls=7, authorized_by="admin", reason="Trial",
+    ))
+    db_session.commit()
+
+    class Provider:
+        name = "moonshot"
+        calls = 0
+
+        def __init__(self):
+            self.outcome = "transport"
+
+        def complete(self, **kwargs):
+            self.calls += 1
+            if self.outcome == "transport":
+                raise LLMProviderTransportError("temporary")
+            if self.outcome == "configuration":
+                raise LLMProviderConfigurationError("invalid credentials")
+            return LLMResponse(content="{}", provider=self.name, model="kimi-test")
+
+    provider = Provider()
+    args = dict(context_kind="inhouse_consultant_request", provider=provider,
+                system_prompt="test", messages=[], response_format=None)
+    for number, outcome in enumerate(("transport", "success", "transport", "configuration",
+                                      "transport", "transport", "transport")):
+        provider.outcome = outcome
+        call = lambda: complete_recorded(**args, operation_key=f"breaker:streak:{number}")
+        if outcome == "success":
+            call()
+        else:
+            with pytest.raises(LLMProviderTransportError if outcome == "transport"
+                               else LLMProviderConfigurationError):
+                call()
+        db_session.refresh(db_session.get(ProviderCallAllocation, "moonshot"))
+        if number < 6:
+            assert db_session.get(ProviderCallAllocation, "moonshot").breaker_open is False
+    allocation = db_session.get(ProviderCallAllocation, "moonshot")
+    assert allocation.breaker_open is True
+    assert allocation.breaker_failures == 3
+
+    # No enrollment implies no circuit or call reservation for another provider.
+    class Unenrolled(Provider):
+        name = "gemini"
+
+    other = Unenrolled()
+    for number in range(3):
+        with pytest.raises(LLMProviderTransportError):
+            complete_recorded(**{**args, "provider": other},
+                              operation_key=f"unenrolled:{number}")
+    assert other.calls == 3
+    assert db_session.get(ProviderCallAllocation, "gemini") is None
+
+
+def test_circuit_trip_blocks_new_calls_but_does_not_revoke_in_flight_attempt(
+    db_session: Session,
+) -> None:
+    db_session.add(ProviderCallAllocation(
+        provider="deepseek", authorized_calls=5, authorized_by="admin", reason="Trial",
+    ))
+    db_session.commit()
+    entered, release = Event(), Event()
+
+    class Provider:
+        name = "deepseek"
+
+        def __init__(self, delayed=False):
+            self.delayed = delayed
+
+        def complete(self, **kwargs):
+            if not self.delayed:
+                raise LLMProviderTransportError("provider unavailable")
+            entered.set()
+            assert release.wait(5)
+            return LLMResponse(content="{}", provider=self.name, model="deepseek-chat")
+
+    args = dict(context_kind="business_advisory_request",
+                system_prompt="test", messages=[], response_format=None)
+    failure = Provider()
+    for number in range(2):
+        with pytest.raises(LLMProviderTransportError):
+            complete_recorded(**args, provider=failure, operation_key=f"inflight:failure:{number}")
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(complete_recorded, **args, provider=Provider(delayed=True),
+                             operation_key="inflight:admitted")
+        assert entered.wait(5)
+        with pytest.raises(LLMProviderTransportError):
+            complete_recorded(**args, provider=failure, operation_key="inflight:trip")
+        with pytest.raises(RuntimeEconomicsError, match="Provider circuit open"):
+            complete_recorded(**args, provider=failure, operation_key="inflight:blocked")
+        release.set()
+        assert future.result(timeout=5).total_tokens is None
+    db_session.refresh(db_session.get(ProviderCallAllocation, "deepseek"))
+    state = db_session.get(ProviderCallAllocation, "deepseek")
+    assert state.breaker_open is True
+    assert state.used_calls == 4
+    assert len(db_session.exec(select(ProviderCallAttempt)).all()) == 4

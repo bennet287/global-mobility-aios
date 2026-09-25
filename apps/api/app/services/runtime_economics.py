@@ -10,11 +10,16 @@ from app.core import db as db_module
 from app.models.domain import AgentRun, AgentRunStatus
 from app.models.runtime_economics import ProviderCallAllocation, ProviderCallAttempt
 from app.services.audit_log import record_audit
-from app.services.llm_client import LLMProvider, LLMResponse
+from app.services.llm_client import LLMProvider, LLMProviderTransportError, LLMResponse
 
 
 class RuntimeEconomicsError(RuntimeError):
     """A paid call must not proceed without durable accounting identity."""
+
+
+# Operational provider admission for admin-enrolled call allocations. This is
+# never a USD ceiling and does not retrospectively cancel admitted attempts.
+PROVIDER_BREAKER_FAILURE_THRESHOLD = 3
 
 
 _FINISHED_RUN_STATUSES = (
@@ -199,6 +204,41 @@ def authorize_provider_calls(
     return allocation
 
 
+def reset_provider_circuit(
+    session: Session, *, provider: str, actor: str, reason: str,
+) -> ProviderCallAllocation:
+    """Admin review reopens a tripped provider; it grants no calls or spend."""
+    allocation = session.get(ProviderCallAllocation, provider)
+    if allocation is None:
+        raise RuntimeEconomicsError("Provider call capacity has not been authorized")
+    if not allocation.breaker_open:
+        return allocation
+    before_failures = allocation.breaker_failures
+    changed = session.execute(
+        update(ProviderCallAllocation)
+        .where(ProviderCallAllocation.provider == provider)
+        .where(ProviderCallAllocation.breaker_open.is_(True))
+        .values(
+            breaker_open=False, breaker_failures=0, breaker_opened_at=None,
+            updated_at=datetime.now(timezone.utc),
+        )
+        .returning(ProviderCallAllocation.provider)
+    ).scalar_one_or_none()
+    if changed is None:
+        raise RuntimeEconomicsError("Concurrent circuit reset changed; refresh provider state")
+    record_audit(
+        session, action="provider_circuit_reset", entity_type="provider_call_allocation",
+        entity_id=provider, actor=actor, reason=reason,
+        before_state={"breaker_open": True, "breaker_failures": before_failures},
+        after_state={"breaker_open": False, "breaker_failures": 0,
+                     "authorized_calls_unchanged": True, "used_calls_unchanged": True},
+        source="phase_16_provider_circuit_breaker",
+    )
+    session.commit()
+    session.refresh(allocation)
+    return allocation
+
+
 def complete_recorded(
     *,
     provider: LLMProvider,
@@ -239,11 +279,15 @@ def complete_recorded(
                 update(ProviderCallAllocation)
                 .where(ProviderCallAllocation.provider == provider.name)
                 .where(ProviderCallAllocation.paused.is_(False))
+                .where(ProviderCallAllocation.breaker_open.is_(False))
                 .where(ProviderCallAllocation.used_calls < ProviderCallAllocation.authorized_calls)
                 .values(used_calls=ProviderCallAllocation.used_calls + 1)
                 .returning(ProviderCallAllocation.provider)
             ).scalar_one_or_none()
             if reserved is None:
+                session.refresh(allocation)
+                if allocation.breaker_open:
+                    raise RuntimeEconomicsError("Provider circuit open; refusing paid call")
                 raise RuntimeEconomicsError("Provider call capacity exhausted or paused; refusing paid call")
         entry = ProviderCallAttempt(
             agent_run_id=run_id,
@@ -268,15 +312,20 @@ def complete_recorded(
             messages=messages,
             response_format=response_format,
         )
-    except Exception:
-        _settle(entry_id, None)
+    except Exception as exc:
+        _settle(entry_id, None, transport_failure=isinstance(exc, LLMProviderTransportError))
         raise
     _settle(entry_id, response)
     return response
 
 
-def _settle(entry_id: UUID, response: LLMResponse | None) -> None:
+def _settle(
+    entry_id: UUID, response: LLMResponse | None, *, transport_failure: bool = False,
+) -> None:
     with Session(db_module.engine) as session:
+        entry = session.get(ProviderCallAttempt, entry_id)
+        if entry is None or entry.status != "started":
+            raise RuntimeEconomicsError("Provider attempt settlement identity was lost")
         values = {"settled_at": datetime.now(timezone.utc)}
         if response is None:
             values["status"] = "outcome_unknown"
@@ -304,6 +353,49 @@ def _settle(entry_id: UUID, response: LLMResponse | None) -> None:
             ).scalar_one_or_none()
             if changed is None:
                 raise RuntimeEconomicsError("Provider attempt settlement identity was lost")
+            if entry.allocation_provider is not None:
+                # Settlements serialize on the same provider allocation row.
+                # Count only consecutive classified transport failures in
+                # settlement order. Any other settled outcome breaks the streak.
+                allocation_update = (
+                    update(ProviderCallAllocation)
+                    .where(ProviderCallAllocation.provider == entry.allocation_provider)
+                    .where(ProviderCallAllocation.breaker_open.is_(False))
+                    .values(updated_at=datetime.now(timezone.utc))
+                )
+                if transport_failure:
+                    now = datetime.now(timezone.utc)
+                    allocation_update = allocation_update.values(
+                        breaker_failures=ProviderCallAllocation.breaker_failures + 1,
+                        breaker_open=(ProviderCallAllocation.breaker_failures + 1
+                                      >= PROVIDER_BREAKER_FAILURE_THRESHOLD),
+                        breaker_opened_at=case(
+                            (ProviderCallAllocation.breaker_failures + 1
+                             >= PROVIDER_BREAKER_FAILURE_THRESHOLD, now),
+                            else_=None,
+                        ),
+                    )
+                else:
+                    allocation_update = allocation_update.values(breaker_failures=0)
+                breaker_state = session.execute(
+                    allocation_update.returning(
+                        ProviderCallAllocation.breaker_open,
+                        ProviderCallAllocation.breaker_failures,
+                    )
+                ).one_or_none()
+                if transport_failure and breaker_state is not None and breaker_state.breaker_open:
+                    record_audit(
+                        session, actor="worker", action="provider_circuit_opened",
+                        entity_type="provider_call_allocation", entity_id=entry.allocation_provider,
+                        after_state={
+                            "breaker_open": True, "breaker_failures": breaker_state.breaker_failures,
+                            "threshold": PROVIDER_BREAKER_FAILURE_THRESHOLD,
+                            "trigger_attempt_id": str(entry_id), "failure_class": "provider_transport",
+                            "in_flight_calls_not_revoked": True, "billed_cost_known": False,
+                        },
+                        reason="Three consecutive settled provider transport failures.",
+                        source="phase_16_provider_circuit_breaker",
+                    )
             session.commit()
         except RuntimeEconomicsError:
             raise

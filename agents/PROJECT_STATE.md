@@ -2,12 +2,12 @@
 
 **Purpose:** concise current programme truth and the next bounded slice. This file is a living state pointer, not an acceptance ledger, read-order document, or historical changelog.
 
-**Last reconciled:** 2026-09-24
+**Last reconciled:** 2026-09-25
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
 **Live integration head:** resolve from GitHub before dependent work; do not treat a SHA copied into this file as self-updating truth.
 **Current programme:** Phase 16 — Runtime Reliability, Metering and Orchestration Foundations
-**Active implementation:** none; AgentRun-linked stranded provider-attempt reconciliation is sealed by PR #192, while scoped provider circuit breakers remain open
-**Next scheduled slice:** scope provider circuit breakers against the existing attempt and failure-classification boundary. Request-local provider attempts have no durable execution-end signal for automatic reconciliation. Itemized billing joins and vendor cost attribution remain prerequisites for governed USD allocation; verify Gemini's output-cap contract separately.
+**Active implementation:** none; AgentRun-linked attempt reconciliation and opt-in provider circuit breakers are sealed through PR #193
+**Next scheduled slice:** establish a real execution-end signal before automatically reconciling stranded request-local attempts, where the owning operation can support one; then progress Phase 17 security assurance. Itemized billing joins and vendor cost attribution remain prerequisites for governed USD allocation; verify Gemini's output-cap contract separately.
 
 ## Current programme state
 
@@ -24,6 +24,7 @@
 - Phase 16.3E Cost Evidence Visibility — SEALED by PR #187 at merge `c2cf9614742f2d1338761946380f50a58756a39e`. An admin-only, read-only report aggregates the existing direct-model attempt ledger by provider, distinguishing observed usage, partial estimates, unknown outcomes, and unaudited billed values. Actual billed spend, authorized/remaining USD, and monetary enforceability stay unknown/blocked. Paid-tool cost coverage remains unreconciled.
 - Phase 16.3F Billing Correlation and External-Call Inventory — SEALED by PR #189 at merge `67a667181fbdb8b875fd6557589bb94649013f76`. Valid optional provider completion IDs now survive on the same per-attempt ledger and their coverage appears in the admin readout. The roadmap inventories identified API external-call paths and their existing evidence. An ID is not an invoice line; no authoritative billed amount, paid-tool charge, or hard USD budget is claimed.
 - Phase 16.4A AgentRun-linked Provider Attempt Reconciliation — SEALED by PR #192. The existing worker scan closes only old `started` attempts linked to finished AgentRuns, with atomic settlement protection and durable audit. Request-local attempts remain without an execution-end signal; unknown outcomes do not imply charges or release call slots.
+- Phase 16.4B Provider Circuit Breaker — SEALED by PR #193. An admin-enrolled provider opens its own circuit after three consecutive settled, classified transport failures. New call reservations stop before egress; earlier in-flight calls retain their accounting slot. Recovery requires an audited admin reset, independent of the existing manual pause and call allowance. Unenrolled providers and external tools are outside this circuit; it is not a monetary budget.
 - System-1 / orchestration evaluation — PR #167 MERGED. Jev and Laya remain benchmark candidates; Google AX remains a deferred execution-substrate evaluation. None is a production dependency.
 - AgentRun cooperative soft-timeout semantics — SEALED by PR #171. Existing Celery limits remain canonical: 240s soft / 300s hard. Soft timeout records durable `agent_run_runtime_timeout` evidence, terminates the existing AgentRun as `failed`, and is non-retryable.
 - AgentRun stale-running reconciliation — SEALED by PR #173 at merge `c4ff75f24801eb52a82da2ac09cc724ffe872534`. It uses existing AgentRun + AuditLog truth, waits for the 300s hard limit plus 60s grace, requires durable running-state evidence, records stale-running reconciliation, and deliberately does not infer that the underlying cause was definitely a hard kill.
@@ -44,6 +45,7 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - Phase 16.3D's independent, optional adapter settings cap generated tokens per DeepSeek/Moonshot request; they do not convert the call-count allowance into a financial budget.
 - Phase 16.3E's readout uses existing attempt truth; even a non-null `billed_cost_usd` lacks invoice/reference provenance and is not authoritative spend. It grants no spending authority or new runtime control.
 - Phase 16.3F preserves optional provider completion IDs for later correlation and records identified external-call cost exposure in the roadmap; neither is verified billing attribution.
+- Phase 16.4B tracks operational circuit state on the existing `ProviderCallAllocation`, separate from manual pause and authorized call count. A reset does not grant calls, prove a refund, or clear unknown spend.
 - Phase 16.2 deterministic failure classification is authoritative for current retry behavior.
 - Cooperative soft timeout, stale-running reconciliation, and explicit cancellation are separate accepted controls with different evidence semantics.
 - Explicit cancellation is admin-only for the accepted API boundary. A Celery revoke request is best-effort transport control, not proof of process termination, rollback, or absence of prior external effects.
@@ -52,9 +54,9 @@ Canonical runtime truth remains in existing AIOS models and services. Do not cre
 - Google AX may later provide replaceable execution infrastructure only after AIOS owns the required canonical runtime controls.
 - Deterministic AIOS policy remains authoritative. External decision/runtime systems receive no authority, permissions, credentials, budgets, autonomy, or assignment rights.
 
-## Next slice guardrails — provider failure control and monetary budget prerequisites
+## Next slice guardrails — request-local completion and monetary budget prerequisites
 
-Provider circuit breakers should operate at a defined provider scope, observe classified failures rather than infer failure from an unknown billing outcome, and use existing durable runtime evidence. Define recovery and concurrent-call behavior before changing the paid-call boundary. Reconcile stranded `started` provider attempts as unknown outcomes without claiming a refund, zero usage, or a billable charge. AgentRun reconciliation alone does not settle provider attempts.
+The enrolled-provider circuit uses classified transport failures rather than inferring failure from an unknown billing outcome. It stays open until an admin records a reviewed reset. Reconcile stranded `started` provider attempts as unknown outcomes without claiming a refund, zero usage, or a billable charge. AgentRun reconciliation alone does not settle provider attempts.
 
 The bounded reconciliation extension runs after stale AgentRun reconciliation: only an old `started` attempt linked to a finished AgentRun can become `outcome_unknown`, with an atomic status guard and audit. Direct request-local attempts stay `started` until a durable execution-end signal or authoritative provider evidence is available. Neither path infers a failure class from unknown billing or releases an authorized call slot.
 
