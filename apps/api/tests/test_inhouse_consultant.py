@@ -103,10 +103,11 @@ def test_llm_consult_records_request_owner_completion(monkeypatch, db_session: S
     completion = db_session.exec(
         select(AuditLog)
         .where(AuditLog.action == "provider_request_operation_finished")
-        .where(AuditLog.entity_type == "provider_call_attempt")
-        .where(AuditLog.entity_id == str(attempt.id))
+        .where(AuditLog.entity_type == "provider_request_operation")
+        .where(AuditLog.entity_id == attempt.operation_key)
     ).one()
     evidence = completion.after_state_json or ""
+    assert f'"provider_call_attempt_id": "{attempt.id}"' in evidence
     assert '"provider_outcome_inferred": false' in evidence
     assert '"billed_cost_known": false' in evidence
     assert '"call_slot_released": false' in evidence
