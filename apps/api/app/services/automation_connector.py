@@ -9,8 +9,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
-import httpx
-
 from email.message import EmailMessage
 
 from sqlmodel import Session, select
@@ -24,6 +22,7 @@ from app.services.automation_connector_encryption import (
     decrypt_credentials,
     encrypt_credentials,
 )
+from app.services.webhook_egress import request_public_webhook
 
 
 MAX_DELIVERY_ATTEMPTS = 3
@@ -169,12 +168,12 @@ class WebhookAdapter(AutomationProviderAdapter):
 
         body = delivery.payload_json.encode("utf-8")
         try:
-            response = httpx.post(
+            response = request_public_webhook(
+                "POST",
                 url,
                 content=body,
                 headers=self._headers(credentials, body),
                 timeout=30,
-                follow_redirects=False,
             )
             response.raise_for_status()
         except Exception as exc:
@@ -189,7 +188,7 @@ class WebhookAdapter(AutomationProviderAdapter):
             raise AdapterSendError("Webhook credentials must include url")
 
         try:
-            response = httpx.get(url, timeout=10, follow_redirects=False)
+            response = request_public_webhook("GET", url, timeout=10)
             response.raise_for_status()
         except Exception as exc:
             raise AdapterSendError(f"Webhook health check failed: {exc}") from exc

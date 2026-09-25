@@ -51,15 +51,27 @@ def _config(credentials: dict[str, Any]) -> AutomationConnectorConfig:
 def test_webhook_adapter_sends_post_with_signature(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, Any] = {}
 
-    def fake_post(url: str, *, content: bytes, headers: dict[str, str], timeout: int, follow_redirects: bool):
+    def fake_request(
+        method: str,
+        url: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: int | float = 10,
+    ):
+        captured["method"] = method
         captured["url"] = url
         captured["content"] = content
-        captured["headers"] = headers
+        captured["headers"] = headers or {}
+        captured["timeout"] = timeout
         response = MagicMock()
         response.raise_for_status.return_value = None
         return response
 
-    monkeypatch.setattr("httpx.post", fake_post)
+    monkeypatch.setattr(
+        "app.services.automation_connector.request_public_webhook",
+        fake_request,
+    )
 
     adapter = WebhookAdapter()
     delivery = _delivery({"event_type": "case.created"})
@@ -67,29 +79,43 @@ def test_webhook_adapter_sends_post_with_signature(monkeypatch: pytest.MonkeyPat
     message_id = adapter.send(delivery, config)
 
     assert message_id.startswith("webhook-")
+    assert captured["method"] == "POST"
     assert captured["url"] == "https://hooks.example.com/gmai"
     assert captured["content"] == delivery.payload_json.encode("utf-8")
     assert captured["headers"]["Content-Type"] == "application/json"
     assert "X-GMAI-Signature" in captured["headers"]
     assert captured["headers"]["User-Agent"] == "gmai-automation/1.0"
+    assert captured["timeout"] == 30
 
 
 def test_webhook_adapter_send_without_signature(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, Any] = {}
 
-    def fake_post(url: str, *, content: bytes, headers: dict[str, str], timeout: int, follow_redirects: bool):
-        captured["headers"] = headers
+    def fake_request(
+        method: str,
+        url: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: int | float = 10,
+    ):
+        captured["method"] = method
+        captured["headers"] = headers or {}
         response = MagicMock()
         response.raise_for_status.return_value = None
         return response
 
-    monkeypatch.setattr("httpx.post", fake_post)
+    monkeypatch.setattr(
+        "app.services.automation_connector.request_public_webhook",
+        fake_request,
+    )
 
     adapter = WebhookAdapter()
     delivery = _delivery({"event_type": "case.created"})
     config = _config({"url": "https://hooks.example.com/gmai"})
     adapter.send(delivery, config)
 
+    assert captured["method"] == "POST"
     assert "X-GMAI-Signature" not in captured["headers"]
 
 
@@ -102,23 +128,53 @@ def test_webhook_adapter_send_raises_on_missing_url() -> None:
 
 
 def test_webhook_adapter_health_check(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_get(url: str, *, timeout: int, follow_redirects: bool):
+    captured: dict[str, Any] = {}
+
+    def fake_request(
+        method: str,
+        url: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: int | float = 10,
+    ):
+        captured["method"] = method
+        captured["url"] = url
+        captured["timeout"] = timeout
         response = MagicMock()
         response.raise_for_status.return_value = None
         return response
 
-    monkeypatch.setattr("httpx.get", fake_get)
+    monkeypatch.setattr(
+        "app.services.automation_connector.request_public_webhook",
+        fake_request,
+    )
 
     adapter = WebhookAdapter()
     config = _config({"url": "https://hooks.example.com/gmai"})
     assert adapter.health_check(config) == "healthy"
+    assert captured == {
+        "method": "GET",
+        "url": "https://hooks.example.com/gmai",
+        "timeout": 10,
+    }
 
 
 def test_webhook_adapter_health_check_raises_on_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_get(url: str, *, timeout: int, follow_redirects: bool):
+    def fake_request(
+        method: str,
+        url: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: int | float = 10,
+    ):
         raise RuntimeError("connection refused")
 
-    monkeypatch.setattr("httpx.get", fake_get)
+    monkeypatch.setattr(
+        "app.services.automation_connector.request_public_webhook",
+        fake_request,
+    )
 
     adapter = WebhookAdapter()
     config = _config({"url": "https://hooks.example.com/gmai"})
