@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core import db as db_module
-from app.models.domain import AgentRun, AgentRunStatus
+from app.models.domain import AgentRun, AgentRunStatus, AuditLog
 from app.models.runtime_economics import ProviderCallAllocation, ProviderCallAttempt
 from app.services.audit_log import record_audit
 from app.services.llm_client import LLMProvider, LLMProviderTransportError, LLMResponse
@@ -20,6 +20,8 @@ class RuntimeEconomicsError(RuntimeError):
 # Operational provider admission for admin-enrolled call allocations. This is
 # never a USD ceiling and does not retrospectively cancel admitted attempts.
 PROVIDER_BREAKER_FAILURE_THRESHOLD = 3
+REQUEST_OPERATION_FINISHED_ACTION = "provider_request_operation_finished"
+REQUEST_OPERATION_ENTITY_TYPE = "provider_request_operation"
 
 
 _FINISHED_RUN_STATUSES = (
@@ -37,62 +39,130 @@ def reconcile_stranded_provider_attempts(
     session: Session, *, hard_limit_seconds: int, grace_seconds: int = 60,
     limit: int = 100, now: datetime | None = None,
 ) -> dict:
-    """Close old AgentRun-linked attempts only after their execution has finished.
+    """Close stranded attempts only when their owning execution is durably finished.
 
-    Request-local calls lack a durable execution-end signal and remain untouched.
-    An interrupted attempt is unknown spend even if its AgentRun is cancelled.
+    AgentRun-linked attempts retain the hard-limit-plus-grace guard. Request-local
+    attempts require an explicit owner completion audit record; age alone never
+    closes them. Every reconciliation remains an unknown provider outcome and does
+    not release a call slot, classify a provider failure, or assert a refund/charge.
     """
-    if hard_limit_seconds <= 0:
-        return {"scanned": 0, "reconciled": 0, "stale_after_seconds": None}
-    stale_after_seconds = hard_limit_seconds + max(0, int(grace_seconds))
     observed_at = now or datetime.now(timezone.utc)
     if observed_at.tzinfo is None:
         observed_at = observed_at.replace(tzinfo=timezone.utc)
-    cutoff = observed_at - timedelta(seconds=stale_after_seconds)
-    candidates = session.exec(
-        select(ProviderCallAttempt)
-        .join(AgentRun, AgentRun.id == ProviderCallAttempt.agent_run_id)
-        .where(ProviderCallAttempt.status == "started")
-        .where(ProviderCallAttempt.started_at < cutoff)
-        .where(AgentRun.status.in_(_FINISHED_RUN_STATUSES))
-        .order_by(ProviderCallAttempt.started_at, ProviderCallAttempt.id)
-        .limit(max(1, min(int(limit), 500)))
-    ).all()
+    bounded_limit = max(1, min(int(limit), 500))
+
+    stale_after_seconds: int | None = None
+    agent_candidates: list[ProviderCallAttempt] = []
+    if hard_limit_seconds > 0:
+        stale_after_seconds = int(hard_limit_seconds) + max(0, int(grace_seconds))
+        cutoff = observed_at - timedelta(seconds=stale_after_seconds)
+        agent_candidates = session.exec(
+            select(ProviderCallAttempt)
+            .join(AgentRun, AgentRun.id == ProviderCallAttempt.agent_run_id)
+            .where(ProviderCallAttempt.status == "started")
+            .where(ProviderCallAttempt.started_at < cutoff)
+            .where(AgentRun.status.in_(_FINISHED_RUN_STATUSES))
+            .order_by(ProviderCallAttempt.started_at, ProviderCallAttempt.id)
+            .limit(bounded_limit)
+        ).all()
+
+    remaining = bounded_limit - len(agent_candidates)
+    request_candidates: list[tuple[ProviderCallAttempt, AuditLog]] = []
+    if remaining > 0:
+        request_rows = session.execute(
+            select(ProviderCallAttempt, AuditLog)
+            .join(AuditLog, AuditLog.entity_id == ProviderCallAttempt.operation_key)
+            .where(ProviderCallAttempt.status == "started")
+            .where(ProviderCallAttempt.agent_run_id.is_(None))
+            .where(AuditLog.entity_type == REQUEST_OPERATION_ENTITY_TYPE)
+            .where(AuditLog.action == REQUEST_OPERATION_FINISHED_ACTION)
+            .order_by(AuditLog.created_at, ProviderCallAttempt.id)
+            .limit(remaining)
+        ).all()
+        seen_attempts: set[UUID] = set()
+        for entry, finish_log in request_rows:
+            if entry.id in seen_attempts:
+                continue
+            seen_attempts.add(entry.id)
+            request_candidates.append((entry, finish_log))
+
     reconciled = 0
-    for entry in candidates:
-        # Compare and swap with the provider settlement, and recheck the run's
-        # terminal status. Only the winning transaction may emit audit evidence.
-        changed = session.execute(
+    candidates: list[tuple[ProviderCallAttempt, AuditLog | None]] = [
+        *((entry, None) for entry in agent_candidates),
+        *request_candidates,
+    ]
+    for entry, finish_log in candidates:
+        is_request_local = finish_log is not None
+        statement = (
             update(ProviderCallAttempt)
             .where(ProviderCallAttempt.id == entry.id)
             .where(ProviderCallAttempt.status == "started")
-            .where(ProviderCallAttempt.started_at < cutoff)
-            .where(
-                ProviderCallAttempt.agent_run_id.in_(
-                    select(AgentRun.id).where(AgentRun.status.in_(_FINISHED_RUN_STATUSES))
+        )
+        if is_request_local:
+            statement = statement.where(ProviderCallAttempt.agent_run_id.is_(None))
+        else:
+            if stale_after_seconds is None:
+                continue
+            cutoff = observed_at - timedelta(seconds=stale_after_seconds)
+            statement = (
+                statement
+                .where(ProviderCallAttempt.started_at < cutoff)
+                .where(
+                    ProviderCallAttempt.agent_run_id.in_(
+                        select(AgentRun.id).where(AgentRun.status.in_(_FINISHED_RUN_STATUSES))
+                    )
                 )
             )
+        changed = session.execute(
+            statement
             .values(status="outcome_unknown", settled_at=observed_at)
             .returning(ProviderCallAttempt.id)
         ).scalar_one_or_none()
         if changed is None:
             continue
+
+        after_state = {
+            "status": "outcome_unknown",
+            "provider": entry.provider,
+            "attempt_no": entry.attempt_no,
+            "cause_inferred": False,
+            "failure_class_inferred": False,
+            "billed_cost_known": False,
+            "call_slot_released": False,
+        }
+        if is_request_local:
+            after_state.update({
+                "operation_key": entry.operation_key,
+                "context_kind": entry.context_kind,
+                "execution_end_signal": REQUEST_OPERATION_FINISHED_ACTION,
+                "execution_end_signal_id": str(finish_log.id),
+                "execution_finished_at": finish_log.created_at,
+            })
+            reason = (
+                "Request-local owner recorded execution completion, but its provider attempt "
+                "was never settled."
+            )
+        else:
+            after_state.update({
+                "agent_run_id": str(entry.agent_run_id),
+                "stale_after_seconds": stale_after_seconds,
+                "execution_end_signal": "finished_agent_run",
+            })
+            reason = "Linked AgentRun finished, but its old provider attempt was never settled."
         record_audit(
             session, actor="worker", action="provider_attempt_stranded_reconciled",
             entity_type="provider_call_attempt", entity_id=str(entry.id),
-            after_state={
-                "status": "outcome_unknown", "agent_run_id": str(entry.agent_run_id),
-                "provider": entry.provider, "attempt_no": entry.attempt_no,
-                "cause_inferred": False, "billed_cost_known": False,
-                "stale_after_seconds": stale_after_seconds,
-            },
-            reason="Linked AgentRun finished, but its old provider attempt was never settled.",
+            after_state=after_state,
+            reason=reason,
             source="phase_16_provider_attempt_reconciliation",
         )
         session.commit()
         reconciled += 1
-    return {"scanned": len(candidates), "reconciled": reconciled,
-            "stale_after_seconds": stale_after_seconds}
+    return {
+        "scanned": len(agent_candidates) + len(request_candidates),
+        "reconciled": reconciled,
+        "stale_after_seconds": stale_after_seconds,
+    }
 
 
 def summarize_cost_evidence(session: Session) -> dict:
@@ -237,6 +307,55 @@ def reset_provider_circuit(
     session.commit()
     session.refresh(allocation)
     return allocation
+
+
+def mark_request_operation_finished(*, operation_key: str, context_kind: str) -> bool:
+    """Persist owner execution-end evidence without guessing the provider outcome.
+
+    False means the paid-call attempt did not exist (for example, admission failed
+    before a call row was created). Repeated marking is idempotent for the same
+    request-local attempt.
+    """
+    if not operation_key or not context_kind:
+        raise RuntimeEconomicsError("Request-local operation identity is required")
+    with Session(db_module.engine) as session:
+        attempt = session.exec(
+            select(ProviderCallAttempt).where(ProviderCallAttempt.operation_key == operation_key)
+        ).first()
+        if attempt is None:
+            return False
+        if attempt.agent_run_id is not None or attempt.context_kind != context_kind:
+            raise RuntimeEconomicsError("Request-local operation identity does not match provider attempt")
+        existing = session.exec(
+            select(AuditLog)
+            .where(AuditLog.entity_type == REQUEST_OPERATION_ENTITY_TYPE)
+            .where(AuditLog.entity_id == operation_key)
+            .where(AuditLog.action == REQUEST_OPERATION_FINISHED_ACTION)
+            .order_by(AuditLog.created_at.desc())
+        ).first()
+        if existing is not None:
+            return True
+        record_audit(
+            session,
+            actor="request_owner",
+            action=REQUEST_OPERATION_FINISHED_ACTION,
+            entity_type=REQUEST_OPERATION_ENTITY_TYPE,
+            entity_id=operation_key,
+            after_state={
+                "provider_call_attempt_id": str(attempt.id),
+                "operation_key": attempt.operation_key,
+                "context_kind": attempt.context_kind,
+                "provider": attempt.provider,
+                "provider_outcome_inferred": False,
+                "failure_class_inferred": False,
+                "billed_cost_known": False,
+                "call_slot_released": False,
+            },
+            reason="Owning request-local operation finished after the provider-call boundary.",
+            source="phase_16_request_local_completion",
+        )
+        session.commit()
+        return True
 
 
 def complete_recorded(
