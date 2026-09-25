@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`inspect why /debug is currently included in the public-path authentication policy, enumerate the actual debug-route payloads and production exposure, then select the smallest justified Phase 17 hardening without creating parallel identity/authority/security truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
+`inspect real external-tool invocation and untrusted-content crossings, then select the smallest enforceable Phase 17 control using existing identity, authority, permission and audit truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #198 — bounded authenticated session lifetime, merged as `b553d067160130b6b6b56bb710691697bc3bf8d0`. Existing signed application sessions are versioned and expire under one bounded TTL policy; old timeless cookies fail closed and require a fresh login.
+- PR #200 — admin-only debug-route access, merged as `cd4c444ea86033baab4f0b64244c3b10362a0ad0`. Existing auth policy protects debug payloads; public client and partner paths retain their existing access.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,7 +31,7 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
 3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the existing auth public-path rules and concrete `/debug` routes before changing exposure; keep public client/partner APIs distinct from debug surfaces.
+4. Inspect concrete external-tool calls and untrusted inputs before changing tool authority or execution; keep the existing human-review and audit boundaries intact.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
 
