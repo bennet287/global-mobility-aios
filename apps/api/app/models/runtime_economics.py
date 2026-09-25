@@ -27,10 +27,6 @@ class ProviderCallAttempt(SQLModel, table=True):
             "cost_basis IN ('unattributed','estimated','provider_billed')",
             name="ck_agent_run_provider_attempt_cost_basis",
         ),
-        CheckConstraint(
-            "operation_finished_at IS NULL OR agent_run_id IS NULL",
-            name="ck_provider_call_attempt_request_finish",
-        ),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -53,7 +49,6 @@ class ProviderCallAttempt(SQLModel, table=True):
     cost_basis: str = "unattributed"
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     settled_at: Optional[datetime] = None
-    operation_finished_at: Optional[datetime] = None
 
 
 # Preserve the Python import for existing Phase 16.3A readers and tests.
