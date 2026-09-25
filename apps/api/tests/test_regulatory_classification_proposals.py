@@ -170,6 +170,7 @@ def test_model_assisted_proposal_validates_citations_and_preserves_fallback(
 
 def test_model_prompt_treats_source_diff_as_untrusted_evidence(
     client: TestClient,
+    db_session: Session,
     monkeypatch,
 ) -> None:
     injection = (
@@ -212,7 +213,9 @@ def test_model_prompt_treats_source_diff_as_untrusted_evidence(
     assert generated.status_code == 201
     proposal = generated.json()["classification_proposal"]
     assert proposal["method"] == "model_assisted", proposal["fallback_reason"]
-    assert proposal["prompt_version"] == "regulatory-classifier-v2"
+    stored = db_session.get(RegulatoryClassificationProposal, UUID(proposal["id"]))
+    assert stored is not None
+    assert stored.prompt_version == "regulatory-classifier-v2"
 
     system_prompt = captured["system_prompt"]
     assert "untrusted evidence" in system_prompt.lower()
