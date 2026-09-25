@@ -5,6 +5,9 @@ from app.models.domain import (
     MobilityPathway,
     MobilityPathwayVersion,
 )
+from app.models.runtime_economics import ProviderCallAttempt
+from app.services import business_advisory as advisory_module
+from app.services.llm_client import LLMResponse
 from tests.conftest import create_document, create_lead
 
 
@@ -153,6 +156,59 @@ def test_advise_returns_solution_with_success_meter(client):
     assert "actions" in body["recommended_solution"]
     assert "disclaimer" in body
     assert "human_review_required" in body
+
+
+def test_advise_records_request_owner_completion(monkeypatch, client, db_session):
+    class Provider:
+        name = "deepseek"
+        default_model = "deepseek-chat"
+
+        def complete(self, **kwargs):
+            return LLMResponse(
+                content=(
+                    '{"summary":"Structured summary","strategic_memo":"Structured memo",'
+                    '"recommended_solution":{"strategy_key":"founder_startup",'
+                    '"title":"Founder route","success_meter":70,'
+                    '"rationale":"Matches the disclosed founder plan.",'
+                    '"actions":["Incorporate locally","Open banking","Prepare residence filing"],'
+                    '"estimated_timeline_months":12,'
+                    '"estimated_commitment":{"amount_minor":15000000,"currency":"EUR"},'
+                    '"risk_notes":[]},"alternative_options":[],'
+                    '"critical_factors":["Operating substance","Source of funds","Published pathway"],'
+                    '"overall_success_meter":70}'
+                ),
+                provider=self.name,
+                model=self.default_model,
+            )
+
+    monkeypatch.setattr(advisory_module, "is_llm_enabled", lambda: True)
+    monkeypatch.setattr(advisory_module.LLMProviderFactory, "get_provider", lambda: Provider())
+
+    response = client.post("/api/v1/business-mobility-advisory/advise", json=ADVISE_PAYLOAD)
+    assert response.status_code == 200, response.text
+
+    db_session.expire_all()
+    attempt = db_session.exec(
+        select(ProviderCallAttempt).where(
+            ProviderCallAttempt.context_kind == "business_advisory_request"
+        )
+    ).one()
+    assert attempt.operation_key is not None
+    assert attempt.operation_key.startswith("business_advisory_request:")
+    assert attempt.status == "observed"
+
+    completion = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.action == "provider_request_operation_finished")
+        .where(AuditLog.entity_type == "provider_request_operation")
+        .where(AuditLog.entity_id == attempt.operation_key)
+    ).one()
+    evidence = completion.after_state_json or ""
+    assert f'"provider_call_attempt_id": "{attempt.id}"' in evidence
+    assert '"context_kind": "business_advisory_request"' in evidence
+    assert '"provider_outcome_inferred": false' in evidence
+    assert '"billed_cost_known": false' in evidence
+    assert '"call_slot_released": false' in evidence
 
 
 def test_advise_grounds_solution_in_published_pathways(client, db_session):
