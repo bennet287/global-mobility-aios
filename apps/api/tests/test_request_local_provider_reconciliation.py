@@ -62,8 +62,8 @@ def test_request_owner_completion_reconciles_unknown_without_releasing_call_slot
     completion_logs = db_session.exec(
         select(AuditLog)
         .where(AuditLog.action == "provider_request_operation_finished")
-        .where(AuditLog.entity_type == "provider_call_attempt")
-        .where(AuditLog.entity_id == str(finished.id))
+        .where(AuditLog.entity_type == "provider_request_operation")
+        .where(AuditLog.entity_id == finished.operation_key)
     ).all()
     assert len(completion_logs) == 1
     assert finished.status == "started"
