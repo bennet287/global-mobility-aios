@@ -45,7 +45,7 @@ def _resolve_public_addresses(host: str, port: int) -> list[str]:
 def _pin_public_webhook_target(url: str) -> tuple[str, str, str]:
     try:
         parsed = urlsplit(url)
-        port = parsed.port or 443
+        parsed_port = parsed.port
     except ValueError as exc:
         raise WebhookEgressPolicyError("Webhook URL is malformed") from exc
 
@@ -55,6 +55,8 @@ def _pin_public_webhook_target(url: str) -> tuple[str, str, str]:
         raise WebhookEgressPolicyError("Webhook URL must not contain embedded credentials")
     if not parsed.hostname:
         raise WebhookEgressPolicyError("Webhook URL must include a hostname")
+
+    port = 443 if parsed_port is None else parsed_port
     if not 1 <= port <= 65535:
         raise WebhookEgressPolicyError("Webhook URL port is invalid")
 
