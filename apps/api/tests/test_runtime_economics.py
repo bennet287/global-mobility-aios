@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from concurrent.futures import ThreadPoolExecutor
@@ -11,7 +12,10 @@ from app.models.runtime_economics import AgentRunProviderAttempt, ProviderCallAl
 from app.schemas import ControlledAgentRunRequest
 from app.services.controlled_agents import run_controlled_agent
 from app.services.llm_client import LLMResponse
-from app.services.runtime_economics import RuntimeEconomicsError, complete_recorded
+from app.services.runtime_economics import (
+    RuntimeEconomicsError, _settle, complete_recorded, reconcile_stranded_provider_attempts,
+)
+from app.tasks.agent_tasks import reconcile_stale_agent_runs_task
 
 
 def test_cost_evidence_is_admin_only_and_empty_spend_is_unknown(client) -> None:
@@ -321,3 +325,81 @@ def test_simultaneous_calls_cannot_exceed_one_authorized_slot(db_session: Sessio
         release.set()
         first.result(timeout=5)
     assert len(db_session.exec(select(ProviderCallAttempt)).all()) == 1
+
+
+def test_reconciliation_requires_finished_agent_run_and_preserves_unknown_spend(
+    db_session: Session,
+) -> None:
+    now = datetime.now(timezone.utc)
+    old = (now - timedelta(seconds=361)).replace(tzinfo=None)
+    finished = AgentRun(agent_name="sales_summary_agent", task="Finished", status="failed")
+    active = AgentRun(agent_name="sales_summary_agent", task="Active", status="running")
+    db_session.add_all([finished, active])
+    db_session.commit()
+    # Keep the capacity reservation even if this attempt's vendor charge is unknown.
+    db_session.add(ProviderCallAllocation(
+        provider="deepseek", authorized_calls=1, used_calls=1,
+        authorized_by="admin", reason="One call",
+    ))
+    db_session.commit()
+    stranded = ProviderCallAttempt(
+        agent_run_id=finished.id, attempt_no=1, provider="deepseek", started_at=old,
+        allocation_provider="deepseek",
+    )
+    db_session.add_all([
+        stranded,
+        ProviderCallAttempt(agent_run_id=active.id, attempt_no=1,
+                            provider="gemini", started_at=old),
+        ProviderCallAttempt(operation_key="request:without-terminal-signal", attempt_no=1,
+                            provider="gemini", started_at=old),
+        ProviderCallAttempt(agent_run_id=finished.id, attempt_no=2,
+                            provider="moonshot", started_at=now.replace(tzinfo=None)),
+    ])
+    db_session.commit()
+
+    result = reconcile_stranded_provider_attempts(db_session, hard_limit_seconds=300, now=now)
+    assert result == {"scanned": 1, "reconciled": 1, "stale_after_seconds": 360}
+    db_session.refresh(stranded)
+    assert stranded.status == "outcome_unknown"
+    assert stranded.settled_at is not None
+    assert stranded.billed_cost_usd is None
+    assert stranded.cost_basis == "unattributed"
+    assert db_session.get(ProviderCallAllocation, "deepseek").used_calls == 1
+    assert len(db_session.exec(select(ProviderCallAttempt)
+               .where(ProviderCallAttempt.status == "started")).all()) == 3
+    assert reconcile_stranded_provider_attempts(
+        db_session, hard_limit_seconds=300, now=now,
+    )["reconciled"] == 0
+    log = db_session.exec(select(AuditLog)
+        .where(AuditLog.action == "provider_attempt_stranded_reconciled")).one()
+    assert log.entity_id == str(stranded.id)
+    assert '"cause_inferred": false' in (log.after_state_json or "")
+    assert '"billed_cost_known": false' in (log.after_state_json or "")
+
+    with pytest.raises(RuntimeEconomicsError, match="settlement identity was lost"):
+        _settle(stranded.id, LLMResponse(
+            content="late response", provider="deepseek", model="deepseek-chat",
+            total_tokens=5,
+        ))
+    db_session.refresh(stranded)
+    assert stranded.status == "outcome_unknown"
+    assert stranded.total_tokens is None
+
+
+def test_beat_reuses_agent_reconciliation_and_closes_old_terminal_attempt(
+    db_session: Session,
+) -> None:
+    run = AgentRun(agent_name="sales_summary_agent", task="Interrupted", status="failed")
+    db_session.add(run)
+    db_session.commit()
+    attempt = ProviderCallAttempt(
+        agent_run_id=run.id, attempt_no=1, provider="gemini",
+        started_at=datetime.now(timezone.utc) - timedelta(hours=1),
+    )
+    db_session.add(attempt)
+    db_session.commit()
+    result = reconcile_stale_agent_runs_task.run()
+    assert result["reconciled"] == 0
+    assert result["provider_attempts"]["reconciled"] == 1
+    db_session.refresh(attempt)
+    assert attempt.status == "outcome_unknown"

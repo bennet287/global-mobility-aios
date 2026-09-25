@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID, uuid4
 
@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core import db as db_module
+from app.models.domain import AgentRun, AgentRunStatus
 from app.models.runtime_economics import ProviderCallAllocation, ProviderCallAttempt
 from app.services.audit_log import record_audit
 from app.services.llm_client import LLMProvider, LLMResponse
@@ -14,6 +15,79 @@ from app.services.llm_client import LLMProvider, LLMResponse
 
 class RuntimeEconomicsError(RuntimeError):
     """A paid call must not proceed without durable accounting identity."""
+
+
+_FINISHED_RUN_STATUSES = (
+    AgentRunStatus.pending_review.value,
+    AgentRunStatus.completed.value,
+    AgentRunStatus.approved.value,
+    AgentRunStatus.rejected.value,
+    AgentRunStatus.converted.value,
+    AgentRunStatus.failed.value,
+    AgentRunStatus.cancelled.value,
+)
+
+
+def reconcile_stranded_provider_attempts(
+    session: Session, *, hard_limit_seconds: int, grace_seconds: int = 60,
+    limit: int = 100, now: datetime | None = None,
+) -> dict:
+    """Close old AgentRun-linked attempts only after their execution has finished.
+
+    Request-local calls lack a durable execution-end signal and remain untouched.
+    An interrupted attempt is unknown spend even if its AgentRun is cancelled.
+    """
+    if hard_limit_seconds <= 0:
+        return {"scanned": 0, "reconciled": 0, "stale_after_seconds": None}
+    stale_after_seconds = hard_limit_seconds + max(0, int(grace_seconds))
+    observed_at = now or datetime.now(timezone.utc)
+    if observed_at.tzinfo is None:
+        observed_at = observed_at.replace(tzinfo=timezone.utc)
+    cutoff = observed_at - timedelta(seconds=stale_after_seconds)
+    candidates = session.exec(
+        select(ProviderCallAttempt)
+        .join(AgentRun, AgentRun.id == ProviderCallAttempt.agent_run_id)
+        .where(ProviderCallAttempt.status == "started")
+        .where(ProviderCallAttempt.started_at < cutoff)
+        .where(AgentRun.status.in_(_FINISHED_RUN_STATUSES))
+        .order_by(ProviderCallAttempt.started_at, ProviderCallAttempt.id)
+        .limit(max(1, min(int(limit), 500)))
+    ).all()
+    reconciled = 0
+    for entry in candidates:
+        # Compare and swap with the provider settlement, and recheck the run's
+        # terminal status. Only the winning transaction may emit audit evidence.
+        changed = session.execute(
+            update(ProviderCallAttempt)
+            .where(ProviderCallAttempt.id == entry.id)
+            .where(ProviderCallAttempt.status == "started")
+            .where(ProviderCallAttempt.started_at < cutoff)
+            .where(
+                ProviderCallAttempt.agent_run_id.in_(
+                    select(AgentRun.id).where(AgentRun.status.in_(_FINISHED_RUN_STATUSES))
+                )
+            )
+            .values(status="outcome_unknown", settled_at=observed_at)
+            .returning(ProviderCallAttempt.id)
+        ).scalar_one_or_none()
+        if changed is None:
+            continue
+        record_audit(
+            session, actor="worker", action="provider_attempt_stranded_reconciled",
+            entity_type="provider_call_attempt", entity_id=str(entry.id),
+            after_state={
+                "status": "outcome_unknown", "agent_run_id": str(entry.agent_run_id),
+                "provider": entry.provider, "attempt_no": entry.attempt_no,
+                "cause_inferred": False, "billed_cost_known": False,
+                "stale_after_seconds": stale_after_seconds,
+            },
+            reason="Linked AgentRun finished, but its old provider attempt was never settled.",
+            source="phase_16_provider_attempt_reconciliation",
+        )
+        session.commit()
+        reconciled += 1
+    return {"scanned": len(candidates), "reconciled": reconciled,
+            "stale_after_seconds": stale_after_seconds}
 
 
 def summarize_cost_evidence(session: Session) -> dict:
@@ -203,28 +277,35 @@ def complete_recorded(
 
 def _settle(entry_id: UUID, response: LLMResponse | None) -> None:
     with Session(db_module.engine) as session:
-        entry = session.get(ProviderCallAttempt, entry_id)
-        if entry is None or entry.status != "started":
-            raise RuntimeEconomicsError("Provider attempt settlement identity was lost")
-        entry.settled_at = datetime.now(timezone.utc)
+        values = {"settled_at": datetime.now(timezone.utc)}
         if response is None:
-            entry.status = "outcome_unknown"
+            values["status"] = "outcome_unknown"
         else:
-            entry.status = "observed"
-            entry.provider = response.provider
-            entry.model = response.model
-            entry.prompt_tokens = response.prompt_tokens
-            entry.completion_tokens = response.completion_tokens
-            entry.total_tokens = response.total_tokens
+            values.update(
+                status="observed", provider=response.provider, model=response.model,
+                prompt_tokens=response.prompt_tokens,
+                completion_tokens=response.completion_tokens,
+                total_tokens=response.total_tokens,
+            )
             response_id = response.provider_response_id
             if isinstance(response_id, str) and 0 < len(response_id.strip()) <= 255:
-                entry.provider_response_id = response_id.strip()
+                values["provider_response_id"] = response_id.strip()
             if response.estimated_cost_usd is not None:
-                entry.estimated_cost_usd = Decimal(str(response.estimated_cost_usd))
-                entry.cost_basis = "estimated"
+                values["estimated_cost_usd"] = Decimal(str(response.estimated_cost_usd))
+                values["cost_basis"] = "estimated"
             # Current adapters expose no authoritative billed amount. NULL is not zero.
-        session.add(entry)
         try:
+            changed = session.execute(
+                update(ProviderCallAttempt)
+                .where(ProviderCallAttempt.id == entry_id)
+                .where(ProviderCallAttempt.status == "started")
+                .values(**values)
+                .returning(ProviderCallAttempt.id)
+            ).scalar_one_or_none()
+            if changed is None:
+                raise RuntimeEconomicsError("Provider attempt settlement identity was lost")
             session.commit()
+        except RuntimeEconomicsError:
+            raise
         except Exception as exc:
             raise RuntimeEconomicsError("Could not settle provider attempt") from exc

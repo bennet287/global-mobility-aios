@@ -28,6 +28,7 @@ from app.services.llm_client import (
     LLMProviderResponseContractError,
     LLMProviderTransportError,
 )
+from app.services.runtime_economics import reconcile_stranded_provider_attempts
 
 
 DEFAULT_STALE_AGENT_RUN_GRACE_SECONDS = 60
@@ -265,11 +266,18 @@ def reconcile_stale_agent_runs_task(
 ) -> dict:
     """Fail closed stranded running runs and finalize stale cancellation requests."""
     with Session(db_module.engine) as session:
-        return reconcile_stale_agent_runs(
+        run_result = reconcile_stale_agent_runs(
             session,
             limit=limit,
             grace_seconds=grace_seconds,
         )
+        provider_result = reconcile_stranded_provider_attempts(
+            session,
+            hard_limit_seconds=int(celery_app.conf.task_time_limit or 0),
+            grace_seconds=grace_seconds,
+            limit=limit,
+        )
+        return {**run_result, "provider_attempts": provider_result}
 
 
 def reconcile_stale_agent_runs(
