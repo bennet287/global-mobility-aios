@@ -38,6 +38,25 @@ def test_debug_routes_require_admin_without_exposing_configuration(raw_client: T
     assert raw_client.get("/debug/document-uploads").status_code == 200
 
 
+def test_connector_credentials_and_health_checks_require_admin(raw_client: TestClient) -> None:
+    config_id = uuid.uuid4()
+    raw_client.headers.update({"X-GMAI-Role": "operator", "X-GMAI-User": "operator"})
+    for path in (
+        "/api/v1/automation/connectors",
+        f"/api/v1/automation/connectors/{config_id}/status",
+        f"/api/v1/automation/connectors/{config_id}/health-check",
+    ):
+        blocked = raw_client.post(path, json={})
+        assert blocked.status_code == 403
+        assert blocked.json()["allowed_roles"] == ["admin"]
+
+    # Operators still dispatch an already-governed delivery through its existing gate.
+    assert raw_client.post(f"/api/v1/automation/deliveries/{uuid.uuid4()}/dispatch").status_code == 404
+
+    raw_client.headers.update({"X-GMAI-Role": "admin", "X-GMAI-User": "admin"})
+    assert raw_client.post("/api/v1/automation/connectors", json={}).status_code == 422
+
+
 def test_admin_page_redirects_to_login_without_auth(raw_client: TestClient) -> None:
     response = raw_client.get("/admin/v2", follow_redirects=False)
     assert response.status_code == 303
