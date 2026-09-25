@@ -159,6 +159,11 @@ AUTH_RULES: tuple[PathRoleRule, ...] = (
         contains=("/decision",),
     ),
     PathRoleRule(
+        roles=frozenset({"admin"}),
+        prefixes=("/api/v1/automation/connectors",),
+        methods=frozenset({"POST"}),
+    ),
+    PathRoleRule(
         roles=frozenset({"admin", "operator"}),
         prefixes=("/api/v1/automation",),
     ),
