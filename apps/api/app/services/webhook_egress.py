@@ -111,16 +111,16 @@ def request_public_webhook(
     pinned_url, host_header, sni_hostname = _pin_public_webhook_target(url)
     request_headers = dict(headers or {})
     request_headers["Host"] = host_header
-    request = httpx.Request(
-        method.upper(),
-        pinned_url,
-        content=content,
-        headers=request_headers,
-        extensions={"sni_hostname": sni_hostname},
-    )
     with httpx.Client(
         timeout=timeout,
         follow_redirects=False,
         trust_env=False,
     ) as client:
-        return client.send(request, follow_redirects=False)
+        return client.request(
+            method.upper(),
+            pinned_url,
+            content=content,
+            headers=request_headers,
+            extensions={"sni_hostname": sni_hostname},
+            follow_redirects=False,
+        )
