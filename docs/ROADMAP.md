@@ -674,7 +674,7 @@ Controls that prevent failure must not become a second source of operational fai
 | Notifications | Owner/reviewer alert fatigue | aggregate, rank, deduplicate and suppress redundant alerts while preserving critical escalation |
 | Multi-agent consensus | routine work waits for unnecessary agreement | consensus/review only when risk/evidence policy justifies it; model agreement is never authority |
 | Bottleneck optimization | system scales guessed constraint | measure end-to-end lead time: queue + governance + dependency + provider + execution + reconciliation; scale measured constraint |
-| Successful throughput | easy work crowds out important difficult work | balance priority, consequence, deadline, aging/fairness, expected value and capacity; raw throughput is not success |
+| Successful throughput | easy work crowds out important difficult work | balance priority, consequence, deadline, aging, expected value and capacity; raw throughput is not success |
 
 **Fast-path invariant:** work admitted -> valid reusable competency/authority/permission/budget context -> capacity-aware assignment -> execute inside bounded envelope -> proportionate telemetry/evidence -> exception only when necessary -> asynchronous outcome/economic attribution.
 
