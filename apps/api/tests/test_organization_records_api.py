@@ -849,8 +849,9 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
     assert "0086_provider_call_attempt_coverage.py" in migration_names
     assert "0087_provider_call_capacity.py" in migration_names
     assert "0088_provider_response_identity.py" in migration_names
+    assert "0089_provider_circuit_breaker.py" in migration_names
     assert not any(
-        name[:4].isdigit() and int(name[:4]) > 88
+        name[:4].isdigit() and int(name[:4]) > 89
         for name in migration_names
     )
     migration_text = (repo_root / "apps/api/alembic/versions/0074_durable_contribution_activity_model.py").read_text(encoding="utf-8")
