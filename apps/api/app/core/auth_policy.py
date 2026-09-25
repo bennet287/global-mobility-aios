@@ -13,7 +13,6 @@ PUBLIC_PREFIXES = (
     "/auth",
     "/docs",
     "/redoc",
-    "/debug",
     "/api/v1/public",
     "/api/public/v1",
     "/api/partner/v1",
@@ -59,6 +58,7 @@ class PathRoleRule:
 
 
 AUTH_RULES: tuple[PathRoleRule, ...] = (
+    PathRoleRule(roles=frozenset({"admin"}), prefixes=("/debug",)),
     PathRoleRule(
         roles=frozenset({"admin", "operator", "reviewer"}),
         prefixes=("/api/v1/pathways",),
