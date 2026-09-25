@@ -21,6 +21,7 @@ class RuntimeEconomicsError(RuntimeError):
 # never a USD ceiling and does not retrospectively cancel admitted attempts.
 PROVIDER_BREAKER_FAILURE_THRESHOLD = 3
 REQUEST_OPERATION_FINISHED_ACTION = "provider_request_operation_finished"
+REQUEST_OPERATION_ENTITY_TYPE = "provider_request_operation"
 
 
 _FINISHED_RUN_STATUSES = (
@@ -68,29 +69,21 @@ def reconcile_stranded_provider_attempts(
     remaining = bounded_limit - len(agent_candidates)
     request_candidates: list[tuple[ProviderCallAttempt, AuditLog]] = []
     if remaining > 0:
-        # AuditLog is already the canonical durable evidence boundary. Scan a
-        # bounded completion window and keep only still-started request attempts.
-        finish_logs = session.exec(
-            select(AuditLog)
-            .where(AuditLog.entity_type == "provider_call_attempt")
+        request_rows = session.execute(
+            select(ProviderCallAttempt, AuditLog)
+            .join(AuditLog, AuditLog.entity_id == ProviderCallAttempt.operation_key)
+            .where(ProviderCallAttempt.status == "started")
+            .where(ProviderCallAttempt.agent_run_id.is_(None))
+            .where(AuditLog.entity_type == REQUEST_OPERATION_ENTITY_TYPE)
             .where(AuditLog.action == REQUEST_OPERATION_FINISHED_ACTION)
-            .order_by(AuditLog.created_at, AuditLog.id)
-            .limit(min(500, max(remaining, remaining * 5)))
+            .order_by(AuditLog.created_at, ProviderCallAttempt.id)
+            .limit(remaining)
         ).all()
         seen_attempts: set[UUID] = set()
-        for finish_log in finish_logs:
-            if len(request_candidates) >= remaining:
-                break
-            try:
-                attempt_id = UUID(str(finish_log.entity_id))
-            except (TypeError, ValueError):
+        for entry, finish_log in request_rows:
+            if entry.id in seen_attempts:
                 continue
-            if attempt_id in seen_attempts:
-                continue
-            seen_attempts.add(attempt_id)
-            entry = session.get(ProviderCallAttempt, attempt_id)
-            if entry is None or entry.status != "started" or entry.agent_run_id is not None:
-                continue
+            seen_attempts.add(entry.id)
             request_candidates.append((entry, finish_log))
 
     reconciled = 0
@@ -335,8 +328,8 @@ def mark_request_operation_finished(*, operation_key: str, context_kind: str) ->
             raise RuntimeEconomicsError("Request-local operation identity does not match provider attempt")
         existing = session.exec(
             select(AuditLog)
-            .where(AuditLog.entity_type == "provider_call_attempt")
-            .where(AuditLog.entity_id == str(attempt.id))
+            .where(AuditLog.entity_type == REQUEST_OPERATION_ENTITY_TYPE)
+            .where(AuditLog.entity_id == operation_key)
             .where(AuditLog.action == REQUEST_OPERATION_FINISHED_ACTION)
             .order_by(AuditLog.created_at.desc())
         ).first()
@@ -346,9 +339,10 @@ def mark_request_operation_finished(*, operation_key: str, context_kind: str) ->
             session,
             actor="request_owner",
             action=REQUEST_OPERATION_FINISHED_ACTION,
-            entity_type="provider_call_attempt",
-            entity_id=str(attempt.id),
+            entity_type=REQUEST_OPERATION_ENTITY_TYPE,
+            entity_id=operation_key,
             after_state={
+                "provider_call_attempt_id": str(attempt.id),
                 "operation_key": attempt.operation_key,
                 "context_kind": attempt.context_kind,
                 "provider": attempt.provider,
