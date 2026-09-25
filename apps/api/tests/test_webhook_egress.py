@@ -29,6 +29,11 @@ def test_webhook_egress_rejects_embedded_credentials() -> None:
         _pin_public_webhook_target("https://user:secret@hooks.example.com/event")
 
 
+def test_webhook_egress_rejects_zero_port() -> None:
+    with pytest.raises(WebhookEgressPolicyError, match="port is invalid"):
+        _pin_public_webhook_target("https://hooks.example.com:0/event")
+
+
 @pytest.mark.parametrize(
     "address",
     [
