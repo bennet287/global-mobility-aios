@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`Inspect the next concrete Phase 17 agent tool-invocation or skill/tool provenance boundary. The governed allowed_tools intersection exists in the runtime binding, but current inspected execution paths expose no agent tool_id/action dispatch API to enforce it. Introduce a bounded check only at a real executable seam; keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
+`Inspect remaining Phase 17 provenance, adversarial, and incident-response boundaries for a concrete gap. Phase 17H now checks the existing native-skill content fingerprint at validation and candidate selection; it grants no tool authority. The inspected agent runtimes still expose no tool_id/action dispatch API consuming the governed allowed_tools binding. Keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #210 — in-house consultant prompt trust boundary, merged as `1c7fd864f9c6d84339b3d4b651dfe2e819ab32a2`. The operator message, recent conversation, lead records, and UI lead hint remain in the lower-trust provider user envelope; trusted role/output instructions and existing validation, accounting, and owner-completion boundaries remain intact. Earlier Phase 17D–17F prompt boundaries are sealed by PR #206–#208.
+- PR #213 — native-skill content integrity, merged as `c551647864b167e0c33ef3b8b53211cea92d6d77`. Native validation and candidate/applicability selection now reject stored contract drift against the existing fingerprint; the human-admin assignment path inherits denial. This hash is not a signature or tool permission. The earlier consultant prompt boundary remains sealed by PR #210.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,7 +31,7 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
 3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the actual runtime router, skill, and external-action paths on the verified live base for a concrete tool invocation seam. `organization_agent_runtime.py` derives a binding allowance, while the current Austria live provider profile has no tools and the controlled-agent model call has no tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer an agent authorization boundary from a diagnostic binding alone.
+4. Inspect the next actual provenance, adversarial, or incident-response boundary on the verified live base. The native-skill fingerprint check is sealed; `organization_agent_runtime.py` still derives a binding allowance without a current agent tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer authorization from diagnostic evidence alone.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
 
