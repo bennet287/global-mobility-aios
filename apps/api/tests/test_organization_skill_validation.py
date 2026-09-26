@@ -8,6 +8,7 @@ from sqlmodel import select
 
 from app.models.domain import OrganizationPosition
 from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
+from app.services.organization_skill_lifecycle import native_skill_content_sha256
 from app.services.organization_skill_registry import (
     NATIVE_SKILL_VALIDATOR,
     validate_native_skill_contract,
@@ -19,13 +20,13 @@ def _sha(value: str) -> str:
 
 
 def _native_skill() -> OrganizationSkill:
-    return OrganizationSkill(
+    skill = OrganizationSkill(
         skill_key="regulatory.source.validation",
         name="Regulatory Source Validation",
         capability_family="regulatory_evidence",
         description="Validate structured regulatory source evidence.",
         origin="native",
-        content_sha256=_sha("regulatory-source-validation-v1"),
+        content_sha256=_sha("temporary-test-fixture"),
         compatible_departments_json='["regulatory"]',
         compatible_position_keys_json='["regulatory.reviewer"]',
         tool_requirements_json='["official_source_reader"]',
@@ -36,6 +37,8 @@ def _native_skill() -> OrganizationSkill:
         validation_status="unvalidated",
         created_by="pytest",
     )
+    skill.content_sha256 = native_skill_content_sha256(skill)
+    return skill
 
 
 def test_native_skill_validation_persists_deterministic_contract_summary(db_session) -> None:
@@ -57,6 +60,7 @@ def test_native_skill_validation_persists_deterministic_contract_summary(db_sess
     assert summary["content_sha256"] == skill.content_sha256
     assert summary["failures"] == []
     assert "content_sha256:valid" in summary["checks"]
+    assert "content_sha256:matches_contract" in summary["checks"]
     first_summary = skill.validation_summary_json
 
     second = validate_native_skill_contract(db_session, skill_id=skill.id)
@@ -87,6 +91,26 @@ def test_native_skill_validation_fails_closed_for_malformed_contract(db_session)
     assert "input_schema_json:invalid" in result.failures
     summary = json.loads(skill.validation_summary_json)
     assert summary["failures"] == sorted(result.failures)
+
+
+def test_validation_rejects_well_formed_fingerprint_after_native_contract_drift(db_session) -> None:
+    skill = _native_skill()
+    db_session.add(skill)
+    db_session.commit()
+    original_hash = skill.content_sha256
+
+    skill.description = "Changed without creating a new skill version."
+    db_session.add(skill)
+    db_session.commit()
+
+    result = validate_native_skill_contract(db_session, skill_id=skill.id)
+    db_session.commit()
+    db_session.refresh(skill)
+
+    assert result.passed is False
+    assert "content_sha256:contract_mismatch" in result.failures
+    assert skill.validation_status == "failed"
+    assert skill.content_sha256 == original_hash
 
 
 @pytest.mark.parametrize("origin", ["imported", "learned"])

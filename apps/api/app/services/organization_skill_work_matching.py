@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 
 from app.models.domain import OrganizationPosition, OrganizationalWorkItem
 from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
+from app.services.organization_skill_lifecycle import native_skill_content_matches
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,8 @@ def _string_list_or_none(raw: str) -> tuple[str, ...] | None:
 
 
 def _is_candidate_compatible(skill: OrganizationSkill, position: OrganizationPosition) -> bool:
+    if skill.origin != "native" or not native_skill_content_matches(skill):
+        return False
     departments = _string_list_or_none(skill.compatible_departments_json)
     position_keys = _string_list_or_none(skill.compatible_position_keys_json)
     required_tools = _string_list_or_none(skill.tool_requirements_json)

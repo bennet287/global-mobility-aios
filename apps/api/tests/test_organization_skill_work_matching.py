@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from app.models.domain import OrganizationPosition, OrganizationalWorkItem
 from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
+from app.services.organization_skill_lifecycle import native_skill_content_sha256
 from app.services.organization_skill_work_matching import find_skill_work_candidates
 
 
@@ -33,7 +34,7 @@ def _skill(
     tool_requirements_json: str = "[]",
     permission_requirements_json: str = "[]",
 ) -> OrganizationSkill:
-    return OrganizationSkill(
+    skill = OrganizationSkill(
         skill_key=key,
         name=key,
         capability_family=family,
@@ -47,6 +48,10 @@ def _skill(
         permission_requirements_json=permission_requirements_json,
         created_by="pytest",
     )
+    fingerprint = native_skill_content_sha256(skill)
+    if fingerprint is not None:
+        skill.content_sha256 = fingerprint
+    return skill
 
 
 def _work() -> OrganizationalWorkItem:
@@ -194,6 +199,30 @@ def test_matching_does_not_mutate_work_assignment_or_position_authority(db_sessi
     db_session.refresh(position)
     assert work.assigned_position_key == original_assignment
     assert position.authority_level == original_authority
+
+
+def test_matching_excludes_a_passed_skill_if_stored_contract_changes(db_session) -> None:
+    work = _work()
+    position = _position(key="regulatory_reviewer")
+    skill = _skill(key="regulatory.source.review", family="regulatory_evidence")
+    db_session.add_all([work, position, skill])
+    db_session.flush()
+    _bind(db_session, position, skill)
+    db_session.commit()
+
+    assert len(find_skill_work_candidates(
+        db_session, work_item=work, capability_family="regulatory_evidence"
+    ).candidates) == 1
+
+    skill.description = "Drifted after validation without a successor version."
+    db_session.add(skill)
+    db_session.commit()
+
+    result = find_skill_work_candidates(
+        db_session, work_item=work, capability_family="regulatory_evidence"
+    )
+    assert result.candidates == ()
+    assert skill.validation_status == "passed"
 
 
 def test_matching_requires_explicit_capability_family(db_session) -> None:

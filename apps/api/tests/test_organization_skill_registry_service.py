@@ -6,6 +6,7 @@ import pytest
 
 from app.models.domain import OrganizationPosition
 from app.models.skill_registry import OrganizationSkill
+from app.services.organization_skill_lifecycle import native_skill_content_sha256
 from app.services.organization_skill_registry import (
     bind_skill_to_position,
     evaluate_skill_applicability,
@@ -27,7 +28,7 @@ def _position() -> OrganizationPosition:
 
 
 def _skill() -> OrganizationSkill:
-    return OrganizationSkill(
+    skill = OrganizationSkill(
         skill_key="regulatory.source.review",
         name="Regulatory Source Review",
         capability_family="regulatory_evidence",
@@ -40,6 +41,8 @@ def _skill() -> OrganizationSkill:
         validation_status="passed",
         created_by="pytest",
     )
+    skill.content_sha256 = native_skill_content_sha256(skill)
+    return skill
 
 
 def test_applicability_requires_declared_tools_and_permissions_without_granting_them() -> None:
@@ -63,6 +66,16 @@ def test_applicability_requires_declared_tools_and_permissions_without_granting_
     assert ready.applicable is True
     assert ready.reasons == ()
     assert position.authority_level == "A3"
+
+    skill.description = "Changed after the saved validation."
+    drifted = evaluate_skill_applicability(
+        skill=skill,
+        position=position,
+        available_tools=["official_source_reader"],
+        available_permissions=["regulatory.source.read"],
+    )
+    assert drifted.applicable is False
+    assert "skill_content_mismatch" in drifted.reasons
 
 
 def test_applicability_is_fail_closed_for_unvalidated_incompatible_or_malformed_skill() -> None:

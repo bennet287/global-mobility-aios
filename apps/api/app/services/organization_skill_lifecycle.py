@@ -59,6 +59,52 @@ def _json(value: object) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+def native_skill_content_sha256(skill: OrganizationSkill) -> str | None:
+    """Recompute a native skill's creation-time fingerprint from stored fields."""
+    if skill.origin != "native":
+        return None
+    try:
+        contract = {
+            "skill_key": skill.skill_key,
+            "name": skill.name,
+            "capability_family": skill.capability_family,
+            "description": skill.description,
+            "compatible_departments": json.loads(skill.compatible_departments_json),
+            "compatible_position_keys": json.loads(skill.compatible_position_keys_json),
+            "tool_requirements": json.loads(skill.tool_requirements_json),
+            "permission_requirements": json.loads(skill.permission_requirements_json),
+            "input_schema": json.loads(skill.input_schema_json),
+            "output_schema": json.loads(skill.output_schema_json),
+            "evidence_expectations": json.loads(skill.evidence_expectations_json),
+        }
+        list_keys = (
+            "compatible_departments", "compatible_position_keys", "tool_requirements",
+            "permission_requirements", "evidence_expectations",
+        )
+        if any(
+            not isinstance(contract[key], list)
+            or any(not isinstance(item, str) or not item for item in contract[key])
+            for key in list_keys
+        ):
+            return None
+        if not isinstance(contract["input_schema"], dict) or not isinstance(contract["output_schema"], dict):
+            return None
+        if any(
+            not isinstance(contract[key], str) or not contract[key].strip()
+            for key in ("skill_key", "name", "capability_family", "description")
+        ):
+            return None
+        return hashlib.sha256(_json(contract).encode("utf-8")).hexdigest()
+    except (TypeError, ValueError):
+        return None
+
+
+def native_skill_content_matches(skill: OrganizationSkill) -> bool:
+    """Detect contract drift; a matching hash is not a signature or authority grant."""
+    actual = native_skill_content_sha256(skill)
+    return actual is not None and skill.content_sha256 == actual
+
+
 def _build_skill(*, contract: dict, version: int, actor: str, supersedes_skill_id: UUID | None = None) -> OrganizationSkill:
     serialized = _json(contract)
     return OrganizationSkill(
