@@ -9,9 +9,10 @@ from sqlmodel import Session, select
 
 from app.models.domain import OrganizationPosition, now_utc
 from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
+from app.services.organization_skill_lifecycle import native_skill_content_matches
 
 
-NATIVE_SKILL_VALIDATOR = "native_skill_contract_v1"
+NATIVE_SKILL_VALIDATOR = "native_skill_contract_v2"
 
 
 @dataclass(frozen=True)
@@ -186,6 +187,12 @@ def validate_native_skill_contract(
         else:
             checks.append(f"{field_name}:valid")
 
+    if "content_sha256:valid" in checks:
+        if native_skill_content_matches(skill):
+            checks.append("content_sha256:matches_contract")
+        else:
+            failures.append("content_sha256:contract_mismatch")
+
     passed = not failures
     summary = {
         "validator": NATIVE_SKILL_VALIDATOR,
@@ -222,6 +229,8 @@ def evaluate_skill_applicability(
         reasons.append("skill_not_active")
     if skill.validation_status != "passed":
         reasons.append("skill_not_validated")
+    if skill.origin == "native" and not native_skill_content_matches(skill):
+        reasons.append("skill_content_mismatch")
     if position.status != "active":
         reasons.append("position_not_active")
 

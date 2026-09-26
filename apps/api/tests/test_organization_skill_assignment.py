@@ -3,10 +3,12 @@ from __future__ import annotations
 import hashlib
 
 import pytest
+from sqlmodel import select
 
 from app.models.domain import OrganizationPosition, OrganizationalWorkItem
 from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
 from app.services.organization_command import AuthorityDenied, OrganizationCommandContext
+from app.services.organization_skill_lifecycle import native_skill_content_sha256
 from app.services.organization_skill_assignment import (
     SkillAssignmentDenied,
     assign_skill_candidate_to_work,
@@ -55,7 +57,7 @@ def _position(key: str) -> OrganizationPosition:
 
 
 def _skill(*, requirements: str = "[]") -> OrganizationSkill:
-    return OrganizationSkill(
+    skill = OrganizationSkill(
         skill_key="regulatory.source.review",
         name="Regulatory source review",
         capability_family="regulatory_evidence",
@@ -66,6 +68,8 @@ def _skill(*, requirements: str = "[]") -> OrganizationSkill:
         tool_requirements_json=requirements,
         created_by="pytest",
     )
+    skill.content_sha256 = native_skill_content_sha256(skill)
+    return skill
 
 
 def _seed_candidate(db_session, *, requirements: str = "[]"):
@@ -150,6 +154,27 @@ def test_unresolved_skill_prerequisites_cannot_be_human_overridden_by_this_gate(
             assigned_position_key=position.position_key,
             capability_family="regulatory_evidence",
             reason="Human approval cannot fabricate tool entitlement.",
+        )
+
+    db_session.refresh(work)
+    assert work.assigned_position_key == "unassigned"
+
+
+def test_human_assignment_rejects_drifted_native_skill_contract(db_session) -> None:
+    work, position = _seed_candidate(db_session)
+    skill = db_session.exec(select(OrganizationSkill)).one()
+    skill.description = "Changed after its stored fingerprint was recorded."
+    db_session.add(skill)
+    db_session.commit()
+
+    with pytest.raises(SkillAssignmentDenied, match="not an eligible validated skill candidate"):
+        assign_skill_candidate_to_work(
+            db_session,
+            _context(),
+            work_item_id=work.id,
+            assigned_position_key=position.position_key,
+            capability_family="regulatory_evidence",
+            reason="A validated flag alone is insufficient.",
         )
 
     db_session.refresh(work)

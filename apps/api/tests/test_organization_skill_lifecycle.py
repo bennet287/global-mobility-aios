@@ -9,6 +9,7 @@ from app.services.organization_skill_lifecycle import (
     create_native_skill,
     create_native_skill_version,
     deprecate_native_skill,
+    native_skill_content_matches,
 )
 from app.services.organization_skill_registry import bind_skill_to_position
 
@@ -39,6 +40,7 @@ def test_native_skill_creation_is_deterministic_and_unvalidated(db_session) -> N
     assert first.status == "active"
     assert first.validation_status == "unvalidated"
     assert len(first.content_sha256) == 64
+    assert native_skill_content_matches(first) is True
 
     duplicate = _definition()
     try:
@@ -73,6 +75,7 @@ def test_new_version_supersedes_exact_active_version_without_inheriting_validati
     assert successor.status == "active"
     assert successor.validation_status == "unvalidated"
     assert successor.content_sha256 != first.content_sha256
+    assert native_skill_content_matches(successor) is True
 
 
 def test_deprecation_disables_bindings_but_never_changes_position_authority(db_session) -> None:
