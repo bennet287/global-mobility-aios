@@ -2,7 +2,7 @@
 
 **Purpose:** minimal cold-start recovery pointer. This file must not duplicate project history, architecture, roadmap sequencing, or CI ledgers.
 
-**Last reconciled:** 2026-09-25
+**Last reconciled:** 2026-09-26
 
 ## Resume coordinates
 
@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`inspect remaining webhook destination and connection-time address control and untrusted-content crossings, then select the smallest enforceable Phase 17 control using existing identity, authority, permission and audit truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
+`Phase 17G — harden the existing in-house consultant provider boundary. Keep role-card instructions and the output contract trusted; treat the operator message, recent conversation, lead records, and UI lead hint as lower-trust evidence; add an adversarial provider-boundary regression. Reuse existing consultant/runtime, registry/lead validation, provider-accounting, and request-owner completion truth. Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification remain separate open prerequisites.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #203 — admin-only automation connector control, merged as `ae94753d4f82182b02553a625938c054499ea0be`. Existing auth policy now protects connector creation, status changes and active health checks; operator delivery dispatch retains its existing gate. Destination and connection-time address safety remain open.
+- PR #208 — controlled-agent prompt trust boundary, merged as `61af5338f086321d2c739296496d86c1ffc633b3`. Role-card instructions and the canonical output contract remain trusted; the provider user envelope now carries only `operator_task` plus `untrusted_context`, and adversarial regression proves lower-trust context cannot replace system authority. Phase 17C webhook egress is also sealed by PR #205, Phase 17D regulatory-classifier prompt separation by PR #206, and Phase 17E business-advisory prompt separation by PR #207.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,7 +31,7 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
 3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect concrete external-tool calls and untrusted inputs before changing tool authority or execution; keep the existing human-review and audit boundaries intact.
+4. For Phase 17G, inspect `apps/api/app/services/inhouse_consultant.py` and `apps/api/tests/test_inhouse_consultant.py` from the verified live base. Preserve the current system/user provider primitive, deterministic fallback, controlled-agent registry validation, lead validation, provider accounting, and existing request-owner completion evidence; do not create a parallel security state or prompt system.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
 
