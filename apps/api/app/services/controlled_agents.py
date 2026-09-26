@@ -15,7 +15,7 @@ from app.services.audit_log import record_audit
 from app.services.eligibility_coach import evaluate_eligibility_output
 from app.services.eligibility_engine import evaluate_lead_eligibility
 from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
-from app.services.role_card_loader import build_system_prompt, get_agent_output_schema
+from app.services.role_card_loader import build_system_prompt
 from app.services.runtime_economics import RuntimeEconomicsError, complete_recorded
 
 
@@ -1886,13 +1886,11 @@ def _llm_agent_handler(
     try:
         system_prompt = build_system_prompt(resolved_name)
         provider = LLMProviderFactory.get_provider()
-        schema = get_agent_output_schema(resolved_name)
         response_format = {"type": "json_object"} if provider.name in {"deepseek", "moonshot"} else None
 
         user_content = {
-            "task": payload.task,
-            "context": payload.context,
-            "required_output_schema": schema,
+            "operator_task": payload.task,
+            "untrusted_context": payload.context,
         }
 
         llm_response = complete_recorded(
