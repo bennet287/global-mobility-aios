@@ -109,6 +109,18 @@ def main() -> int:
         _require(api_block, "AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:?", PROD_COMPOSE)
         _require(api_block, "CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?", PROD_COMPOSE)
         _require(api_block, '127.0.0.1:${API_PORT:-8000}:8000', PROD_COMPOSE)
+
+        _require(compose, "x-llm-secret-volume: &llm_secret_volume", PROD_COMPOSE)
+        _require(compose, "source: ${LLM_SECRETS_DIR:?", PROD_COMPOSE)
+        _require(compose, "target: /run/secrets/llm", PROD_COMPOSE)
+        _require(compose, "read_only: true", PROD_COMPOSE)
+        _require(compose, "create_host_path: false", PROD_COMPOSE)
+        _require(api_block, "- *llm_secret_volume", PROD_COMPOSE)
+        _require(worker_block, "- *llm_secret_volume", PROD_COMPOSE)
+        for key in ("DEEPSEEK_API_KEY", "MOONSHOT_API_KEY", "GEMINI_API_KEY"):
+            _require(compose, f"{key}_REF: ${{{key}_REF:-}}", PROD_COMPOSE)
+            _require_absent(compose, f"  {key}:", PROD_COMPOSE)
+
         _require(web_block, "target: production", PROD_COMPOSE)
         _require(web_block, "NEXT_PUBLIC_API_BASE_URL", PROD_COMPOSE)
         _require(web_block, 'NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"', PROD_COMPOSE)
@@ -150,7 +162,19 @@ def main() -> int:
         _require(env_example, "MINIO_SERVER_SIDE_ENCRYPTION=true", PROD_ENV_EXAMPLE)
         _require(env_example, "DOCUMENT_STORAGE_BACKUP_STRATEGY=\n", PROD_ENV_EXAMPLE)
         _require(env_example, "DOCUMENT_STORAGE_RECOVERY_TESTED_AT=\n", PROD_ENV_EXAMPLE)
+        _require(env_example, "LLM_SECRETS_DIR=/etc/global-mobility-aios/llm-secrets", PROD_ENV_EXAMPLE)
         _require(env_example, "LLM_PROVIDER=\n", PROD_ENV_EXAMPLE)
+        for key, filename in (
+            ("DEEPSEEK_API_KEY", "deepseek_api_key"),
+            ("MOONSHOT_API_KEY", "moonshot_api_key"),
+            ("GEMINI_API_KEY", "gemini_api_key"),
+        ):
+            _require(
+                env_example,
+                f"{key}_REF=file:///run/secrets/llm/{filename}",
+                PROD_ENV_EXAMPLE,
+            )
+            _require_absent(env_example, f"\n{key}=", PROD_ENV_EXAMPLE)
 
         _require(api_dockerfile, "HEALTHCHECK", API_DOCKERFILE)
         _require(api_dockerignore, "gmai.db", API_DOCKERIGNORE)
