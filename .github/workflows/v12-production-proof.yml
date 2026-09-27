@@ -36,6 +36,12 @@ jobs:
       - name: Release consistency
         run: python scripts/check_release_consistency.py --root .
 
+      - name: Docker production profile
+        run: python scripts/check_docker_profile.py
+
+      - name: Resolve production Compose model
+        run: docker compose --env-file .env.production.example -f docker-compose.prod.yml config >/tmp/gmai-production-compose.yml
+
       - name: Python dependency constraints
         run: python scripts/check_python_dependency_constraints.py
 
@@ -127,6 +133,31 @@ jobs:
 
       - name: Compiled auth tests
         run: npm run test:compiled-auth
+
+      - name: Build production web container
+        run: >-
+          docker build
+          --target production
+          --build-arg NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+          --build-arg NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE=false
+          -t gmai-web-production-proof
+          .
+
+      - name: Smoke production web container
+        run: |
+          container_id="$(docker run --rm -d --name gmai-web-production-proof -p 3000:3000 gmai-web-production-proof)"
+          cleanup() {
+            docker rm -f "$container_id" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs "$container_id"
+          exit 1
 
   postgres-governance:
     name: PostgreSQL governance contracts
