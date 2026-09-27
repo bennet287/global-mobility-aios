@@ -1,6 +1,22 @@
 from celery import Celery
+from celery.signals import worker_init
 
 from app.core.config import settings
+
+
+@worker_init.connect
+def _validate_production_worker_runtime(**_: object) -> None:
+    """Apply the API production gates before a Celery worker accepts work.
+
+    This is intentionally worker-only. Celery Beat schedules task names but does
+    not consume application credentials, so it does not need the runtime secret
+    mount merely because it imports this module.
+    """
+    from app.core.startup_safety import validate_production_settings
+    from app.services.document_storage import validate_document_storage_configuration
+
+    validate_production_settings()
+    validate_document_storage_configuration()
 
 
 celery_app = Celery(
