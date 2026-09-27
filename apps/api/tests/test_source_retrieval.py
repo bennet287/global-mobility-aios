@@ -177,6 +177,94 @@ def test_worker_captures_html_and_uses_conditional_request(
     assert len(db_session.exec(select(SourceSnapshot)).all()) == 1
 
 
+def test_source_fetch_pins_public_address_and_preserves_official_identity(
+    db_session: Session,
+) -> None:
+    _, monitor = _source_and_monitor(
+        db_session, url="https://official.example/policy?edition=2",
+    )
+    requests: list[httpx.Request] = []
+    resolutions: list[tuple[str, int]] = []
+
+    def resolver(host: str, port: int, **kwargs):
+        resolutions.append((host, port))
+        return _public_resolver(host, port, **kwargs)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, headers={"content-type": "text/plain"}, text="Official policy")
+
+    with patch("app.services.source_retrieval.httpx.Client", wraps=httpx.Client) as client_cls:
+        run = execute_source_monitor(
+            db_session, monitor.id,
+            transport=httpx.MockTransport(handler), resolver=resolver,
+        )
+
+    assert run.status == "baseline"
+    assert run.final_url == "https://official.example/policy?edition=2"
+    assert resolutions == [("official.example", 443)]
+    assert len(requests) == 1
+    assert str(requests[0].url) == "https://93.184.216.34/policy?edition=2"
+    assert requests[0].headers["host"] == "official.example"
+    assert requests[0].extensions["sni_hostname"] == "official.example"
+    assert client_cls.call_args.kwargs["trust_env"] is False
+    assert client_cls.call_args.kwargs["follow_redirects"] is False
+
+
+def test_source_redirect_revalidates_and_pins_each_public_host(db_session: Session) -> None:
+    _, monitor = _source_and_monitor(db_session)
+    requests: list[httpx.Request] = []
+
+    def resolver(host: str, port: int, **kwargs):
+        address = "93.184.216.34" if host == "official.example" else "93.184.216.35"
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", (address, port))]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if len(requests) == 1:
+            return httpx.Response(302, headers={"location": "https://notices.official.example/update"})
+        return httpx.Response(200, headers={"content-type": "text/plain"}, text="New policy")
+
+    run = execute_source_monitor(
+        db_session, monitor.id,
+        transport=httpx.MockTransport(handler), resolver=resolver,
+    )
+    assert run.status == "baseline"
+    assert run.final_url == "https://notices.official.example/update"
+    assert [str(request.url) for request in requests] == [
+        "https://93.184.216.34/policy",
+        "https://93.184.216.35/update",
+    ]
+    assert [request.headers["host"] for request in requests] == [
+        "official.example", "notices.official.example",
+    ]
+    assert [request.extensions["sni_hostname"] for request in requests] == [
+        "official.example", "notices.official.example",
+    ]
+
+
+def test_explicitly_enabled_http_source_is_also_pinned(
+    db_session: Session, monkeypatch,
+) -> None:
+    monkeypatch.setattr(settings, "source_monitor_allow_http", True)
+    _, monitor = _source_and_monitor(db_session, url="http://official.example/policy")
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, headers={"content-type": "text/plain"}, text="Public notice")
+
+    run = execute_source_monitor(
+        db_session, monitor.id,
+        transport=httpx.MockTransport(handler), resolver=_public_resolver,
+    )
+    assert run.status == "baseline"
+    assert run.final_url == "http://official.example/policy"
+    assert str(requests[0].url) == "http://93.184.216.34/policy"
+    assert requests[0].headers["host"] == "official.example"
+    assert "sni_hostname" not in requests[0].extensions
+
+
 def test_worker_blocks_private_addresses_without_making_request(db_session: Session) -> None:
     _, monitor = _source_and_monitor(
         db_session,
@@ -205,6 +293,30 @@ def test_worker_blocks_private_addresses_without_making_request(db_session: Sess
     db_session.refresh(monitor)
     assert monitor.status == "error"
     assert monitor.last_error
+
+
+def test_worker_blocks_mixed_public_and_private_answers_before_request(db_session: Session) -> None:
+    _, monitor = _source_and_monitor(db_session)
+    called = False
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal called
+        called = True
+        return httpx.Response(200, headers={"content-type": "text/plain"}, text="unsafe")
+
+    def mixed_resolver(host: str, port: int, **kwargs):
+        return [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port)),
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("169.254.169.254", port)),
+        ]
+
+    run = execute_source_monitor(
+        db_session, monitor.id,
+        transport=httpx.MockTransport(handler), resolver=mixed_resolver,
+    )
+    assert run.status == "failed"
+    assert run.error_code == "private_address_blocked"
+    assert called is False
 
 
 def test_worker_blocks_redirect_outside_allowlist(db_session: Session) -> None:
