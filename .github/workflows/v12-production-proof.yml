@@ -54,6 +54,7 @@ jobs:
           expected_env = {
               'postgres': {'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB'},
               'api-migrate': {'APP_ENV', 'DATABASE_URL', 'DATABASE_AUTO_CREATE_TABLES'},
+              'beat': {'APP_ENV', 'REDIS_URL'},
           }
           for service, keys in expected_env.items():
               assert set(services[service].get('environment', {})) == keys, (
@@ -115,6 +116,19 @@ jobs:
 
       - name: Compile Python sources
         run: python -m compileall -q apps/api/app scripts
+
+      - name: Load beat schedule with scoped production environment
+        run: |
+          env -i PATH="$PATH" PYTHONPATH="$PWD/apps/api" APP_ENV=production REDIS_URL=redis://127.0.0.1:6379/0 python - <<'PY'
+          from app.core.celery_app import celery_app
+          from app.core.config import settings
+
+          celery_app.loader.import_default_modules()
+          assert settings.is_production()
+          assert celery_app.conf.broker_url == settings.redis_url
+          assert celery_app.conf.beat_schedule
+          assert all(entry['task'] for entry in celery_app.conf.beat_schedule.values())
+          PY
 
       - name: Upgrade isolated SQLite schema through Alembic
         run: python -m alembic -c alembic.ini upgrade head

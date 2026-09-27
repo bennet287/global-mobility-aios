@@ -72,6 +72,7 @@ def main() -> int:
 
         postgres_block = _service_block(compose, "postgres", PROD_COMPOSE)
         migration_block = _service_block(compose, "api-migrate", PROD_COMPOSE)
+        beat_block = _service_block(compose, "beat", PROD_COMPOSE)
         api_block = _service_block(compose, "api", PROD_COMPOSE)
         web_block = _service_block(compose, "web", PROD_COMPOSE)
         ingress_block = _service_block(compose, "ingress", PROD_COMPOSE)
@@ -92,6 +93,9 @@ def main() -> int:
         _require_absent(postgres_block, "env_file:", PROD_COMPOSE)
         _require_absent(migration_block, "env_file:", PROD_COMPOSE)
         _require(migration_block, "APP_ENV: production", PROD_COMPOSE)
+        _require_absent(beat_block, "env_file:", PROD_COMPOSE)
+        _require(beat_block, "APP_ENV: production", PROD_COMPOSE)
+        _require(beat_block, "REDIS_URL: ${REDIS_URL:?", PROD_COMPOSE)
         _require(api_block, '127.0.0.1:${API_PORT:-8000}:8000', PROD_COMPOSE)
         _require(web_block, "target: production", PROD_COMPOSE)
         _require(web_block, "NEXT_PUBLIC_API_BASE_URL", PROD_COMPOSE)
