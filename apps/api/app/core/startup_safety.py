@@ -108,3 +108,14 @@ def validate_production_settings() -> None:
     # API/worker restart rather than silently changing signing/storage identity.
     for value_field, resolved_value in resolved_runtime_secrets.items():
         setattr(settings, value_field, resolved_value)
+
+
+def validate_production_worker_settings() -> None:
+    """Run every production safety gate required before a worker is launched."""
+    validate_production_settings()
+
+    # Import lazily so API startup keeps its existing explicit ordering and so
+    # non-worker imports do not pull the storage service into Celery Beat.
+    from app.services.document_storage import validate_document_storage_configuration
+
+    validate_document_storage_configuration()
