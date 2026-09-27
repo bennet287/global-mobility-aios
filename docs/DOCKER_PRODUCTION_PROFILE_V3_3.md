@@ -1,32 +1,51 @@
-# Docker Production Profile v3.3
+# Docker Production Profile — Current Baseline
 
-This milestone adds a narrow production Docker profile for the API and PostgreSQL only.
+This file remains the canonical Docker production-profile owner. The filename is retained from the original v3.3 API/PostgreSQL milestone so the repository does not grow a parallel deployment document for every later service addition.
 
-## Scope
+## Current Scope
 
-Included:
+Included in `docker-compose.prod.yml`:
 
-- `docker-compose.prod.yml`
-- `api`
-- `api-migrate`
-- `postgres`
-- PostgreSQL healthcheck
-- API healthcheck
-- Alembic migration gate before API startup
-- `.env.production.example`
-- API `.dockerignore`
-- static Docker profile check script
+- PostgreSQL 16 with persistent production volume and healthcheck;
+- one-shot Alembic migration gate (`api-migrate`) before API/worker startup;
+- Redis with persistent append-only storage;
+- FastAPI service with production healthcheck;
+- Celery worker and beat services;
+- Next.js web service built from the explicit `production` Docker target;
+- browser-public API origin supplied at image build time through `NEXT_PUBLIC_API_BASE_URL`;
+- web-to-API startup dependency on the API health gate;
+- no `.env.production` injection into the web container, keeping database, JWT, storage, and provider secrets out of the frontend runtime;
+- static production-profile validation through `scripts/check_docker_profile.py`.
 
-Not included yet:
+The same `apps/web/Dockerfile` retains a separate `development` target. `docker-compose.yml` explicitly selects that target, so local hot-reload behavior is not coupled to the production image.
 
-- Redis
-- Qdrant
-- MinIO
-- n8n
-- web frontend production build
-- Kubernetes
+Not included in the production Compose yet:
 
-Those should come later, one service at a time.
+- MinIO document-storage service;
+- Qdrant;
+- n8n;
+- Ollama/local-model runtime;
+- reverse proxy / ingress / TLS termination;
+- managed workload identity or external secret injection;
+- Kubernetes or another production orchestrator;
+- a real hosted deployment target and live post-deployment acceptance evidence.
+
+Those are separate production-acceptance slices. A passing Docker/CI profile proves deployability of this bounded container contract; it does **not** by itself prove a live production deployment.
+
+## Production Web Configuration
+
+`NEXT_PUBLIC_API_BASE_URL` is browser-visible and is compiled into the Next.js client bundle during the image build. It must therefore be the API origin that an end-user browser can reach.
+
+Examples:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+CORS_ALLOWED_ORIGINS=https://app.example.com
+```
+
+Do not use Docker-internal names such as `http://api:8000` for `NEXT_PUBLIC_API_BASE_URL`; a remote browser cannot resolve the Compose service name.
+
+The production web service intentionally does not load `.env.production`. Only public frontend values are passed to it. Server-only credentials remain on the API/worker side.
 
 ## First Run
 
@@ -36,13 +55,23 @@ Create the production env file:
 Copy-Item .env.production.example .env.production
 ```
 
-Edit these values before starting:
+Replace every relevant `change-this-*` placeholder before starting. At minimum configure:
 
 ```text
 POSTGRES_PASSWORD
 DATABASE_URL
 JWT_SECRET
 AUTH_ADMIN_PASSWORD
+CORS_ALLOWED_ORIGINS
+NEXT_PUBLIC_API_BASE_URL
+```
+
+If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
+
+Validate the resolved Compose model before launch:
+
+```powershell
+docker compose --env-file .env.production -f docker-compose.prod.yml config
 ```
 
 Build and start:
@@ -51,12 +80,16 @@ Build and start:
 docker compose --env-file .env.production -f docker-compose.prod.yml up --build
 ```
 
-The startup order is:
+The important startup gates are:
 
 ```text
 postgres healthy
-api-migrate runs alembic upgrade head
-api starts after migrations complete
+  -> api-migrate completes successfully
+  -> api starts and becomes healthy
+  -> web starts after API health
+
+redis starts
+  -> worker / beat may start after migrations
 ```
 
 Check the API:
@@ -65,11 +98,19 @@ Check the API:
 curl http://localhost:8000/health
 ```
 
-Expected:
+Expected shape:
 
 ```json
 {"status":"ok","service":"global-mobility-aios-api","environment":"production"}
 ```
+
+Check the web container:
+
+```powershell
+curl -I http://localhost:3000/
+```
+
+For a hosted deployment, use the externally routed HTTPS origins instead of localhost.
 
 ## Operational Commands
 
@@ -79,10 +120,10 @@ Start in background:
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
 ```
 
-View logs:
+View application logs:
 
 ```powershell
-docker compose --env-file .env.production -f docker-compose.prod.yml logs -f api
+docker compose --env-file .env.production -f docker-compose.prod.yml logs -f api web worker beat
 ```
 
 Run migrations manually:
@@ -97,30 +138,40 @@ Stop services:
 docker compose --env-file .env.production -f docker-compose.prod.yml down
 ```
 
-Stop and delete the production database volume:
+Stop and delete production database/Redis volumes:
 
 ```powershell
 docker compose --env-file .env.production -f docker-compose.prod.yml down -v
 ```
 
+Do not use `down -v` against production data unless destructive removal is explicitly intended and independently recoverable from validated backups.
+
 ## Verification
 
-Run:
+Repository/static gates:
 
 ```powershell
 python -m compileall apps/api/app apps/api/tests scripts/seed_demo_data.py scripts/check_database_migrations.py scripts/check_docker_profile.py
 python scripts/check_repo_policy.py --root .
 python scripts/check_database_migrations.py
 python scripts/check_docker_profile.py
+docker compose --env-file .env.production.example -f docker-compose.prod.yml config
+```
+
+Web production-image proof:
+
+```powershell
+docker build --target production --build-arg NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000 --build-arg NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE=false -t gmai-web-production-proof apps/web
+docker run --rm -p 3000:3000 gmai-web-production-proof
+```
+
+Then verify `http://127.0.0.1:3000/` responds from the production container. CI performs the same bounded build/smoke contract once wired into the production-proof workflow.
+
+Backend regression remains:
+
+```powershell
 $env:PYTHONPATH="apps/api"
 python -m pytest apps/api/tests -q
 ```
 
-Expected:
-
-```text
-Repository policy check passed.
-Database migration check passed.
-Docker production profile check passed.
-All tests pass.
-```
+A complete real-world production acceptance still requires a real deployment environment, real secret/storage infrastructure, live migrations/backups/recovery evidence, live browser-to-API behavior, and operational observability. Those claims must not be inferred from local Docker or fixture-only browser tests.
