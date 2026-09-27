@@ -8,6 +8,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from typing import Any
+from urllib.parse import urljoin, urlsplit
 
 import httpx
 from sqlmodel import Session, select
@@ -34,6 +35,7 @@ from app.services.organization_source_certification import (
     source_certification_organization_context,
     stage_source_certification_review_contribution,
 )
+from app.services.webhook_egress import WebhookEgressPolicyError, request_public_webhook
 
 
 UN_M49_SOURCE_URL = "https://unstats.un.org/unsd/methodology/m49/overview/"
@@ -133,17 +135,36 @@ def _jurisdiction_type(alpha2: str, membership_status: str) -> str:
 
 def fetch_un_m49_source() -> tuple[str, datetime]:
     try:
-        with httpx.Client(follow_redirects=True, timeout=30.0) as client:
-            response = client.get(
-                UN_M49_SOURCE_URL,
+        url = UN_M49_SOURCE_URL
+        for _ in range(4):
+            response = request_public_webhook(
+                "GET",
+                url,
                 headers={"User-Agent": "Global-Mobility-AIOS/10.1 registry-import"},
+                timeout=30.0,
             )
+            if response.status_code in {301, 302, 303, 307, 308}:
+                location = response.headers.get("location")
+                if not location:
+                    raise RuntimeError("UN M49 registry retrieval failed")
+                url = urljoin(url, location)
+                target = urlsplit(url)
+                if (
+                    target.scheme != "https"
+                    or target.hostname != urlsplit(UN_M49_SOURCE_URL).hostname
+                    or target.port not in {None, 443}
+                    or target.username is not None
+                    or target.password is not None
+                ):
+                    raise RuntimeError("UN M49 registry retrieval failed")
+                continue
             response.raise_for_status()
             if "text/html" not in response.headers.get("content-type", ""):
                 raise ValueError("UN M49 source did not return HTML")
             return response.text, now_utc()
-    except httpx.HTTPError as exc:
-        raise RuntimeError(f"UN M49 registry retrieval failed: {exc}") from exc
+        raise RuntimeError("UN M49 registry retrieval failed")
+    except (httpx.HTTPError, WebhookEgressPolicyError, ValueError) as exc:
+        raise RuntimeError("UN M49 registry retrieval failed") from exc
 
 
 def import_un_m49_registry(
