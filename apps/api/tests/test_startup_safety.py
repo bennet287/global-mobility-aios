@@ -30,27 +30,49 @@ def _write_secret(root, relative_path: str, value: str) -> str:
     return f"file://{target}"
 
 
-def test_production_startup_accepts_available_governed_runtime_secret_refs(monkeypatch, tmp_path):
+def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
+    resolved = {
+        "jwt_secret": "j" * 48,
+        "automation_webhook_secret": "w" * 48,
+        "minio_access_key": "access-key-v1",
+        "minio_secret_key": "secret-key-v1",
+        "document_access_token_secret": "d" * 48,
+    }
+    refs = {
+        "jwt_secret_ref": _write_secret(root, "auth/jwt_secret", resolved["jwt_secret"]),
+        "automation_webhook_secret_ref": _write_secret(
+            root, "automation/webhook_secret", resolved["automation_webhook_secret"]
+        ),
+        "minio_access_key_ref": _write_secret(
+            root, "storage/minio_access_key", resolved["minio_access_key"]
+        ),
+        "minio_secret_key_ref": _write_secret(
+            root, "storage/minio_secret_key", resolved["minio_secret_key"]
+        ),
+        "document_access_token_secret_ref": _write_secret(
+            root, "documents/access_token_secret", resolved["document_access_token_secret"]
+        ),
+    }
+    return refs, resolved
+
+
+def test_production_startup_accepts_and_materializes_governed_runtime_secret_refs(
+    monkeypatch, tmp_path
+):
     _production_baseline(monkeypatch)
     root = tmp_path / "aios"
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
 
-    refs = {
-        "jwt_secret_ref": _write_secret(root, "auth/jwt_secret", "j" * 48),
-        "automation_webhook_secret_ref": _write_secret(
-            root, "automation/webhook_secret", "w" * 48
-        ),
-        "minio_access_key_ref": _write_secret(root, "storage/minio_access_key", "access-key-v1"),
-        "minio_secret_key_ref": _write_secret(root, "storage/minio_secret_key", "secret-key-v1"),
-        "document_access_token_secret_ref": _write_secret(
-            root, "documents/access_token_secret", "d" * 48
-        ),
-    }
+    refs, resolved = _valid_refs(root)
     for field_name, value in refs.items():
         monkeypatch.setattr(settings, field_name, value)
 
     validate_production_settings()
+
+    for field_name, expected in resolved.items():
+        assert getattr(settings, field_name) == expected
+        assert getattr(settings, field_name) != f"direct-{field_name}-fallback"
 
 
 def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypatch, tmp_path):
@@ -59,37 +81,64 @@ def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypa
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
 
-    for ref_field_name, relative_path, value in (
-        ("automation_webhook_secret_ref", "automation/webhook_secret", "w" * 48),
-        ("minio_access_key_ref", "storage/minio_access_key", "access-key-v1"),
-        ("minio_secret_key_ref", "storage/minio_secret_key", "secret-key-v1"),
-        ("document_access_token_secret_ref", "documents/access_token_secret", "d" * 48),
-    ):
-        monkeypatch.setattr(settings, ref_field_name, _write_secret(root, relative_path, value))
+    refs, _ = _valid_refs(root)
+    refs.pop("jwt_secret_ref")
+    for field_name, value in refs.items():
+        monkeypatch.setattr(settings, field_name, value)
 
     with pytest.raises(RuntimeError, match="JWT_SECRET_REF must be configured"):
         validate_production_settings()
 
 
-def test_production_startup_rejects_unavailable_configured_runtime_secret(monkeypatch, tmp_path):
+def test_production_startup_rejects_unavailable_ref_without_materializing_fallbacks(
+    monkeypatch, tmp_path
+):
     _production_baseline(monkeypatch)
     root = tmp_path / "aios"
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
 
-    refs = {
-        "jwt_secret_ref": f"file://{root / 'auth/missing-jwt'}",
-        "automation_webhook_secret_ref": _write_secret(
-            root, "automation/webhook_secret", "w" * 48
-        ),
-        "minio_access_key_ref": _write_secret(root, "storage/minio_access_key", "access-key-v1"),
-        "minio_secret_key_ref": _write_secret(root, "storage/minio_secret_key", "secret-key-v1"),
-        "document_access_token_secret_ref": _write_secret(
-            root, "documents/access_token_secret", "d" * 48
-        ),
-    }
+    refs, _ = _valid_refs(root)
+    refs["jwt_secret_ref"] = f"file://{root / 'auth/missing-jwt'}"
     for field_name, value in refs.items():
         monkeypatch.setattr(settings, field_name, value)
 
+    before = {
+        field_name: getattr(settings, field_name)
+        for field_name in _SECRET_FIELDS
+    }
     with pytest.raises(RuntimeError, match="JWT_SECRET_REF must resolve"):
+        validate_production_settings()
+
+    for field_name, original in before.items():
+        assert getattr(settings, field_name) == original
+
+
+def test_production_startup_rejects_non_file_runtime_secret_refs(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+
+    refs, _ = _valid_refs(root)
+    refs["jwt_secret_ref"] = "env://JWT_SECRET_FROM_ENV"
+    for field_name, value in refs.items():
+        monkeypatch.setattr(settings, field_name, value)
+
+    with pytest.raises(RuntimeError, match=r"JWT_SECRET_REF must use a file:// reference"):
+        validate_production_settings()
+
+
+def test_production_startup_rejects_invalid_runtime_secret_ref(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+
+    refs, _ = _valid_refs(root)
+    refs["jwt_secret_ref"] = "not-a-secret-reference"
+    for field_name, value in refs.items():
+        monkeypatch.setattr(settings, field_name, value)
+
+    with pytest.raises(RuntimeError, match="JWT_SECRET_REF must be a valid production secret reference"):
         validate_production_settings()
