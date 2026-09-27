@@ -158,6 +158,17 @@ def test_configured_reference_fails_closed_instead_of_using_plaintext_fallback(m
         resolve_runtime_secret(reference="env://MISSING_AI_KEY", fallback="plaintext-fallback")
 
 
+def test_production_runtime_secret_reference_rejects_non_file_backend(monkeypatch):
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setenv("RUNTIME_SECRET", "environment-value")
+
+    with pytest.raises(SecretResolutionError, match="bounded file"):
+        resolve_runtime_secret(
+            reference="env://RUNTIME_SECRET",
+            fallback="plaintext-fallback",
+        )
+
+
 def _openbao_port(*, app_env="local"):
     return OpenBaoSecretsPort(
         address="https://openbao.test:8200",
