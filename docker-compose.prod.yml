@@ -131,10 +131,9 @@ services:
     build:
       context: ./apps/api
     container_name: gmai-beat-prod
-    env_file:
-      - .env.production
     environment:
-      DATABASE_AUTO_CREATE_TABLES: "false"
+      APP_ENV: production
+      REDIS_URL: ${REDIS_URL:?Set the production Redis URL}
     depends_on:
       postgres:
         condition: service_healthy

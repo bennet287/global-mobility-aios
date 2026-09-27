@@ -19,6 +19,7 @@ Included in `docker-compose.prod.yml`:
 - Caddy ingress for separate web and API hostnames, with public HTTP/HTTPS ports and persisted certificate storage;
 - no `.env.production` injection into the web container, keeping database, JWT, storage, and provider secrets out of the frontend runtime;
 - PostgreSQL receives only its database identity/password and the one-shot migration container receives only the database URL plus production/migration controls; Compose still uses `.env.production` for interpolation;
+- Celery beat receives only the production flag and Redis broker URL; the worker handles database and external actions with its own runtime configuration;
 - static production-profile validation through `scripts/check_docker_profile.py`.
 
 The same `apps/web/Dockerfile` retains a separate `development` target. `docker-compose.yml` explicitly selects that target, so local hot-reload behavior is not coupled to the production image.
