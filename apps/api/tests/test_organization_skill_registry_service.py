@@ -3,9 +3,10 @@ from __future__ import annotations
 import hashlib
 
 import pytest
+from sqlmodel import select
 
 from app.models.domain import OrganizationPosition
-from app.models.skill_registry import OrganizationSkill
+from app.models.skill_registry import OrganizationPositionSkill, OrganizationSkill
 from app.services.organization_skill_lifecycle import native_skill_content_sha256
 from app.services.organization_skill_registry import (
     bind_skill_to_position,
@@ -130,3 +131,31 @@ def test_binding_service_is_idempotent_and_preserves_position_authority(db_sessi
     assert second.id == first_id
     db_session.refresh(position)
     assert position.authority_level == "A3"
+
+
+@pytest.mark.parametrize("origin", ["imported", "learned"])
+def test_non_native_skill_cannot_be_reported_applicable_or_bound_without_provenance_gate(
+    db_session, origin: str
+) -> None:
+    position = _position()
+    skill = _skill()
+    skill.skill_key = f"regulatory.{origin}.candidate"
+    skill.origin = origin
+    skill.tool_requirements_json = "[]"
+    skill.permission_requirements_json = "[]"
+    db_session.add_all([position, skill])
+    db_session.commit()
+
+    result = evaluate_skill_applicability(skill=skill, position=position)
+    assert result.applicable is False
+    assert "skill_origin_not_supported" in result.reasons
+
+    with pytest.raises(ValueError, match="only native skills may be bound"):
+        bind_skill_to_position(
+            db_session,
+            position_id=position.id,
+            skill_id=skill.id,
+            assignment_reason="Attempt to promote unsupported origin.",
+            actor="pytest",
+        )
+    assert db_session.exec(select(OrganizationPositionSkill)).all() == []

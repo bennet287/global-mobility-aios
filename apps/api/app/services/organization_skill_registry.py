@@ -87,6 +87,8 @@ def bind_skill_to_position(
     skill = session.get(OrganizationSkill, skill_id)
     if skill is None or skill.status != "active":
         raise ValueError("active organization skill not found")
+    if skill.origin != "native":
+        raise ValueError("only native skills may be bound until origin-specific provenance is validated")
     if not assignment_reason.strip():
         raise ValueError("assignment_reason is required")
 
@@ -229,6 +231,8 @@ def evaluate_skill_applicability(
         reasons.append("skill_not_active")
     if skill.validation_status != "passed":
         reasons.append("skill_not_validated")
+    if skill.origin != "native":
+        reasons.append("skill_origin_not_supported")
     if skill.origin == "native" and not native_skill_content_matches(skill):
         reasons.append("skill_content_mismatch")
     if position.status != "active":
