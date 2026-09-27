@@ -5,6 +5,7 @@ import pytest
 
 from app.core.secrets import (
     EnvironmentSecretsPort,
+    FileSecretsPort,
     OpenBaoSecretsPort,
     SecretReference,
     SecretResolutionError,
@@ -18,10 +19,89 @@ def test_secret_reference_parses_environment_reference():
     )
 
 
+def test_secret_reference_parses_absolute_file_reference():
+    assert SecretReference.parse("file:///run/secrets/llm/deepseek_api_key") == SecretReference(
+        backend="file", locator="/run/secrets/llm/deepseek_api_key"
+    )
+
+
+@pytest.mark.parametrize(
+    "reference",
+    [
+        "file://relative-key",
+        "file:///run/secrets/llm/deepseek_api_key#field",
+    ],
+)
+def test_secret_reference_rejects_unsafe_file_reference_syntax(reference):
+    with pytest.raises(SecretResolutionError, match="absolute"):
+        SecretReference.parse(reference)
+
+
 def test_environment_secret_resolution_reads_current_value(monkeypatch):
     monkeypatch.setenv("DEEPSEEK_API_KEY", "rotated-key")
     port = EnvironmentSecretsPort()
     assert port.resolve(SecretReference.parse("env://DEEPSEEK_API_KEY")) == "rotated-key"
+
+
+def test_file_secret_resolution_reads_bounded_value_and_trims_line_endings(tmp_path):
+    root = tmp_path / "llm"
+    root.mkdir()
+    secret_path = root / "deepseek_api_key"
+    secret_path.write_text("production-key\r\n", encoding="utf-8")
+
+    port = FileSecretsPort(root=root)
+    reference = SecretReference(backend="file", locator=str(secret_path))
+
+    assert port.resolve(reference) == "production-key"
+
+
+def test_file_secret_resolution_rejects_path_outside_allowed_root(tmp_path):
+    root = tmp_path / "llm"
+    root.mkdir()
+    secret_path = tmp_path / "outside-key"
+    secret_path.write_text("secret", encoding="utf-8")
+
+    port = FileSecretsPort(root=root)
+    with pytest.raises(SecretResolutionError, match="outside the allowed"):
+        port.resolve(SecretReference(backend="file", locator=str(secret_path)))
+
+
+def test_file_secret_resolution_rejects_symlink_escape(tmp_path):
+    root = tmp_path / "llm"
+    root.mkdir()
+    outside = tmp_path / "outside-key"
+    outside.write_text("secret", encoding="utf-8")
+    link = root / "deepseek_api_key"
+    link.symlink_to(outside)
+
+    port = FileSecretsPort(root=root)
+    with pytest.raises(SecretResolutionError, match="outside the allowed"):
+        port.resolve(SecretReference(backend="file", locator=str(link)))
+
+
+def test_file_secret_resolution_rejects_missing_or_empty_value(tmp_path):
+    root = tmp_path / "llm"
+    root.mkdir()
+    port = FileSecretsPort(root=root)
+
+    with pytest.raises(SecretResolutionError, match="unavailable"):
+        port.resolve(SecretReference(backend="file", locator=str(root / "missing")))
+
+    empty = root / "empty"
+    empty.write_text("\n", encoding="utf-8")
+    with pytest.raises(SecretResolutionError, match="non-empty"):
+        port.resolve(SecretReference(backend="file", locator=str(empty)))
+
+
+def test_file_secret_resolution_rejects_oversized_value(tmp_path):
+    root = tmp_path / "llm"
+    root.mkdir()
+    secret_path = root / "oversized"
+    secret_path.write_bytes(b"x" * (64 * 1024 + 1))
+
+    port = FileSecretsPort(root=root)
+    with pytest.raises(SecretResolutionError, match="64 KiB"):
+        port.resolve(SecretReference(backend="file", locator=str(secret_path)))
 
 
 def test_configured_reference_fails_closed_instead_of_using_plaintext_fallback(monkeypatch):
