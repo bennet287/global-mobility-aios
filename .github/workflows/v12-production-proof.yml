@@ -56,7 +56,17 @@ jobs:
               assert ports and all(port.get('host_ip') == '127.0.0.1' for port in ports), (
                   f'{service} must publish only to IPv4 loopback'
               )
+          ingress_ports = services['ingress'].get('ports', [])
+          assert {port['target'] for port in ingress_ports} == {80, 443}
+          assert all(port.get('host_ip') in (None, '', '0.0.0.0', '::') for port in ingress_ports)
+          assert 'env_file' not in services['ingress']
           PY
+
+      - name: Validate ingress configuration
+        run: |
+          cp .env.production.example .env.production
+          trap 'rm -f .env.production' EXIT
+          docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps ingress validate --config /etc/caddy/Caddyfile
 
       - name: Python dependency constraints
         run: python scripts/check_python_dependency_constraints.py

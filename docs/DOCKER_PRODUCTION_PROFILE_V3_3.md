@@ -15,7 +15,8 @@ Included in `docker-compose.prod.yml`:
 - Next.js web service built from the explicit `production` Docker target;
 - browser-public API origin supplied at image build time through `NEXT_PUBLIC_API_BASE_URL`;
 - web-to-API startup dependency on the API health gate;
-- API and web host ports bound to IPv4 loopback only, pending a separately accepted HTTPS ingress;
+- API and web host ports bound to IPv4 loopback for local diagnostics;
+- Caddy ingress for separate web and API hostnames, with public HTTP/HTTPS ports and persisted certificate storage;
 - no `.env.production` injection into the web container, keeping database, JWT, storage, and provider secrets out of the frontend runtime;
 - static production-profile validation through `scripts/check_docker_profile.py`.
 
@@ -27,14 +28,14 @@ Not included in the production Compose yet:
 - Qdrant;
 - n8n;
 - Ollama/local-model runtime;
-- reverse proxy / ingress / TLS termination;
+- live DNS, certificate issuance, ingress routing and TLS verification on the target VPS;
 - managed workload identity or external secret injection;
 - Kubernetes or another production orchestrator;
 - a real hosted deployment target and live post-deployment acceptance evidence.
 
 Those are separate production-acceptance slices. A passing Docker/CI profile proves deployability of this bounded container contract; it does **not** by itself prove a live production deployment.
 
-The profile is deliberately not a public endpoint. Do not publish ports 3000, 8000 or 5432 through firewall or alternate Docker overrides. A hosted deployment needs a separately configured HTTPS ingress that can reach the loopback web/API listeners, with verified routing, CORS, cookies and firewall rules. PostgreSQL is reachable by Compose peers; the backup tool does not need a host port. Binding to loopback is one network boundary, not a substitute for host firewall or TLS verification.
+Only ingress publishes public ports 80 and 443; web and API retain loopback diagnostic ports, and PostgreSQL has no host port. Do not publish ports 3000, 8000 or 5432 through firewall or alternate Docker overrides. Caddy reaches the web and API by Compose service names. Binding internal services to loopback is one network boundary, not a substitute for target-host firewall or live TLS verification.
 
 ## Production Web Configuration
 
@@ -68,7 +69,11 @@ JWT_SECRET
 AUTH_ADMIN_PASSWORD
 CORS_ALLOWED_ORIGINS
 NEXT_PUBLIC_API_BASE_URL
+WEB_DOMAIN
+API_DOMAIN
 ```
+
+Set two distinct public DNS hostnames. For example, `WEB_DOMAIN=app.example.com` and `API_DOMAIN=api.example.com` require `CORS_ALLOWED_ORIGINS=https://app.example.com` and `NEXT_PUBLIC_API_BASE_URL=https://api.example.com`. The API URL is compiled into the web image, so changing it requires a rebuild. Replace the example values before a hosted launch. Ensure both DNS records point to the VPS, public 80/443 reach ingress, and the Caddy `/data` volume persists across restarts. Record the exact image digest and certificate/routing evidence during target-host acceptance; a successful Caddy configuration check does not issue a public certificate.
 
 If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
 
@@ -76,6 +81,7 @@ Validate the resolved Compose model before launch:
 
 ```powershell
 docker compose --env-file .env.production -f docker-compose.prod.yml config
+docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps ingress validate --config /etc/caddy/Caddyfile
 ```
 
 Build and start:
@@ -114,7 +120,7 @@ Check the web container:
 curl -I http://localhost:3000/
 ```
 
-For a hosted deployment, verify the externally routed HTTPS origins through the accepted ingress. The direct HTTP checks above are local diagnostics only.
+For a hosted deployment, verify both external HTTPS origins, HTTP-to-HTTPS redirects, CORS, secure cookies and the externally reachable port set. The direct HTTP checks above are local diagnostics only.
 
 ## Operational Commands
 
