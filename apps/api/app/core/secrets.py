@@ -1,8 +1,9 @@
 """Bounded runtime secret-reference boundary for Technology Radar Wave E1.
 
 A configured reference is authoritative and fails closed: the resolver never falls
-back to a plaintext setting when a reference exists but cannot be resolved. The
-OpenBao adapter is intentionally limited to non-production use until the roadmap
+back to a plaintext setting when a reference exists but cannot be resolved. File
+references are restricted to the production LLM secret mount, while the OpenBao
+adapter remains intentionally limited to non-production use until the roadmap
 explicitly promotes a secrets backend beyond pilot status.
 """
 
@@ -11,12 +12,17 @@ from __future__ import annotations
 import ipaddress
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Protocol
 from urllib.parse import quote, urlsplit
 
 import httpx
 
 from app.core.config import settings
+
+
+_FILE_SECRET_ROOT = Path("/run/secrets/llm")
+_MAX_FILE_SECRET_BYTES = 64 * 1024
 
 
 class SecretResolutionError(RuntimeError):
@@ -52,6 +58,11 @@ class SecretReference:
         elif backend == "env":
             if "#" in locator or "/" in locator:
                 raise SecretResolutionError("Environment references must use 'env://VARIABLE_NAME'.")
+        elif backend == "file":
+            if "#" in locator or not Path(locator).is_absolute():
+                raise SecretResolutionError(
+                    "File references must use an absolute 'file:///run/secrets/llm/<name>' path."
+                )
         else:
             raise SecretResolutionError(f"Unsupported secret backend: {backend}.")
 
@@ -72,6 +83,49 @@ class EnvironmentSecretsPort:
             raise SecretResolutionError(
                 f"Environment secret reference is unavailable: {reference.locator}."
             )
+        return value
+
+
+class FileSecretsPort:
+    """Read one bounded Docker-style file secret without exposing arbitrary files."""
+
+    def __init__(self, *, root: str | Path | None = None) -> None:
+        self.root = Path(root) if root is not None else _FILE_SECRET_ROOT
+
+    def resolve(self, reference: SecretReference) -> str:
+        if reference.backend != "file":
+            raise SecretResolutionError("FileSecretsPort only accepts file:// references.")
+
+        try:
+            root = self.root.resolve(strict=False)
+            resolved = Path(reference.locator).resolve(strict=True)
+        except (OSError, RuntimeError, ValueError) as exc:
+            raise SecretResolutionError("File secret reference is unavailable.") from exc
+
+        try:
+            resolved.relative_to(root)
+        except ValueError as exc:
+            raise SecretResolutionError(
+                "File secret reference is outside the allowed /run/secrets/llm scope."
+            ) from exc
+
+        if not resolved.is_file():
+            raise SecretResolutionError("File secret reference must resolve to a regular file.")
+
+        try:
+            with resolved.open("rb") as handle:
+                raw_value = handle.read(_MAX_FILE_SECRET_BYTES + 1)
+        except OSError as exc:
+            raise SecretResolutionError("File secret reference could not be read.") from exc
+
+        if len(raw_value) > _MAX_FILE_SECRET_BYTES:
+            raise SecretResolutionError("File secret exceeds the 64 KiB safety limit.")
+        try:
+            value = raw_value.decode("utf-8").rstrip("\r\n")
+        except UnicodeDecodeError as exc:
+            raise SecretResolutionError("File secret must be UTF-8 text.") from exc
+        if not value.strip():
+            raise SecretResolutionError("File secret value must be a non-empty string.")
         return value
 
 
@@ -188,6 +242,8 @@ def _setting_text(name: str) -> str:
 def build_secrets_port(reference: SecretReference) -> SecretsPort:
     if reference.backend == "env":
         return EnvironmentSecretsPort()
+    if reference.backend == "file":
+        return FileSecretsPort()
     if reference.backend == "openbao":
         return OpenBaoSecretsPort(
             address=_setting_text("secrets_openbao_address") or "http://127.0.0.1:8200",
