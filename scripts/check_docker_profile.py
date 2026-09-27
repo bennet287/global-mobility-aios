@@ -101,7 +101,6 @@ def main() -> int:
         _require(compose, "x-application-runtime-env: &application_runtime_env", PROD_COMPOSE)
         _require(compose, "DATABASE_URL: ${DATABASE_URL:?", PROD_COMPOSE)
         _require(compose, "REDIS_URL: ${REDIS_URL:?", PROD_COMPOSE)
-        _require(compose, "JWT_SECRET: ${JWT_SECRET:?", PROD_COMPOSE)
         _require(worker_block, "<<: *application_runtime_env", PROD_COMPOSE)
         _require_absent(worker_block, "AUTH_ADMIN_PASSWORD:", PROD_COMPOSE)
         _require_absent(api_block, "env_file:", PROD_COMPOSE)
@@ -110,13 +109,32 @@ def main() -> int:
         _require(api_block, "CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?", PROD_COMPOSE)
         _require(api_block, '127.0.0.1:${API_PORT:-8000}:8000', PROD_COMPOSE)
 
-        _require(compose, "x-llm-secret-volume: &llm_secret_volume", PROD_COMPOSE)
-        _require(compose, "source: ${LLM_SECRETS_DIR:?", PROD_COMPOSE)
-        _require(compose, "target: /run/secrets/llm", PROD_COMPOSE)
+        _require(compose, "x-runtime-secret-volume: &runtime_secret_volume", PROD_COMPOSE)
+        _require_absent(compose, "x-llm-secret-volume:", PROD_COMPOSE)
+        _require(compose, "source: ${AIOS_SECRETS_DIR:?", PROD_COMPOSE)
+        _require(compose, "target: /run/secrets/aios", PROD_COMPOSE)
         _require(compose, "read_only: true", PROD_COMPOSE)
         _require(compose, "create_host_path: false", PROD_COMPOSE)
-        _require(api_block, "- *llm_secret_volume", PROD_COMPOSE)
-        _require(worker_block, "- *llm_secret_volume", PROD_COMPOSE)
+        _require(api_block, "- *runtime_secret_volume", PROD_COMPOSE)
+        _require(worker_block, "- *runtime_secret_volume", PROD_COMPOSE)
+
+        migrated_runtime_secrets = (
+            ("JWT_SECRET", "auth/jwt_secret"),
+            ("AUTOMATION_WEBHOOK_SECRET", "automation/webhook_secret"),
+            ("MINIO_ACCESS_KEY", "storage/minio_access_key"),
+            ("MINIO_SECRET_KEY", "storage/minio_secret_key"),
+            ("DOCUMENT_ACCESS_TOKEN_SECRET", "documents/access_token_secret"),
+        )
+        for key, filename in migrated_runtime_secrets:
+            _require(compose, f"{key}_REF: ${{{key}_REF:?", PROD_COMPOSE)
+            _require_absent(compose, f"  {key}:", PROD_COMPOSE)
+            _require(
+                env_example,
+                f"{key}_REF=file:///run/secrets/aios/{filename}",
+                PROD_ENV_EXAMPLE,
+            )
+            _require_absent(env_example, f"\n{key}=", PROD_ENV_EXAMPLE)
+
         for key in ("DEEPSEEK_API_KEY", "MOONSHOT_API_KEY", "GEMINI_API_KEY"):
             _require(compose, f"{key}_REF: ${{{key}_REF:-}}", PROD_COMPOSE)
             _require_absent(compose, f"  {key}:", PROD_COMPOSE)
@@ -162,16 +180,17 @@ def main() -> int:
         _require(env_example, "MINIO_SERVER_SIDE_ENCRYPTION=true", PROD_ENV_EXAMPLE)
         _require(env_example, "DOCUMENT_STORAGE_BACKUP_STRATEGY=\n", PROD_ENV_EXAMPLE)
         _require(env_example, "DOCUMENT_STORAGE_RECOVERY_TESTED_AT=\n", PROD_ENV_EXAMPLE)
-        _require(env_example, "LLM_SECRETS_DIR=/etc/global-mobility-aios/llm-secrets", PROD_ENV_EXAMPLE)
+        _require(env_example, "AIOS_SECRETS_DIR=/etc/global-mobility-aios/runtime-secrets", PROD_ENV_EXAMPLE)
+        _require_absent(env_example, "LLM_SECRETS_DIR=", PROD_ENV_EXAMPLE)
         _require(env_example, "LLM_PROVIDER=\n", PROD_ENV_EXAMPLE)
         for key, filename in (
-            ("DEEPSEEK_API_KEY", "deepseek_api_key"),
-            ("MOONSHOT_API_KEY", "moonshot_api_key"),
-            ("GEMINI_API_KEY", "gemini_api_key"),
+            ("DEEPSEEK_API_KEY", "llm/deepseek_api_key"),
+            ("MOONSHOT_API_KEY", "llm/moonshot_api_key"),
+            ("GEMINI_API_KEY", "llm/gemini_api_key"),
         ):
             _require(
                 env_example,
-                f"{key}_REF=file:///run/secrets/llm/{filename}",
+                f"{key}_REF=file:///run/secrets/aios/{filename}",
                 PROD_ENV_EXAMPLE,
             )
             _require_absent(env_example, f"\n{key}=", PROD_ENV_EXAMPLE)
