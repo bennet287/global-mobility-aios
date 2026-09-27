@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from app.core.config import settings
-from app.core.secrets import SecretResolutionError
+from app.core.secrets import (
+    SecretReference,
+    SecretResolutionError,
+    resolve_runtime_secret,
+)
 
 
 DEFAULT_INSECURE_SECRETS = {
@@ -33,13 +37,12 @@ PRODUCTION_RUNTIME_SECRET_REFS = {
 
 
 def validate_production_settings() -> None:
-    """Fail fast before serving requests when production security is incomplete.
+    """Fail fast before a production API or worker consumes runtime secrets.
 
-    Development keeps convenient local defaults. Production never relies on them:
-    authentication must be enabled, unsigned role headers must be disabled, and
-    migrated runtime credentials must be supplied through governed secret references.
-    Document-storage enforcement is repeated in the storage service so a direct
-    storage client also fails closed outside application startup.
+    Production references are authoritative and file-backed. All references are
+    resolved and validated before any value is materialized into the existing
+    process-local settings fields, so current auth/storage/automation consumers
+    cannot accidentally keep using development defaults or plaintext fallbacks.
     """
     if not settings.is_production():
         return
@@ -57,8 +60,21 @@ def validate_production_settings() -> None:
         if not isinstance(reference, str) or not reference.strip():
             failures.append(f"{env_name} must be configured in production")
             continue
+
         try:
-            resolved_runtime_secrets[value_field] = getattr(settings, value_field).strip()
+            parsed_reference = SecretReference.parse(reference)
+        except SecretResolutionError:
+            failures.append(f"{env_name} must be a valid production secret reference")
+            continue
+        if parsed_reference.backend != "file":
+            failures.append(f"{env_name} must use a file:// reference in production")
+            continue
+
+        try:
+            resolved_runtime_secrets[value_field] = resolve_runtime_secret(
+                reference=reference,
+                fallback="",
+            )
         except SecretResolutionError:
             failures.append(f"{env_name} must resolve to an available production secret")
 
@@ -85,3 +101,10 @@ def validate_production_settings() -> None:
             "Production startup blocked due to insecure runtime configuration: "
             + "; ".join(failures)
         )
+
+    # Preserve the existing Settings surface for current auth/storage/automation
+    # consumers, but only after the full production secret set has passed. This
+    # is process-local materialization; secret-file rotation requires a controlled
+    # API/worker restart rather than silently changing signing/storage identity.
+    for value_field, resolved_value in resolved_runtime_secrets.items():
+        setattr(settings, value_field, resolved_value)
