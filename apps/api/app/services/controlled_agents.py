@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 from uuid import UUID
 
@@ -14,7 +15,14 @@ from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
 from app.services.eligibility_coach import evaluate_eligibility_output
 from app.services.eligibility_engine import evaluate_lead_eligibility
-from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
+from app.services.llm_client import (
+    LLMProviderConfigurationError,
+    LLMProviderError,
+    LLMProviderFactory,
+    LLMProviderResponseContractError,
+    LLMProviderTransportError,
+    is_llm_enabled,
+)
 from app.services.role_card_loader import build_system_prompt
 from app.services.runtime_economics import RuntimeEconomicsError, complete_recorded
 
@@ -1873,6 +1881,30 @@ def _merge_with_safety(output: dict[str, Any], base: dict[str, Any]) -> dict[str
     return merged
 
 
+def _safe_fallback_reason(exc: Exception) -> str:
+    if isinstance(exc, LLMProviderConfigurationError):
+        error_type = "LLMProviderConfigurationError"
+    elif isinstance(exc, LLMProviderTransportError):
+        error_type = "LLMProviderTransportError"
+    elif isinstance(exc, LLMProviderResponseContractError):
+        error_type = "LLMProviderResponseContractError"
+    elif isinstance(exc, LLMProviderError):
+        error_type = "LLMProviderError"
+    else:
+        error_type = "RuntimeError"
+
+    # The shared adapter emits this fixed form for HTTP failures. Retain only
+    # its numeric status; custom providers and other exceptions may contain
+    # credentials, URLs, or case data in their message and class names.
+    if error_type in {"LLMProviderConfigurationError", "LLMProviderTransportError"}:
+        match = re.fullmatch(
+            r"(?:deepseek|moonshot|gemini) API returned ([1-5][0-9]{2})", str(exc)
+        )
+        if match:
+            return f"{error_type}: provider API returned {match.group(1)}"
+    return f"{error_type}: provider execution failed"
+
+
 def _llm_agent_handler(
     payload: ControlledAgentRunRequest,
     agent: dict[str, Any],
@@ -2396,7 +2428,7 @@ def _llm_agent_handler(
         fallback = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
         fallback["_llm_meta"] = {
             "provider": settings.llm_provider or "unknown",
-            "fallback_reason": f"{type(exc).__name__}: {exc}",
+            "fallback_reason": _safe_fallback_reason(exc),
             "fallback_to_template": True,
         }
         return fallback
