@@ -67,6 +67,31 @@ services:
       retries: 5
     restart: unless-stopped
 
+  web:
+    build:
+      context: ./apps/web
+      target: production
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?Set NEXT_PUBLIC_API_BASE_URL to the browser-reachable API origin}
+        NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"
+    container_name: gmai-web-prod
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?Set NEXT_PUBLIC_API_BASE_URL to the browser-reachable API origin}
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
   worker:
     build:
       context: ./apps/api
