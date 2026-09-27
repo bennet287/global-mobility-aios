@@ -155,7 +155,7 @@ python -m compileall apps/api/app apps/api/tests scripts/seed_demo_data.py scrip
 python scripts/check_repo_policy.py --root .
 python scripts/check_database_migrations.py
 python scripts/check_docker_profile.py
-docker compose --env-file .env.production.example -f docker-compose.prod.yml config
+docker compose --env-file .env.production -f docker-compose.prod.yml config
 ```
 
 Web production-image proof:
