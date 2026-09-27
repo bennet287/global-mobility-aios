@@ -119,7 +119,7 @@ class SmtpAdapter(AutomationProviderAdapter):
                 server.login(username, password)
                 result = server.send_message(msg)
         except Exception as exc:
-            raise AdapterSendError(f"SMTP send failed: {exc}") from exc
+            raise AdapterSendError("SMTP send failed") from exc
 
         return f"smtp-{result.get('to', 'unknown')}"
 
@@ -137,7 +137,7 @@ class SmtpAdapter(AutomationProviderAdapter):
                 server.starttls()
                 server.login(username, password)
         except Exception as exc:
-            raise AdapterSendError(f"SMTP health check failed: {exc}") from exc
+            raise AdapterSendError("SMTP health check failed") from exc
         return "healthy"
 
 
@@ -177,7 +177,7 @@ class WebhookAdapter(AutomationProviderAdapter):
             )
             response.raise_for_status()
         except Exception as exc:
-            raise AdapterSendError(f"Webhook POST failed: {exc}") from exc
+            raise AdapterSendError("Webhook POST failed") from exc
 
         return f"webhook-{uuid4().hex[:12]}"
 
@@ -191,7 +191,7 @@ class WebhookAdapter(AutomationProviderAdapter):
             response = request_public_webhook("GET", url, timeout=10)
             response.raise_for_status()
         except Exception as exc:
-            raise AdapterSendError(f"Webhook health check failed: {exc}") from exc
+            raise AdapterSendError("Webhook health check failed") from exc
         return "healthy"
 
 
