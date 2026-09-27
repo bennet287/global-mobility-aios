@@ -66,6 +66,7 @@ def main() -> int:
         for service in ("postgres", "api-migrate", "redis", "api", "web", "worker", "beat"):
             _service_block(compose, service, PROD_COMPOSE)
 
+        postgres_block = _service_block(compose, "postgres", PROD_COMPOSE)
         api_block = _service_block(compose, "api", PROD_COMPOSE)
         web_block = _service_block(compose, "web", PROD_COMPOSE)
         dev_web_block = _service_block(dev_compose, "web", DEV_COMPOSE)
@@ -80,10 +81,12 @@ def main() -> int:
         _require(compose, "redis_prod_data:", PROD_COMPOSE)
 
         _require(api_block, "condition: service_completed_successfully", PROD_COMPOSE)
+        _require_absent(postgres_block, "ports:", PROD_COMPOSE)
+        _require(api_block, '127.0.0.1:${API_PORT:-8000}:8000', PROD_COMPOSE)
         _require(web_block, "target: production", PROD_COMPOSE)
         _require(web_block, "NEXT_PUBLIC_API_BASE_URL", PROD_COMPOSE)
         _require(web_block, 'NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"', PROD_COMPOSE)
-        _require(web_block, '${WEB_PORT:-3000}:3000', PROD_COMPOSE)
+        _require(web_block, '127.0.0.1:${WEB_PORT:-3000}:3000', PROD_COMPOSE)
         _require(web_block, "condition: service_healthy", PROD_COMPOSE)
         _require_absent(web_block, "env_file:", PROD_COMPOSE)
         _require(dev_web_block, "target: development", DEV_COMPOSE)
