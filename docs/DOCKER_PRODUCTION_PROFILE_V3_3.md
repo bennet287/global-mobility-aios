@@ -17,9 +17,11 @@ Included in `docker-compose.prod.yml`:
 - web-to-API startup dependency on the API health gate;
 - API and web host ports bound to IPv4 loopback for local diagnostics;
 - Caddy ingress for separate web and API hostnames, with public HTTP/HTTPS ports and persisted certificate storage;
-- no `.env.production` injection into the web container, keeping database, JWT, storage, and provider secrets out of the frontend runtime;
+- no `.env.production` injection into the web container, keeping database, signing, storage, and provider secrets out of the frontend runtime;
 - PostgreSQL receives only its database identity/password and the one-shot migration container receives only the database URL plus production/migration controls; Compose still uses `.env.production` for interpolation;
 - Celery beat receives only the production flag and Redis broker URL; the worker handles database and external actions with its own runtime configuration;
+- one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for API and worker, with host-path auto-creation disabled;
+- JWT signing, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
 - the API uses the same shared runtime allowlist plus login, CORS, telemetry and upload-scan settings; it no longer loads every value in `.env.production` into its container;
 - static production-profile validation through `scripts/check_docker_profile.py`.
@@ -33,7 +35,8 @@ Not included in the production Compose yet:
 - n8n;
 - Ollama/local-model runtime;
 - live DNS, certificate issuance, ingress routing and TLS verification on the target VPS;
-- managed workload identity or external secret injection;
+- a production secrets manager/workload-identity authority beyond the bounded host-file secret mount;
+- rotation-safe keyring/re-encryption for the persisted automation connector encryption key;
 - Kubernetes or another production orchestrator;
 - a real hosted deployment target and live post-deployment acceptance evidence.
 
@@ -64,26 +67,51 @@ Create the production env file:
 Copy-Item .env.production.example .env.production
 ```
 
-Replace every relevant `change-this-*` placeholder before starting. At minimum configure:
+Replace every relevant `change-this-*` placeholder before starting. At minimum configure the database/admin/browser settings plus the runtime-secret directory and required references:
 
 ```text
 POSTGRES_PASSWORD
 DATABASE_URL
-JWT_SECRET
 AUTH_ADMIN_PASSWORD
 CORS_ALLOWED_ORIGINS
 NEXT_PUBLIC_API_BASE_URL
 WEB_DOMAIN
 API_DOMAIN
+AIOS_SECRETS_DIR
+JWT_SECRET_REF
+AUTOMATION_WEBHOOK_SECRET_REF
+MINIO_ACCESS_KEY_REF
+MINIO_SECRET_KEY_REF
+DOCUMENT_ACCESS_TOKEN_SECRET_REF
 ```
+
+Provision `AIOS_SECRETS_DIR` on the target host before Compose starts. Keep the directory private (for example mode `0700`) and each active secret file readable only by the intended host operator/container path (for example mode `0600`). The example uses this layout:
+
+```text
+runtime-secrets/
+  auth/jwt_secret
+  automation/webhook_secret
+  storage/minio_access_key
+  storage/minio_secret_key
+  documents/access_token_secret
+  llm/deepseek_api_key
+  llm/moonshot_api_key
+  llm/gemini_api_key
+```
+
+Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. Production startup resolves the mandatory JWT, webhook, MinIO and document-access refs before serving.
+
+The migrated values are re-read through the existing `SecretsPort` rather than cached as a second secret system. Replacing the JWT secret invalidates sessions signed with the previous key; replacing the document-access signing secret invalidates outstanding document tokens signed with the previous key; webhook replacement applies to the next verification; and newly-created MinIO clients observe the current files. Exercise those exact consequences on the target host before claiming rotation support.
+
+`AUTOMATION_ENCRYPTION_KEY` is deliberately not part of this hot-rotation contract yet. Existing connector credentials are persisted as Fernet ciphertext, so replacing that key without a versioned keyring/re-encryption migration can make existing rows unreadable. Treat that as an explicit production blocker rather than rotating the value ad hoc.
 
 Set two distinct public DNS hostnames. For example, `WEB_DOMAIN=app.example.com` and `API_DOMAIN=api.example.com` require `CORS_ALLOWED_ORIGINS=https://app.example.com` and `NEXT_PUBLIC_API_BASE_URL=https://api.example.com`. The API URL is compiled into the web image, so changing it requires a rebuild. Replace the example values before a hosted launch. Ensure both DNS records point to the VPS, public 80/443 reach ingress, and the Caddy `/data` volume persists across restarts. Record the exact image digest and certificate/routing evidence during target-host acceptance; a successful Caddy configuration check does not issue a public certificate.
 
 The ingress startup guard rejects missing, malformed, duplicate and reserved example hostnames before Caddy starts. It does not verify DNS ownership or the relationship between the browser API URL and CORS settings; prove those on the deployed host.
 
-The example leaves `LLM_PROVIDER` empty because a ChatGPT/Kimi consumer subscription is not an API credential. If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
+The example leaves `LLM_PROVIDER` empty because a ChatGPT/Kimi consumer subscription is not an API credential. If a remote LLM provider is enabled, provision only that provider's real API credential in the runtime-secret directory and point its `*_API_KEY_REF` at the corresponding `/run/secrets/aios/llm/...` file. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
 
-Provision the document bucket on a TLS S3-compatible endpoint outside this Compose profile. Set `MINIO_ENDPOINT` to its real `host:port`, use a scoped non-default access key, keep `MINIO_SECURE=true`, `MINIO_AUTO_CREATE_BUCKET=false`, and `MINIO_SERVER_SIDE_ENCRYPTION=true`. The example deliberately leaves `DOCUMENT_STORAGE_BACKUP_STRATEGY` and `DOCUMENT_STORAGE_RECOVERY_TESTED_AT` empty. Fill them only after the real backup/isolated recovery procedure is defined and exercised; those strings are declarations, not restore evidence.
+Provision the document bucket on a TLS S3-compatible endpoint outside this Compose profile. Set `MINIO_ENDPOINT` to its real `host:port`, provision scoped non-default access/secret keys through `MINIO_ACCESS_KEY_REF` and `MINIO_SECRET_KEY_REF`, keep `MINIO_SECURE=true`, `MINIO_AUTO_CREATE_BUCKET=false`, and `MINIO_SERVER_SIDE_ENCRYPTION=true`. The example deliberately leaves `DOCUMENT_STORAGE_BACKUP_STRATEGY` and `DOCUMENT_STORAGE_RECOVERY_TESTED_AT` empty. Fill them only after the real backup/isolated recovery procedure is defined and exercised; those strings are declarations, not restore evidence.
 
 After building the API image, run the isolated synthetic object probe from the target host before enabling document journeys:
 
@@ -192,7 +220,7 @@ docker build --target production --build-arg NEXT_PUBLIC_API_BASE_URL=http://127
 docker run --rm -p 3000:3000 gmai-web-production-proof
 ```
 
-Then verify `http://127.0.0.1:3000/` responds from the production container. `V12 Production Proof` now performs this bounded production-image build/smoke contract on each pull request.
+Then verify `http://127.0.0.1:3000/` responds from the production container. `V12 Production Proof` performs this bounded production-image build/smoke contract on pull requests and on its configured push branches.
 
 Backend regression remains:
 
@@ -201,4 +229,4 @@ $env:PYTHONPATH="apps/api"
 python -m pytest apps/api/tests -q
 ```
 
-A complete real-world production acceptance still requires a real deployment environment, real secret/storage infrastructure, live migrations/backups/recovery evidence, live browser-to-API behavior, and operational observability. Those claims must not be inferred from local Docker or fixture-only browser tests.
+A complete real-world production acceptance still requires a real deployment environment, the provisioned runtime-secret directory and remaining production secret-management decisions, real storage infrastructure, live migrations/backups/recovery evidence, live browser-to-API behavior, and operational observability. Those claims must not be inferred from local Docker or fixture-only browser tests.
