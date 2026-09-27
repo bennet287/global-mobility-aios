@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from app.core.config import settings
-from app.core.secrets import (
-    SecretReference,
-    SecretResolutionError,
-    resolve_runtime_secret,
-)
+from app.core.secrets import SecretResolutionError
 
 
 DEFAULT_INSECURE_SECRETS = {
@@ -36,45 +32,23 @@ PRODUCTION_RUNTIME_SECRET_REFS = {
 }
 
 
-def validate_production_settings() -> None:
-    """Fail fast before a production API or worker consumes runtime secrets.
+def _runtime_secret_failures() -> list[str]:
+    """Validate production runtime refs through the canonical Settings resolver.
 
-    Production references are authoritative and file-backed. All references are
-    resolved and validated before any value is materialized into the existing
-    process-local settings fields, so current auth/storage/automation consumers
-    cannot accidentally keep using development defaults or plaintext fallbacks.
+    Accessing each governed value field intentionally delegates to Settings.__getattribute__,
+    which resolves the configured reference through SecretsPort on every access. This keeps
+    one runtime-secret implementation and proves the same path consumers use at runtime.
     """
-    if not settings.is_production():
-        return
-
     failures: list[str] = []
-
-    if not settings.auth_enabled:
-        failures.append("AUTH_ENABLED must remain true in production")
-    if settings.auth_allow_header_role:
-        failures.append("AUTH_ALLOW_HEADER_ROLE must be false in production")
-
     resolved_runtime_secrets: dict[str, str] = {}
+
     for env_name, (reference_field, value_field) in PRODUCTION_RUNTIME_SECRET_REFS.items():
         reference = getattr(settings, reference_field, "")
         if not isinstance(reference, str) or not reference.strip():
             failures.append(f"{env_name} must be configured in production")
             continue
-
         try:
-            parsed_reference = SecretReference.parse(reference)
-        except SecretResolutionError:
-            failures.append(f"{env_name} must be a valid production secret reference")
-            continue
-        if parsed_reference.backend != "file":
-            failures.append(f"{env_name} must use a file:// reference in production")
-            continue
-
-        try:
-            resolved_runtime_secrets[value_field] = resolve_runtime_secret(
-                reference=reference,
-                fallback="",
-            )
+            resolved_runtime_secrets[value_field] = getattr(settings, value_field).strip()
         except SecretResolutionError:
             failures.append(f"{env_name} must resolve to an available production secret")
 
@@ -90,32 +64,49 @@ def validate_production_settings() -> None:
     elif webhook_secret and len(webhook_secret) < 32:
         failures.append("Automation webhook secret must be at least 32 characters in production")
 
-    admin_password = settings.auth_admin_password.strip()
-    if admin_password in DEFAULT_INSECURE_PASSWORDS:
-        failures.append("AUTH_ADMIN_PASSWORD must be set to a non-default production password")
-    elif len(admin_password) < 12:
-        failures.append("AUTH_ADMIN_PASSWORD must be at least 12 characters in production")
+    return failures
 
+
+def _raise_production_failures(failures: list[str]) -> None:
     if failures:
         raise RuntimeError(
             "Production startup blocked due to insecure runtime configuration: "
             + "; ".join(failures)
         )
 
-    # Preserve the existing Settings surface for current auth/storage/automation
-    # consumers, but only after the full production secret set has passed. This
-    # is process-local materialization; secret-file rotation requires a controlled
-    # API/worker restart rather than silently changing signing/storage identity.
-    for value_field, resolved_value in resolved_runtime_secrets.items():
-        setattr(settings, value_field, resolved_value)
+
+def validate_production_settings() -> None:
+    """Fail fast before the production API serves requests."""
+    if not settings.is_production():
+        return
+
+    failures = _runtime_secret_failures()
+
+    if not settings.auth_enabled:
+        failures.append("AUTH_ENABLED must remain true in production")
+    if settings.auth_allow_header_role:
+        failures.append("AUTH_ALLOW_HEADER_ROLE must be false in production")
+
+    admin_password = settings.auth_admin_password.strip()
+    if admin_password in DEFAULT_INSECURE_PASSWORDS:
+        failures.append("AUTH_ADMIN_PASSWORD must be set to a non-default production password")
+    elif len(admin_password) < 12:
+        failures.append("AUTH_ADMIN_PASSWORD must be at least 12 characters in production")
+
+    _raise_production_failures(failures)
 
 
 def validate_production_worker_settings() -> None:
-    """Run every production safety gate required before a worker is launched."""
-    validate_production_settings()
+    """Fail closed before a production worker accepts tasks.
 
-    # Import lazily so API startup keeps its existing explicit ordering and so
-    # non-worker imports do not pull the storage service into Celery Beat.
+    Workers share the runtime secret and document-storage gates but intentionally do not
+    receive API-only bootstrap login credentials such as AUTH_ADMIN_PASSWORD.
+    """
+    if not settings.is_production():
+        return
+
+    _raise_production_failures(_runtime_secret_failures())
+
     from app.services.document_storage import validate_document_storage_configuration
 
     validate_document_storage_configuration()
