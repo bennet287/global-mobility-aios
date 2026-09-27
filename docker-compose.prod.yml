@@ -89,6 +89,8 @@ services:
   ingress:
     image: caddy:2.11.4-alpine
     container_name: gmai-ingress-prod
+    entrypoint: ["/bin/sh", "/etc/caddy/check-ingress-env.sh"]
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
     environment:
       WEB_DOMAIN: ${WEB_DOMAIN:?Set WEB_DOMAIN to the public web hostname}
       API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN to the public API hostname}
@@ -97,6 +99,7 @@ services:
       - "443:443"
     volumes:
       - ./infrastructure/deployment/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./infrastructure/deployment/check-ingress-env.sh:/etc/caddy/check-ingress-env.sh:ro
       - ingress_data:/data
       - ingress_config:/config
     depends_on:

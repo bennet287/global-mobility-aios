@@ -75,6 +75,8 @@ API_DOMAIN
 
 Set two distinct public DNS hostnames. For example, `WEB_DOMAIN=app.example.com` and `API_DOMAIN=api.example.com` require `CORS_ALLOWED_ORIGINS=https://app.example.com` and `NEXT_PUBLIC_API_BASE_URL=https://api.example.com`. The API URL is compiled into the web image, so changing it requires a rebuild. Replace the example values before a hosted launch. Ensure both DNS records point to the VPS, public 80/443 reach ingress, and the Caddy `/data` volume persists across restarts. Record the exact image digest and certificate/routing evidence during target-host acceptance; a successful Caddy configuration check does not issue a public certificate.
 
+The ingress startup guard rejects missing, malformed, duplicate and reserved example hostnames before Caddy starts. It does not verify DNS ownership or the relationship between the browser API URL and CORS settings; prove those on the deployed host.
+
 If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
 
 Validate the resolved Compose model before launch:

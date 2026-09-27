@@ -66,8 +66,8 @@ jobs:
         run: |
           cp .env.production.example .env.production
           trap 'rm -f .env.production' EXIT
-          docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps ingress caddy validate --config /etc/caddy/Caddyfile
-          if docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps -e WEB_DOMAIN=http://unsafe.example ingress caddy validate --config /etc/caddy/Caddyfile; then
+          docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps -e WEB_DOMAIN=app.aios-ci.org -e API_DOMAIN=api.aios-ci.org ingress caddy validate --config /etc/caddy/Caddyfile
+          if docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps -e WEB_DOMAIN=http://unsafe.example -e API_DOMAIN=api.aios-ci.org ingress caddy validate --config /etc/caddy/Caddyfile; then
             echo 'Ingress accepted an HTTP-scheme hostname' >&2
             exit 1
           fi

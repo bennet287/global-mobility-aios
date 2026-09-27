@@ -9,6 +9,7 @@ DEV_COMPOSE = ROOT / "docker-compose.yml"
 PROD_COMPOSE = ROOT / "docker-compose.prod.yml"
 PROD_ENV_EXAMPLE = ROOT / ".env.production.example"
 INGRESS_CADDYFILE = ROOT / "infrastructure" / "deployment" / "Caddyfile"
+INGRESS_GUARD = ROOT / "infrastructure" / "deployment" / "check-ingress-env.sh"
 API_DOCKERFILE = ROOT / "apps" / "api" / "Dockerfile"
 API_DOCKERIGNORE = ROOT / "apps" / "api" / ".dockerignore"
 WEB_DOCKERFILE = ROOT / "apps" / "web" / "Dockerfile"
@@ -57,6 +58,7 @@ def main() -> int:
         compose = _require_file(PROD_COMPOSE)
         env_example = _require_file(PROD_ENV_EXAMPLE)
         caddyfile = _require_file(INGRESS_CADDYFILE)
+        ingress_guard = _require_file(INGRESS_GUARD)
         api_dockerfile = _require_file(API_DOCKERFILE)
         api_dockerignore = _require_file(API_DOCKERIGNORE)
         web_dockerfile = _require_file(WEB_DOCKERFILE)
@@ -94,11 +96,14 @@ def main() -> int:
         _require_absent(web_block, "env_file:", PROD_COMPOSE)
         for needle in (
             "caddy:2.11.4-alpine",
+            'entrypoint: ["/bin/sh", "/etc/caddy/check-ingress-env.sh"]',
+            'command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]',
             "WEB_DOMAIN: ${WEB_DOMAIN:?",
             "API_DOMAIN: ${API_DOMAIN:?",
             '"80:80"',
             '"443:443"',
             "./infrastructure/deployment/Caddyfile:/etc/caddy/Caddyfile:ro",
+            "./infrastructure/deployment/check-ingress-env.sh:/etc/caddy/check-ingress-env.sh:ro",
             "ingress_data:/data",
             "ingress_config:/config",
         ):
@@ -106,6 +111,7 @@ def main() -> int:
         _require_absent(ingress_block, "env_file:", PROD_COMPOSE)
         _require(caddyfile, "https://{$WEB_DOMAIN} {\n    reverse_proxy web:3000", INGRESS_CADDYFILE)
         _require(caddyfile, "https://{$API_DOMAIN} {\n    reverse_proxy api:8000", INGRESS_CADDYFILE)
+        _require(ingress_guard, 'exec "$@"', INGRESS_GUARD)
         _require(compose, "ingress_data:", PROD_COMPOSE)
         _require(dev_web_block, "target: development", DEV_COMPOSE)
 
