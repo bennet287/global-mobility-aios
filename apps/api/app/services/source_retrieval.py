@@ -9,7 +9,7 @@ from datetime import timedelta
 from html.parser import HTMLParser
 from io import BytesIO
 from typing import Any, Callable, Iterable, Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunsplit
 from uuid import UUID
 
 import httpx
@@ -138,7 +138,8 @@ def validate_retrieval_url(
     *,
     allowed_domains: Iterable[str],
     resolver: Resolver = socket.getaddrinfo,
-) -> None:
+) -> str:
+    """Validate every resolved address and return one public connection target."""
     parsed = urlparse(url)
     allowed_schemes = {"https"} | ({"http"} if settings.source_monitor_allow_http else set())
     if parsed.scheme.lower() not in allowed_schemes:
@@ -149,7 +150,11 @@ def validate_retrieval_url(
     if not hostname or not _domain_allowed(hostname, allowed_domains):
         raise SourceRetrievalError("domain_not_allowed", f"Domain is not on the monitor allowlist: {hostname or 'missing'}")
     default_port = 443 if parsed.scheme.lower() == "https" else 80
-    if parsed.port not in {None, default_port}:
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise SourceRetrievalError("port_not_allowed", "Only the standard port for the URL scheme is allowed") from exc
+    if port not in {None, default_port}:
         raise SourceRetrievalError("port_not_allowed", "Only the standard port for the URL scheme is allowed")
     try:
         addresses = resolver(hostname, default_port, type=socket.SOCK_STREAM)
@@ -165,6 +170,7 @@ def validate_retrieval_url(
             raise SourceRetrievalError("invalid_resolved_address", f"Invalid resolved address for {hostname}") from exc
         if not address.is_global:
             raise SourceRetrievalError("private_address_blocked", f"Non-public address blocked for {hostname}")
+    return str(ipaddress.ip_address(sorted(resolved_ips)[0]))
 
 
 def fetch_official_source(
@@ -189,11 +195,25 @@ def fetch_official_source(
         timeout=settings.source_monitor_timeout_seconds,
         follow_redirects=False,
         transport=transport,
+        trust_env=False,
     ) as client:
         for redirect_count in range(monitor.max_redirects + 1):
-            validate_retrieval_url(current_url, allowed_domains=allowed_domains, resolver=resolver)
+            address = validate_retrieval_url(current_url, allowed_domains=allowed_domains, resolver=resolver)
+            parsed = urlparse(current_url)
+            hostname = (parsed.hostname or "").encode("idna").decode("ascii").rstrip(".")
+            pinned_host = f"[{address}]" if ":" in address else address
+            pinned_url = urlunsplit((parsed.scheme, pinned_host, parsed.path or "/", parsed.query, ""))
+            host_header = f"[{hostname}]" if ":" in hostname else hostname
+            if parsed.port is not None:
+                host_header = f"{host_header}:{parsed.port}"
+            # Pin the connection to the validated address while retaining the
+            # official hostname for HTTP Host and TLS certificate verification.
+            request_headers = {**headers, "Host": host_header}
             try:
-                with client.stream("GET", current_url, headers=headers) as response:
+                with client.stream(
+                    "GET", pinned_url, headers=request_headers,
+                    extensions={"sni_hostname": hostname} if parsed.scheme == "https" else None,
+                ) as response:
                     if response.status_code in REDIRECT_STATUSES:
                         location = response.headers.get("location")
                         if not location:
@@ -206,7 +226,7 @@ def fetch_official_source(
                     if response.status_code == 304:
                         return FetchResult(
                             status_code=304,
-                            final_url=str(response.url),
+                            final_url=current_url,
                             content_type=None,
                             content=b"",
                             etag=response.headers.get("etag") or monitor.etag,
@@ -236,7 +256,7 @@ def fetch_official_source(
                         chunks.append(chunk)
                     return FetchResult(
                         status_code=200,
-                        final_url=str(response.url),
+                        final_url=current_url,
                         content_type=response.headers.get("content-type"),
                         content=b"".join(chunks),
                         etag=response.headers.get("etag"),
