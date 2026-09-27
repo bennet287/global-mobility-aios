@@ -154,7 +154,9 @@ jobs:
           }
           trap cleanup EXIT
           for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:3000/ >/dev/null; then
+            if curl -fsS http://127.0.0.1:3000/ >/dev/null \
+              && curl -fsS http://127.0.0.1:3000/manifest.json >/dev/null \
+              && curl -fsS http://127.0.0.1:3000/sw.js >/dev/null; then
               exit 0
             fi
             sleep 1
