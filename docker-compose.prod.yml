@@ -8,8 +8,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-gmai}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-this-postgres-password}
       POSTGRES_DB: ${POSTGRES_DB:-gmai}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     healthcheck:
@@ -52,7 +50,7 @@ services:
     environment:
       DATABASE_AUTO_CREATE_TABLES: "false"
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "127.0.0.1:${API_PORT:-8000}:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +74,7 @@ services:
         NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"
     container_name: gmai-web-prod
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
     depends_on:
       api:
         condition: service_healthy

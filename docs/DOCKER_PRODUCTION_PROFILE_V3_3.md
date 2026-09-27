@@ -7,6 +7,7 @@ This file remains the canonical Docker production-profile owner. The filename is
 Included in `docker-compose.prod.yml`:
 
 - PostgreSQL 16 with persistent production volume and healthcheck;
+- PostgreSQL without a published host port; the backup utility operates through `docker compose exec`;
 - one-shot Alembic migration gate (`api-migrate`) before API/worker startup;
 - Redis with persistent append-only storage;
 - FastAPI service with production healthcheck;
@@ -14,6 +15,7 @@ Included in `docker-compose.prod.yml`:
 - Next.js web service built from the explicit `production` Docker target;
 - browser-public API origin supplied at image build time through `NEXT_PUBLIC_API_BASE_URL`;
 - web-to-API startup dependency on the API health gate;
+- API and web host ports bound to IPv4 loopback only, pending a separately accepted HTTPS ingress;
 - no `.env.production` injection into the web container, keeping database, JWT, storage, and provider secrets out of the frontend runtime;
 - static production-profile validation through `scripts/check_docker_profile.py`.
 
@@ -31,6 +33,8 @@ Not included in the production Compose yet:
 - a real hosted deployment target and live post-deployment acceptance evidence.
 
 Those are separate production-acceptance slices. A passing Docker/CI profile proves deployability of this bounded container contract; it does **not** by itself prove a live production deployment.
+
+The profile is deliberately not a public endpoint. Do not publish ports 3000, 8000 or 5432 through firewall or alternate Docker overrides. A hosted deployment needs a separately configured HTTPS ingress that can reach the loopback web/API listeners, with verified routing, CORS, cookies and firewall rules. PostgreSQL is reachable by Compose peers; the backup tool does not need a host port. Binding to loopback is one network boundary, not a substitute for host firewall or TLS verification.
 
 ## Production Web Configuration
 
@@ -110,7 +114,7 @@ Check the web container:
 curl -I http://localhost:3000/
 ```
 
-For a hosted deployment, use the externally routed HTTPS origins instead of localhost.
+For a hosted deployment, verify the externally routed HTTPS origins through the accepted ingress. The direct HTTP checks above are local diagnostics only.
 
 ## Operational Commands
 
