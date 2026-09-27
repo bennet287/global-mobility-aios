@@ -262,4 +262,8 @@ def resolve_runtime_secret(*, reference: str, fallback: str) -> str:
     if not reference.strip():
         return fallback
     parsed = SecretReference.parse(reference)
+    if settings.is_production() and parsed.backend != "file":
+        raise SecretResolutionError(
+            "Production runtime secret references must use the bounded file:// backend."
+        )
     return build_secrets_port(parsed).resolve(parsed)
