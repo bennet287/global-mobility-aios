@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
+import pytest
 from sqlmodel import Session, select
 
 from app.models.domain import AuditLog, AutomationConnectorConfig, AutomationDelivery, AutomationEvent
@@ -316,3 +317,95 @@ def test_dispatch_adapter_failure_emits_tool_failure_after_start(
         "automation_delivery_tool_use_failed",
     ]
     assert "credentials" in (signals[1].reason or "").lower()
+
+
+@pytest.mark.parametrize("provider_type", ["smtp", "webhook"])
+def test_connector_transport_detail_is_absent_from_delivery_and_audit(
+    client, db_session: Session, monkeypatch: pytest.MonkeyPatch, provider_type: str,
+) -> None:
+    from app.services.automation_connector import attempt_delivery_dispatch
+
+    marker = "untrusted-transport-secret-and-body"
+
+    class BrokenSMTP:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(marker)
+
+    def broken_webhook(*args, **kwargs):
+        raise RuntimeError(marker)
+
+    monkeypatch.setattr("app.services.automation_connector.smtplib.SMTP", BrokenSMTP)
+    monkeypatch.setattr("app.services.automation_connector.request_public_webhook", broken_webhook)
+    credentials = (
+        {"host": "smtp.example.com", "username": "sender", "password": "secret"}
+        if provider_type == "smtp" else {"url": "https://hooks.example.com/send"}
+    )
+    expected = "SMTP send failed" if provider_type == "smtp" else "Webhook POST failed"
+
+    client.headers.update(_headers("admin", "transport-auditor"))
+    account = _account(client, f"{provider_type} Error Employer")
+    _connector(client, account["id"], "crm", provider_type=provider_type, credentials=credentials)
+    _rule(client, account["id"])
+    _case(client, account["id"], f"ERROR-{provider_type}")
+    delivery = db_session.exec(
+        select(AutomationDelivery)
+        .join(AutomationEvent)
+        .where(AutomationEvent.corporate_account_id == UUID(account["id"]))
+    ).one()
+
+    result = attempt_delivery_dispatch(db_session, delivery, actor="transport-worker", max_attempts=1)
+    assert result.status == "failed"
+    assert result.last_error == expected
+    audits = db_session.exec(
+        select(AuditLog).where(AuditLog.entity_id == str(delivery.id))
+    ).all()
+    assert {audit.action for audit in audits} >= {
+        "automation_delivery_tool_use_failed", "automation_delivery_attempt_failed",
+    }
+    assert all(marker not in str(audit.reason) + str(audit.after_state_json) for audit in audits)
+    assert all(audit.reason == expected for audit in audits if audit.action in {
+        "automation_delivery_tool_use_failed", "automation_delivery_attempt_failed",
+    })
+    exposed = client.get(f"/api/v1/automation/deliveries?corporate_account_id={account['id']}")
+    assert exposed.status_code == 200
+    assert marker not in exposed.text
+    assert exposed.json()[0]["last_error"] == expected
+
+
+@pytest.mark.parametrize("provider_type", ["smtp", "webhook"])
+def test_connector_health_transport_detail_is_absent_from_api_and_audit(
+    client, db_session: Session, monkeypatch: pytest.MonkeyPatch, provider_type: str,
+) -> None:
+    marker = "untrusted-health-secret-and-body"
+
+    class BrokenSMTP:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(marker)
+
+    def broken_webhook(*args, **kwargs):
+        raise RuntimeError(marker)
+
+    monkeypatch.setattr("app.services.automation_connector.smtplib.SMTP", BrokenSMTP)
+    monkeypatch.setattr("app.services.automation_connector.request_public_webhook", broken_webhook)
+    credentials = (
+        {"host": "smtp.example.com", "username": "sender", "password": "secret"}
+        if provider_type == "smtp" else {"url": "https://hooks.example.com/health"}
+    )
+    expected = "SMTP health check failed" if provider_type == "smtp" else "Webhook health check failed"
+
+    client.headers.update(_headers("admin", "health-auditor"))
+    account = _account(client, f"{provider_type} Health Employer")
+    connector = _connector(
+        client, account["id"], "email", provider_type=provider_type, credentials=credentials,
+    )
+    response = client.post(f"/api/v1/automation/connectors/{connector['id']}/health-check")
+    assert response.status_code == 503
+    assert response.json()["detail"] == expected
+    assert marker not in response.text
+    audit = db_session.exec(
+        select(AuditLog)
+        .where(AuditLog.action == "automation_connector_health_check_failed")
+        .where(AuditLog.entity_id == connector["id"])
+    ).one()
+    assert audit.reason == expected
+    assert marker not in str(audit.after_state_json)
