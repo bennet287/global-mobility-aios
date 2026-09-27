@@ -14,6 +14,8 @@
 
 > **Aggressive capability research. Conservative production authority.**
 
+Whole-product production readiness requires a deployed release candidate on the intended VPS, real dependency and browser journeys, security/authority and recovery drills, and dated exact-release evidence. CI and sealed feature slices remain prerequisite engineering evidence, not live-host acceptance. Resolve the concrete deployment blockers and execute the gate in `infrastructure/deployment/README.md` before claiming the project works in production or admitting real client data. Keep unproven consequential and paid autonomous capabilities disabled.
+
 > **Automate evidence, routing, checking, preparation and reversible execution aggressively. Automate consequential truth or external commitments only when stronger evidence and policy gates independently justify it.**
 
 ---
