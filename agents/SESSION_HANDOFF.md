@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`Inspect remaining Phase 17 provenance, adversarial, and incident-response boundaries for a concrete gap. Phase 17J pins official-source monitor egress and Phase 17K pins the fixed UN M49 importer to validated public addresses; fetched content truth and other outbound clients remain separate. Phase 17I bounds shared provider-adapter error strings and Phase 17L bounds SMTP/webhook adapter transport messages in delivery and health surfaces; cause chains and custom providers remain open. Phase 17H's native-skill fingerprint grants no tool authority. The inspected agent runtimes still expose no tool_id/action dispatch API consuming the governed allowed_tools binding. Keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
+`Inspect remaining Phase 17 provenance, adversarial, and incident-response boundaries for a concrete gap. Phase 17J pins official-source monitor egress and Phase 17K pins the fixed UN M49 importer to validated public addresses; fetched content truth and other outbound clients remain separate. Phase 17I bounds provider-adapter, Phase 17L connector-adapter, and Phase 17M controlled-agent worker failure strings in their existing output surfaces; cause chains, broader logs, and custom providers remain open. Phase 17H's native-skill fingerprint grants no tool authority. The inspected agent runtimes still expose no tool_id/action dispatch API consuming the governed allowed_tools binding. Keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #221 — SMTP/webhook connector transport error detail, merged as `f528645ee708d801dfac8cdc7ab3dfe1d2276863`. Fixed adapter messages keep raw transport exception text out of delivery/audit/health API fields; cause chains and broader log redaction remain open. Fixed registry import egress is sealed by PR #219, source-monitor egress by PR #217, provider error detail by PR #215, and native-skill integrity by PR #213 without tool permission.
+- PR #223 — controlled-agent worker failure detail, merged as `b8b408d089b6c6ea5178f3499ed4ef08dfea7445`. Fixed class-labelled messages replace raw exception text and formatted traceback in AgentRun/audit/task result; review detail schema conversion now exposes the bounded result. Retry classification and cancellation gates remain. Connector errors are sealed by PR #221, registry import egress by PR #219, source-monitor egress by PR #217, provider errors by PR #215, and native-skill integrity by PR #213 without tool permission.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,7 +31,7 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
 3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the next actual provenance, adversarial, or incident-response boundary on the verified live base. Source-monitor and fixed-registry-import connection pinning, native-skill fingerprint, and shared provider-adapter and connector transport error-message checks are sealed; `organization_agent_runtime.py` still derives a binding allowance without a current agent tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer authorization from diagnostic evidence alone.
+4. Inspect the next actual provenance, adversarial, or incident-response boundary on the verified live base. Source-monitor and fixed-registry-import connection pinning, native-skill fingerprint, and provider-adapter, connector transport, and controlled-agent worker error-message checks are sealed; `organization_agent_runtime.py` still derives a binding allowance without a current agent tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer authorization from diagnostic evidence alone.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
 
