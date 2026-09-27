@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`Inspect remaining Phase 17 provenance, adversarial, and incident-response boundaries for a concrete gap. Phase 17J pins official-source monitor egress to validated public addresses; page-content trust and other outbound clients remain separate. Phase 17I bounds shared provider-adapter error strings, while cause chains and custom providers remain open. Phase 17H's native-skill fingerprint grants no tool authority. The inspected agent runtimes still expose no tool_id/action dispatch API consuming the governed allowed_tools binding. Keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
+`Inspect remaining Phase 17 provenance, adversarial, and incident-response boundaries for a concrete gap. Phase 17J pins official-source monitor egress and Phase 17K pins the fixed UN M49 importer to validated public addresses; fetched content truth and other outbound clients remain separate. Phase 17I bounds shared provider-adapter error strings, while cause chains and custom providers remain open. Phase 17H's native-skill fingerprint grants no tool authority. The inspected agent runtimes still expose no tool_id/action dispatch API consuming the governed allowed_tools binding. Keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
 
 Last meaningful runtime implementation checkpoint:
 
-- PR #217 — official-source retrieval egress, merged as `ac3ab3b14c798832af881844b2ae783723228fb4`. Each monitor hop uses a validated public address for its connection with the official Host/TLS identity and logical evidence URL retained; proxies and automatic redirects are off. This does not establish the truth of retrieved content or govern other outbound clients. Provider error detail remains sealed by PR #215; native-skill integrity remains sealed by PR #213 without tool permission.
+- PR #219 — fixed UN M49 registry import egress, merged as `a8ce9e57ce72050fcd0556f2b7061840da1bed29`. The importer reuses pinned public HTTPS connections and allows only bounded same-origin redirects; existing content/scope gates and import authority remain separate. Source-monitor egress remains sealed by PR #217, provider error detail by PR #215, and native-skill integrity by PR #213 without tool permission.
 
 This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
 
@@ -31,7 +31,7 @@ This is a recovery checkpoint, not a claim about the live integration head after
 1. Start at `AGENTS.md` and follow its canonical chain.
 2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
 3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the next actual provenance, adversarial, or incident-response boundary on the verified live base. Source-monitor connection pinning, native-skill fingerprint, and shared provider-adapter error-message checks are sealed; `organization_agent_runtime.py` still derives a binding allowance without a current agent tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer authorization from diagnostic evidence alone.
+4. Inspect the next actual provenance, adversarial, or incident-response boundary on the verified live base. Source-monitor and fixed-registry-import connection pinning, native-skill fingerprint, and shared provider-adapter error-message checks are sealed; `organization_agent_runtime.py` still derives a binding allowance without a current agent tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer authorization from diagnostic evidence alone.
 5. Resolve the live integration branch and any active PR from GitHub before changing code.
 6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
 
