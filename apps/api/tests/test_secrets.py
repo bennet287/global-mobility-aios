@@ -104,6 +104,21 @@ def test_file_secret_resolution_rejects_oversized_value(tmp_path):
         port.resolve(SecretReference(backend="file", locator=str(secret_path)))
 
 
+def test_runtime_file_reference_uses_file_backend_and_fails_closed(monkeypatch, tmp_path):
+    root = tmp_path / "llm"
+    root.mkdir()
+    secret_path = root / "gemini_api_key"
+    secret_path.write_text("runtime-key\n", encoding="utf-8")
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    reference = f"file://{secret_path}"
+
+    assert resolve_runtime_secret(reference=reference, fallback="plaintext-fallback") == "runtime-key"
+
+    secret_path.unlink()
+    with pytest.raises(SecretResolutionError, match="unavailable"):
+        resolve_runtime_secret(reference=reference, fallback="plaintext-fallback")
+
+
 def test_configured_reference_fails_closed_instead_of_using_plaintext_fallback(monkeypatch):
     monkeypatch.delenv("MISSING_AI_KEY", raising=False)
     with pytest.raises(SecretResolutionError, match="unavailable"):
