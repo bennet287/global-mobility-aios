@@ -51,6 +51,15 @@ jobs:
           with open('/tmp/gmai-production-compose.json', encoding='utf-8') as handle:
               services = json.load(handle)['services']
           assert not services['postgres'].get('ports'), 'PostgreSQL must not publish a host port'
+          expected_env = {
+              'postgres': {'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB'},
+              'api-migrate': {'APP_ENV', 'DATABASE_URL', 'DATABASE_AUTO_CREATE_TABLES'},
+          }
+          for service, keys in expected_env.items():
+              assert set(services[service].get('environment', {})) == keys, (
+                  f'{service} received unexpected environment variables'
+              )
+              assert 'env_file' not in services[service]
           for service in ('api', 'web'):
               ports = services[service].get('ports', [])
               assert ports and all(port.get('host_ip') == '127.0.0.1' for port in ports), (
