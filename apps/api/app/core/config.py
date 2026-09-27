@@ -60,10 +60,10 @@ class Settings(BaseSettings):
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True
 
-    # SecretsPort — bounded Technology Radar V1.3.5 Wave E1 pilot.
-    # Direct values remain backward-compatible. A *_REF value opts a credential into
-    # runtime secret resolution. OpenBao references are deliberately non-production-only
-    # until a later roadmap tranche explicitly promotes the backend.
+    # SecretsPort is the runtime secret-reference boundary. Production LLM provider
+    # credentials use bounded file:// references under /run/secrets/llm; direct values
+    # remain backward-compatible for existing local/non-production flows. OpenBao is
+    # deliberately non-production-only until a later roadmap tranche promotes it.
     secrets_openbao_address: str = "http://127.0.0.1:8200"
     secrets_openbao_token: str = ""
     secrets_openbao_mount: str = "secret"
