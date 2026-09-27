@@ -8,10 +8,11 @@ explicitly promotes a secrets backend beyond pilot status.
 
 from __future__ import annotations
 
+import ipaddress
 import os
 from dataclasses import dataclass
 from typing import Protocol
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import httpx
 
@@ -74,6 +75,43 @@ class EnvironmentSecretsPort:
         return value
 
 
+def _openbao_segments(value: str) -> tuple[str, ...]:
+    segments = tuple(value.split("/"))
+    if any(
+        segment in {"", ".", ".."} or "%" in segment or "\\" in segment
+        for segment in segments
+    ):
+        raise SecretResolutionError("OpenBao path contains unsafe segments.")
+    return segments
+
+
+def _validate_openbao_address(address: str) -> None:
+    try:
+        parsed = urlsplit(address)
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError as exc:
+        raise SecretResolutionError("OpenBao address is invalid.") from exc
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path not in {"", "/"}
+        or parsed.query
+        or parsed.fragment
+        or (port is not None and port == 0)
+    ):
+        raise SecretResolutionError("OpenBao address must be a plain HTTP(S) origin.")
+    if parsed.scheme == "http":
+        try:
+            loopback = ipaddress.ip_address(hostname).is_loopback
+        except ValueError:
+            loopback = False
+        if not loopback:
+            raise SecretResolutionError("OpenBao HTTP requires a loopback IP address.")
+
+
 class OpenBaoSecretsPort:
     """Minimal KV-v2 reader for the non-production OpenBao pilot."""
 
@@ -107,8 +145,15 @@ class OpenBaoSecretsPort:
             raise SecretResolutionError("OpenBao bootstrap token is not configured.")
         if not self.mount:
             raise SecretResolutionError("OpenBao KV mount is not configured.")
+        _validate_openbao_address(self.address)
+        _openbao_segments(self.mount)
         path = reference.locator.strip("/")
-        if not path.startswith(self.allowed_prefix):
+        path_segments = _openbao_segments(path)
+        allowed_segments = _openbao_segments(self.allowed_prefix.rstrip("/"))
+        if (
+            path_segments[: len(allowed_segments)] != allowed_segments
+            or len(path_segments) <= len(allowed_segments)
+        ):
             raise SecretResolutionError(
                 f"OpenBao secret path is outside the allowed pilot scope: {path}."
             )
@@ -118,8 +163,10 @@ class OpenBaoSecretsPort:
             headers["X-Vault-Namespace"] = self.namespace
         url = f"{self.address}/v1/{quote(self.mount, safe='')}/data/{quote(path, safe='/')}"
         try:
-            with httpx.Client(timeout=self.timeout_seconds) as client:
-                response = client.get(url, headers=headers)
+            with httpx.Client(
+                timeout=self.timeout_seconds, trust_env=False, follow_redirects=False
+            ) as client:
+                response = client.get(url, headers=headers, follow_redirects=False)
                 response.raise_for_status()
         except httpx.HTTPError as exc:
             raise SecretResolutionError("OpenBao secret retrieval failed.") from exc
