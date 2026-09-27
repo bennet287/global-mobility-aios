@@ -106,6 +106,7 @@ def main() -> int:
             "npm ci",
             "npm run build",
             "NEXT_PUBLIC_API_BASE_URL",
+            "COPY --from=builder --chown=node:node /app/public ./public",
             "USER node",
             "HEALTHCHECK",
             'CMD ["node", "server.js"]',
