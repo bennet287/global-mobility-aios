@@ -67,6 +67,7 @@ def document_storage_posture() -> dict[str, Any]:
     placeholder_secret = not secret or secret.lower().startswith("change-this")
     minio_access_key = settings.minio_access_key.strip()
     minio_secret_key = settings.minio_secret_key.strip()
+    minio_endpoint = settings.minio_endpoint.strip()
     default_credentials = (
         minio_access_key in {"", "minioadmin"}
         or minio_secret_key in {"", "minioadmin"}
@@ -97,6 +98,8 @@ def document_storage_posture() -> dict[str, Any]:
             failures.append("production_requires_minio")
         if backend == "minio" and not settings.minio_secure:
             failures.append("minio_tls_required")
+        if backend == "minio" and (not minio_endpoint or minio_endpoint.lower().startswith("change-this")):
+            failures.append("minio_endpoint_must_be_configured")
         if backend == "minio" and default_credentials:
             failures.append("non_default_minio_credentials_required")
         if backend == "minio" and settings.minio_auto_create_bucket:

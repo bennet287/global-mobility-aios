@@ -48,6 +48,9 @@ def test_production_document_storage_requires_encrypted_minio(
         LocalDocumentStorage(str(tmp_path))
 
     monkeypatch.setattr(settings, "document_storage_backend", "minio")
+    monkeypatch.setattr(settings, "minio_endpoint", "change-this-object-storage-endpoint.example:443")
+    assert "minio_endpoint_must_be_configured" in document_storage_posture()["failures"]
+    monkeypatch.setattr(settings, "minio_endpoint", "objects.example.com:443")
     monkeypatch.setattr(settings, "minio_secure", True)
     monkeypatch.setattr(settings, "minio_access_key", "production-access-key")
     monkeypatch.setattr(settings, "minio_secret_key", "production-secret-key")

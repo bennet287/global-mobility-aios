@@ -79,11 +79,22 @@ The ingress startup guard rejects missing, malformed, duplicate and reserved exa
 
 If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
 
+Provision the document bucket on a TLS S3-compatible endpoint outside this Compose profile. Set `MINIO_ENDPOINT` to its real `host:port`, use a scoped non-default access key, keep `MINIO_SECURE=true`, `MINIO_AUTO_CREATE_BUCKET=false`, and `MINIO_SERVER_SIDE_ENCRYPTION=true`. The example deliberately leaves `DOCUMENT_STORAGE_BACKUP_STRATEGY` and `DOCUMENT_STORAGE_RECOVERY_TESTED_AT` empty. Fill them only after the real backup/isolated recovery procedure is defined and exercised; those strings are declarations, not restore evidence.
+
+After building the API image, run the isolated synthetic object probe from the target host before enabling document journeys:
+
+```powershell
+docker compose --env-file .env.production -f docker-compose.prod.yml build api
+docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps api python -m app.services.document_storage_preflight
+```
+
+The probe checks the configured bucket and policy through the production adapter, writes one random synthetic object with SSE-S3, reads its bytes and encryption response header, and removes it with a missing-object check. It returns a redacted result and a synthetic key for manual cleanup if necessary. A passing probe does not prove public-read denial from outside the host, object-store backup/restore, retention, credential rotation, upload malware scanning, or the complete browser document journey. Capture those separately in the whole-product acceptance gate.
+
 Validate the resolved Compose model before launch:
 
 ```powershell
 docker compose --env-file .env.production -f docker-compose.prod.yml config
-docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps ingress validate --config /etc/caddy/Caddyfile
+docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps ingress caddy validate --config /etc/caddy/Caddyfile
 ```
 
 Build and start:

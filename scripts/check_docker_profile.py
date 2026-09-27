@@ -123,6 +123,12 @@ def main() -> int:
         _require(env_example, "NEXT_PUBLIC_API_BASE_URL=", PROD_ENV_EXAMPLE)
         _require(env_example, "WEB_DOMAIN=", PROD_ENV_EXAMPLE)
         _require(env_example, "API_DOMAIN=", PROD_ENV_EXAMPLE)
+        _require(env_example, "MINIO_ENDPOINT=change-this-", PROD_ENV_EXAMPLE)
+        _require(env_example, "MINIO_SECURE=true", PROD_ENV_EXAMPLE)
+        _require(env_example, "MINIO_AUTO_CREATE_BUCKET=false", PROD_ENV_EXAMPLE)
+        _require(env_example, "MINIO_SERVER_SIDE_ENCRYPTION=true", PROD_ENV_EXAMPLE)
+        _require(env_example, "DOCUMENT_STORAGE_BACKUP_STRATEGY=\n", PROD_ENV_EXAMPLE)
+        _require(env_example, "DOCUMENT_STORAGE_RECOVERY_TESTED_AT=\n", PROD_ENV_EXAMPLE)
 
         _require(api_dockerfile, "HEALTHCHECK", API_DOCKERFILE)
         _require(api_dockerignore, "gmai.db", API_DOCKERIGNORE)
