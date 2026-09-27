@@ -8,6 +8,7 @@
 **Current programme:** Phase 17 — Agent Security Assurance
 **Active implementation:** none; Phase 17A–17P session, debug, connector/source/registry/OpenBao pilot egress, prompt, native-skill integrity/origin eligibility, and provider/connector/worker/fallback-error boundaries are sealed through PR #229. Phase 16 itemized billing/vendor-cost attribution, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open prerequisites rather than claimed capabilities.
 **Next scheduled slice:** Evidence-led inspection of remaining Phase 17 provenance, adversarial, and incident-response gaps. The native-skill fingerprint is not a signature or tool authority. The inspected execution paths still expose no agent `tool_id`/action dispatch seam consuming the governed runtime allowance; add an entitlement check only at a concrete executable seam with a current binding and denial proof. Exception cause chains, broader logs, and provider paths beyond the bounded fallback metadata remain outside these error-message slices; inspect any other outbound client against its own destination and authority contract.
+**Whole-product deployment:** NOT VERIFIED on a production VPS. CI named `V12 Production Proof` does not establish a live deployment. The cross-cutting target-host acceptance gate and currently observed deployment blockers are owned by `infrastructure/deployment/README.md`; no production-ready claim follows from Phase 17 seals.
 
 ## Current programme state
 
