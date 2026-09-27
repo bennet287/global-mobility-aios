@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from uuid import UUID
 
 from celery import Task
+import pytest
 from sqlmodel import Session, select
 
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
@@ -246,6 +248,88 @@ def test_run_agent_task_records_soft_timeout_as_terminal_failure(
     ]
     assert '"status": "running"' in (lifecycle_logs[0].after_state_json or "")
     assert '"status": "failed"' in (lifecycle_logs[1].after_state_json or "")
+
+
+@pytest.mark.parametrize(
+    ("failure_type", "failure_class"),
+    [(RuntimeError, "unknown"), (LLMProviderConfigurationError, "provider_configuration")],
+)
+def test_worker_failure_excludes_raw_detail_from_run_audit_task_and_api(
+    db_session: Session, client, monkeypatch, failure_type, failure_class: str,
+) -> None:
+    lead = create_lead(db_session)
+    run = AgentRun(
+        lead_id=lead.id,
+        agent_name="sales_summary_agent",
+        task="Prepare sales summary.",
+        status=AgentRunStatus.queued.value,
+        input_json='{"agent_name":"sales_summary_agent","task":"Prepare sales summary."}',
+        output_json="{}",
+    )
+    db_session.add(run)
+    db_session.commit()
+    db_session.refresh(run)
+    marker = "UNTRUSTED-PROVIDER-BODY-AND-SECRET"
+
+    def fail(*args, **kwargs):
+        raise failure_type(marker)
+
+    monkeypatch.setattr("app.tasks.agent_tasks.run_controlled_agent", fail)
+    result = run_agent_task.run(str(run.id))
+    expected = f"Agent run execution error ({failure_class})."
+    assert result == {"run_id": str(run.id), "status": "failed", "error": expected}
+
+    db_session.refresh(run)
+    assert run.status == "failed"
+    assert json.loads(run.output_json)["_last_error"] == expected
+    assert marker not in run.output_json
+    audits = db_session.exec(
+        select(AuditLog).where(AuditLog.entity_id == str(run.id))
+    ).all()
+    classified = next(log for log in audits if log.action == "agent_run_failure_classified")
+    assert json.loads(classified.after_state_json)["failure_class"] == failure_class
+    assert classified.reason == expected
+    assert all(marker not in str(log.reason) + str(log.after_state_json) for log in audits)
+
+    detail = client.get(f"/api/v1/agent-output-reviews/runs/{run.id}")
+    assert detail.status_code == 200
+    assert marker not in detail.text
+    assert expected in detail.text
+
+
+def test_retryable_worker_failure_passes_bounded_error_to_retry_and_run(
+    db_session: Session, monkeypatch,
+) -> None:
+    lead = create_lead(db_session)
+    run = AgentRun(
+        lead_id=lead.id,
+        agent_name="sales_summary_agent",
+        task="Prepare sales summary.",
+        status=AgentRunStatus.queued.value,
+        input_json='{"agent_name":"sales_summary_agent","task":"Prepare sales summary."}',
+        output_json="{}",
+    )
+    db_session.add(run)
+    db_session.commit()
+    db_session.refresh(run)
+    marker = "UNTRUSTED-TRANSPORT-TOKEN"
+
+    def fail(*args, **kwargs):
+        raise LLMProviderTransportError(marker)
+
+    monkeypatch.setattr("app.tasks.agent_tasks.run_controlled_agent", fail)
+    with pytest.raises(LLMProviderTransportError) as raised:
+        run_agent_task.run(str(run.id))
+    expected = "Agent run execution error (provider_transport)."
+    assert str(raised.value) == expected
+    db_session.refresh(run)
+    assert run.status == AgentRunStatus.queued.value
+    assert json.loads(run.output_json)["_last_error"] == expected
+    assert marker not in run.output_json
+    audits = db_session.exec(
+        select(AuditLog).where(AuditLog.entity_id == str(run.id))
+    ).all()
+    assert all(marker not in str(log.reason) + str(log.after_state_json) for log in audits)
 
 
 def test_reconcile_stale_agent_runs_fails_only_overdue_running_run(

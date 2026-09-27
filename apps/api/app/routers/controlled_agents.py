@@ -17,6 +17,7 @@ from app.models.domain import AgentRun, AgentRunStatus, ApplicationRecord, Audit
 from app.schemas import (
     AgentRunBatchReviewRequest,
     AgentRunDetailResponse,
+    AgentRunRead,
     ControlledAgentRunBatchRequest,
     ControlledAgentRunBatchResponse,
     ControlledAgentRunRequest,
@@ -749,7 +750,7 @@ def get_agent_output_review_detail(
     run = _get_agent_run_or_404(session, run_id)
     audits = _review_audits_for_run(session, run)
     return AgentRunDetailResponse(
-        run=run,
+        run=AgentRunRead.model_validate(run, from_attributes=True),
         audit_history=[
             {
                 "id": log.id,

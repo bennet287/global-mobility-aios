@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import traceback
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -229,6 +228,10 @@ def run_agent_task(self, agent_run_id: str) -> dict:
                 }
 
             failure_class, retryable = _classify_failure(exc)
+            # Exception text and tracebacks can carry provider bodies, secrets, or
+            # case data. Keep only the deterministic classification in run/audit
+            # evidence and in the task result.
+            error = f"Agent run execution error ({failure_class})."
             record_audit(
                 session,
                 actor="worker",
@@ -241,21 +244,20 @@ def run_agent_task(self, agent_run_id: str) -> dict:
                     "attempt": self.request.retries + 1,
                     "max_retries": self.max_retries,
                 },
-                reason=str(exc),
+                reason=error,
                 source="phase_16_runtime_reliability",
             )
             session.commit()
 
             if retryable and self.request.retries < self.max_retries:
-                _transition_run(session, run, AgentRunStatus.queued, error=str(exc))
-                raise self.retry(exc=exc)
+                _transition_run(session, run, AgentRunStatus.queued, error=error)
+                raise self.retry(exc=LLMProviderTransportError(error))
 
-            _transition_run(session, run, AgentRunStatus.failed, error=traceback.format_exc())
+            _transition_run(session, run, AgentRunStatus.failed, error=error)
             return {
                 "run_id": str(run.id),
                 "status": run.status,
-                "error": str(exc),
-                "traceback": traceback.format_exc(),
+                "error": error,
             }
 
 
