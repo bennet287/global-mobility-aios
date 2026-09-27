@@ -1,7 +1,10 @@
 import pytest
 
 from app.core.config import settings
-from app.core.startup_safety import validate_production_settings
+from app.core.startup_safety import (
+    validate_production_settings,
+    validate_production_worker_settings,
+)
 
 
 _SECRET_FIELDS = {
@@ -144,9 +147,7 @@ def test_production_startup_rejects_invalid_runtime_secret_ref(monkeypatch, tmp_
         validate_production_settings()
 
 
-def test_worker_runtime_hook_runs_both_production_safety_gates(monkeypatch):
-    from app.core.celery_app import _validate_production_worker_runtime
-
+def test_worker_preflight_runs_runtime_and_document_storage_gates(monkeypatch):
     calls: list[str] = []
     monkeypatch.setattr(
         "app.core.startup_safety.validate_production_settings",
@@ -157,6 +158,6 @@ def test_worker_runtime_hook_runs_both_production_safety_gates(monkeypatch):
         lambda: calls.append("document-storage"),
     )
 
-    _validate_production_worker_runtime()
+    validate_production_worker_settings()
 
     assert calls == ["runtime-secrets", "document-storage"]
