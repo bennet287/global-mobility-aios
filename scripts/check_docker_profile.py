@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEV_COMPOSE = ROOT / "docker-compose.yml"
 PROD_COMPOSE = ROOT / "docker-compose.prod.yml"
 PROD_ENV_EXAMPLE = ROOT / ".env.production.example"
+INGRESS_CADDYFILE = ROOT / "infrastructure" / "deployment" / "Caddyfile"
+INGRESS_GUARD = ROOT / "infrastructure" / "deployment" / "check-ingress-env.sh"
 API_DOCKERFILE = ROOT / "apps" / "api" / "Dockerfile"
 API_DOCKERIGNORE = ROOT / "apps" / "api" / ".dockerignore"
 WEB_DOCKERFILE = ROOT / "apps" / "web" / "Dockerfile"
@@ -55,6 +57,8 @@ def main() -> int:
         dev_compose = _require_file(DEV_COMPOSE)
         compose = _require_file(PROD_COMPOSE)
         env_example = _require_file(PROD_ENV_EXAMPLE)
+        caddyfile = _require_file(INGRESS_CADDYFILE)
+        ingress_guard = _require_file(INGRESS_GUARD)
         api_dockerfile = _require_file(API_DOCKERFILE)
         api_dockerignore = _require_file(API_DOCKERIGNORE)
         web_dockerfile = _require_file(WEB_DOCKERFILE)
@@ -63,12 +67,13 @@ def main() -> int:
         backup_restore_script = _require_file(BACKUP_RESTORE_SCRIPT)
         backup_restore_doc = _require_file(BACKUP_RESTORE_DOC)
 
-        for service in ("postgres", "api-migrate", "redis", "api", "web", "worker", "beat"):
+        for service in ("postgres", "api-migrate", "redis", "api", "web", "ingress", "worker", "beat"):
             _service_block(compose, service, PROD_COMPOSE)
 
         postgres_block = _service_block(compose, "postgres", PROD_COMPOSE)
         api_block = _service_block(compose, "api", PROD_COMPOSE)
         web_block = _service_block(compose, "web", PROD_COMPOSE)
+        ingress_block = _service_block(compose, "ingress", PROD_COMPOSE)
         dev_web_block = _service_block(dev_compose, "web", DEV_COMPOSE)
 
         _require(compose, "condition: service_healthy", PROD_COMPOSE)
@@ -89,6 +94,25 @@ def main() -> int:
         _require(web_block, '127.0.0.1:${WEB_PORT:-3000}:3000', PROD_COMPOSE)
         _require(web_block, "condition: service_healthy", PROD_COMPOSE)
         _require_absent(web_block, "env_file:", PROD_COMPOSE)
+        for needle in (
+            "caddy:2.11.4-alpine",
+            'entrypoint: ["/bin/sh", "/etc/caddy/check-ingress-env.sh"]',
+            'command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]',
+            "WEB_DOMAIN: ${WEB_DOMAIN:?",
+            "API_DOMAIN: ${API_DOMAIN:?",
+            '"80:80"',
+            '"443:443"',
+            "./infrastructure/deployment/Caddyfile:/etc/caddy/Caddyfile:ro",
+            "./infrastructure/deployment/check-ingress-env.sh:/etc/caddy/check-ingress-env.sh:ro",
+            "ingress_data:/data",
+            "ingress_config:/config",
+        ):
+            _require(ingress_block, needle, PROD_COMPOSE)
+        _require_absent(ingress_block, "env_file:", PROD_COMPOSE)
+        _require(caddyfile, "https://{$WEB_DOMAIN} {\n    reverse_proxy web:3000", INGRESS_CADDYFILE)
+        _require(caddyfile, "https://{$API_DOMAIN} {\n    reverse_proxy api:8000", INGRESS_CADDYFILE)
+        _require(ingress_guard, 'exec "$@"', INGRESS_GUARD)
+        _require(compose, "ingress_data:", PROD_COMPOSE)
         _require(dev_web_block, "target: development", DEV_COMPOSE)
 
         _require(env_example, "APP_ENV=production", PROD_ENV_EXAMPLE)
@@ -97,6 +121,8 @@ def main() -> int:
         _require(env_example, "postgresql+psycopg://", PROD_ENV_EXAMPLE)
         _require(env_example, "WEB_PORT=3000", PROD_ENV_EXAMPLE)
         _require(env_example, "NEXT_PUBLIC_API_BASE_URL=", PROD_ENV_EXAMPLE)
+        _require(env_example, "WEB_DOMAIN=", PROD_ENV_EXAMPLE)
+        _require(env_example, "API_DOMAIN=", PROD_ENV_EXAMPLE)
 
         _require(api_dockerfile, "HEALTHCHECK", API_DOCKERFILE)
         _require(api_dockerignore, "gmai.db", API_DOCKERIGNORE)

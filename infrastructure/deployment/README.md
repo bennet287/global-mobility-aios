@@ -26,7 +26,7 @@ Record a pass/fail/blocked result and redacted evidence for each gate. A capabil
 
 ### Current repository blockers (inspection at 2026-09-27, after PR #231)
 
-- PR #231 added a standalone production web image and Compose service, with a CI container smoke check. The profile has no HTTPS ingress or target-host networking and firewall proof; its direct host ports are only local diagnostics until that boundary is accepted.
+- The production profile now includes a Caddy ingress configuration for separate web/API hostnames, but no public certificate, HTTPS browser journey, DNS, host firewall or target-host networking proof exists. Direct web/API host ports are loopback diagnostics.
 - API production startup requires a configured MinIO document backend with TLS, non-default credentials, a preprovisioned bucket and server-side encryption. The current production Compose profile does not start MinIO; `.env.production.example` names a MinIO endpoint without providing that dependency. An externally provisioned compatible service and its recovery proof could satisfy this dependency.
 - The production example still injects one `.env.production` into several containers. Per-service credential scope, production secret loading and rotation need implementation and live verification.
 - The existing PostgreSQL backup utility describes a real isolated restore, but its unit tests and the current workspace do not establish a dated restore on the target VPS. Object-store backup/recovery needs its own proof.

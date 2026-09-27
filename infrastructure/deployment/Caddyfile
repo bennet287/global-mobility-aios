@@ -1,0 +1,7 @@
+https://{$WEB_DOMAIN} {
+    reverse_proxy web:3000
+}
+
+https://{$API_DOMAIN} {
+    reverse_proxy api:8000
+}
