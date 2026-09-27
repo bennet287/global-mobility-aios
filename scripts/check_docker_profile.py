@@ -104,8 +104,8 @@ def main() -> int:
         ):
             _require(ingress_block, needle, PROD_COMPOSE)
         _require_absent(ingress_block, "env_file:", PROD_COMPOSE)
-        _require(caddyfile, "{$WEB_DOMAIN} {\n    reverse_proxy web:3000", INGRESS_CADDYFILE)
-        _require(caddyfile, "{$API_DOMAIN} {\n    reverse_proxy api:8000", INGRESS_CADDYFILE)
+        _require(caddyfile, "https://{$WEB_DOMAIN} {\n    reverse_proxy web:3000", INGRESS_CADDYFILE)
+        _require(caddyfile, "https://{$API_DOMAIN} {\n    reverse_proxy api:8000", INGRESS_CADDYFILE)
         _require(compose, "ingress_data:", PROD_COMPOSE)
         _require(dev_web_block, "target: development", DEV_COMPOSE)
 
