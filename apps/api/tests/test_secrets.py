@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
+from app.core.config import settings
 from app.core.secrets import (
     EnvironmentSecretsPort,
     FileSecretsPort,
@@ -20,8 +21,8 @@ def test_secret_reference_parses_environment_reference():
 
 
 def test_secret_reference_parses_absolute_file_reference():
-    assert SecretReference.parse("file:///run/secrets/llm/deepseek_api_key") == SecretReference(
-        backend="file", locator="/run/secrets/llm/deepseek_api_key"
+    assert SecretReference.parse("file:///run/secrets/aios/llm/deepseek_api_key") == SecretReference(
+        backend="file", locator="/run/secrets/aios/llm/deepseek_api_key"
     )
 
 
@@ -29,7 +30,7 @@ def test_secret_reference_parses_absolute_file_reference():
     "reference",
     [
         "file://relative-key",
-        "file:///run/secrets/llm/deepseek_api_key#field",
+        "file:///run/secrets/aios/llm/deepseek_api_key#field",
     ],
 )
 def test_secret_reference_rejects_unsafe_file_reference_syntax(reference):
@@ -44,7 +45,7 @@ def test_environment_secret_resolution_reads_current_value(monkeypatch):
 
 
 def test_file_secret_resolution_reads_bounded_value_and_trims_line_endings(tmp_path):
-    root = tmp_path / "llm"
+    root = tmp_path / "aios"
     root.mkdir()
     secret_path = root / "deepseek_api_key"
     secret_path.write_text("production-key\r\n", encoding="utf-8")
@@ -56,7 +57,7 @@ def test_file_secret_resolution_reads_bounded_value_and_trims_line_endings(tmp_p
 
 
 def test_file_secret_resolution_rejects_path_outside_allowed_root(tmp_path):
-    root = tmp_path / "llm"
+    root = tmp_path / "aios"
     root.mkdir()
     secret_path = tmp_path / "outside-key"
     secret_path.write_text("secret", encoding="utf-8")
@@ -67,7 +68,7 @@ def test_file_secret_resolution_rejects_path_outside_allowed_root(tmp_path):
 
 
 def test_file_secret_resolution_rejects_symlink_escape(tmp_path):
-    root = tmp_path / "llm"
+    root = tmp_path / "aios"
     root.mkdir()
     outside = tmp_path / "outside-key"
     outside.write_text("secret", encoding="utf-8")
@@ -80,7 +81,7 @@ def test_file_secret_resolution_rejects_symlink_escape(tmp_path):
 
 
 def test_file_secret_resolution_rejects_missing_or_empty_value(tmp_path):
-    root = tmp_path / "llm"
+    root = tmp_path / "aios"
     root.mkdir()
     port = FileSecretsPort(root=root)
 
@@ -94,7 +95,7 @@ def test_file_secret_resolution_rejects_missing_or_empty_value(tmp_path):
 
 
 def test_file_secret_resolution_rejects_oversized_value(tmp_path):
-    root = tmp_path / "llm"
+    root = tmp_path / "aios"
     root.mkdir()
     secret_path = root / "oversized"
     secret_path.write_bytes(b"x" * (64 * 1024 + 1))
@@ -105,7 +106,7 @@ def test_file_secret_resolution_rejects_oversized_value(tmp_path):
 
 
 def test_runtime_file_reference_uses_file_backend_and_fails_closed(monkeypatch, tmp_path):
-    root = tmp_path / "llm"
+    root = tmp_path / "aios"
     root.mkdir()
     secret_path = root / "gemini_api_key"
     secret_path.write_text("runtime-key\n", encoding="utf-8")
@@ -117,6 +118,38 @@ def test_runtime_file_reference_uses_file_backend_and_fails_closed(monkeypatch, 
     secret_path.unlink()
     with pytest.raises(SecretResolutionError, match="unavailable"):
         resolve_runtime_secret(reference=reference, fallback="plaintext-fallback")
+
+
+@pytest.mark.parametrize(
+    ("field_name", "ref_field_name"),
+    [
+        ("jwt_secret", "jwt_secret_ref"),
+        ("automation_webhook_secret", "automation_webhook_secret_ref"),
+        ("minio_access_key", "minio_access_key_ref"),
+        ("minio_secret_key", "minio_secret_key_ref"),
+        ("document_access_token_secret", "document_access_token_secret_ref"),
+    ],
+)
+def test_settings_runtime_secret_fields_re_resolve_and_fail_closed(
+    monkeypatch, tmp_path, field_name, ref_field_name
+):
+    root = tmp_path / "aios"
+    root.mkdir()
+    secret_path = root / field_name
+    secret_path.write_text("runtime-v1\n", encoding="utf-8")
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    monkeypatch.setattr(settings, ref_field_name, "")
+    monkeypatch.setattr(settings, field_name, "plaintext-fallback")
+    monkeypatch.setattr(settings, ref_field_name, f"file://{secret_path}")
+
+    assert getattr(settings, field_name) == "runtime-v1"
+
+    secret_path.write_text("runtime-v2\n", encoding="utf-8")
+    assert getattr(settings, field_name) == "runtime-v2"
+
+    secret_path.unlink()
+    with pytest.raises(SecretResolutionError, match="unavailable"):
+        getattr(settings, field_name)
 
 
 def test_configured_reference_fails_closed_instead_of_using_plaintext_fallback(monkeypatch):
