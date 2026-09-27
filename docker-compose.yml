@@ -80,6 +80,7 @@ services:
   web:
     build:
       context: ./apps/web
+      target: development
     container_name: gmai-web
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
