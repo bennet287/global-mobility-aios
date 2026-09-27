@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import httpx
 import pytest
 from sqlmodel import Session, select
 
@@ -12,6 +13,8 @@ from app.models.domain import (
     now_utc,
 )
 from app.services.jurisdiction_registry import (
+    UN_M49_SOURCE_URL,
+    fetch_un_m49_source,
     import_un_m49_registry,
     jurisdiction_registry_coverage,
     parse_un_m49_html,
@@ -29,6 +32,125 @@ SAMPLE_M49 = """
 <tr><td>001</td><td>World</td><td>142</td><td>Asia</td><td>030</td><td>Eastern Asia</td><td></td><td></td><td>China, Hong Kong SAR</td><td>344</td><td>HK</td><td>HKG</td></tr>
 </tbody></table></html>
 """
+
+
+def test_m49_fetch_uses_pinned_public_https_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+    import socket
+
+    from app.services import webhook_egress
+
+    seen: dict[str, object] = {}
+
+    def resolve(host: str, port: int, **kwargs):
+        seen["resolution"] = (host, port)
+        return [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("93.184.216.34", port))]
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            seen["client"] = kwargs
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return None
+
+        def request(self, method, url, **kwargs):
+            seen["request"] = (method, url, kwargs)
+            return httpx.Response(
+                200, headers={"content-type": "text/html"}, text=SAMPLE_M49,
+                request=httpx.Request(method, url),
+            )
+
+    monkeypatch.setattr(webhook_egress.socket, "getaddrinfo", resolve)
+    monkeypatch.setattr(webhook_egress.httpx, "Client", FakeClient)
+
+    source, _ = fetch_un_m49_source()
+    assert source == SAMPLE_M49
+    assert seen["resolution"] == ("unstats.un.org", 443)
+    assert seen["client"] == {"timeout": 30.0, "follow_redirects": False, "trust_env": False}
+    method, url, kwargs = seen["request"]
+    assert method == "GET"
+    assert url == "https://93.184.216.34/unsd/methodology/m49/overview/"
+    assert kwargs["headers"]["Host"] == "unstats.un.org"
+    assert kwargs["extensions"] == {"sni_hostname": "unstats.un.org"}
+    assert kwargs["follow_redirects"] is False
+
+
+def test_m49_fetch_follows_bounded_same_origin_redirect(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    def request(method: str, url: str, **kwargs):
+        calls.append(url)
+        if len(calls) == 1:
+            return httpx.Response(302, headers={"location": "/unsd/methodology/m49/new/"})
+        return httpx.Response(
+            200, headers={"content-type": "text/html"}, text=SAMPLE_M49,
+            request=httpx.Request(method, url),
+        )
+
+    monkeypatch.setattr("app.services.jurisdiction_registry.request_public_webhook", request)
+    source, _ = fetch_un_m49_source()
+    assert source == SAMPLE_M49
+    assert calls == [UN_M49_SOURCE_URL, "https://unstats.un.org/unsd/methodology/m49/new/"]
+
+
+@pytest.mark.parametrize("location", [
+    "http://unstats.un.org/other",
+    "https://169.254.169.254/metadata",
+    "https://evil.example/other",
+    "https://unstats.un.org:8443/other",
+    "https://user:secret@unstats.un.org/other",
+    "//evil.example/other",
+])
+def test_m49_fetch_rejects_redirect_outside_official_origin_before_egress(
+    monkeypatch: pytest.MonkeyPatch, location: str,
+) -> None:
+    calls: list[str] = []
+
+    def request(method: str, url: str, **kwargs):
+        calls.append(url)
+        return httpx.Response(302, headers={"location": location})
+
+    monkeypatch.setattr("app.services.jurisdiction_registry.request_public_webhook", request)
+    with pytest.raises(RuntimeError, match="^UN M49 registry retrieval failed$"):
+        fetch_un_m49_source()
+    assert calls == [UN_M49_SOURCE_URL]
+
+
+def test_m49_fetch_rejects_redirect_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    def request(method: str, url: str, **kwargs):
+        calls.append(url)
+        return httpx.Response(302, headers={"location": "/unsd/methodology/m49/overview/"})
+
+    monkeypatch.setattr("app.services.jurisdiction_registry.request_public_webhook", request)
+    with pytest.raises(RuntimeError, match="^UN M49 registry retrieval failed$"):
+        fetch_un_m49_source()
+    assert calls == [UN_M49_SOURCE_URL] * 4
+
+
+def test_m49_fetch_rejects_private_dns_before_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    import socket
+
+    from app.services import webhook_egress
+
+    monkeypatch.setattr(
+        webhook_egress.socket,
+        "getaddrinfo",
+        lambda host, port, **kwargs: [
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("93.184.216.34", port)),
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("127.0.0.1", port)),
+        ],
+    )
+    monkeypatch.setattr(
+        webhook_egress.httpx,
+        "Client",
+        lambda **kwargs: pytest.fail("private DNS must fail before any client is opened"),
+    )
+    with pytest.raises(RuntimeError, match="^UN M49 registry retrieval failed$"):
+        fetch_un_m49_source()
 
 
 def test_m49_parser_reads_only_the_canonical_english_table() -> None:
