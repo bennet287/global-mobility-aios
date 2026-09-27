@@ -5,14 +5,14 @@ x-application-runtime-env: &application_runtime_env
   DATABASE_AUTO_CREATE_TABLES: "false"
   DATABASE_ECHO:
   REDIS_URL: ${REDIS_URL:?Set the production Redis URL}
-  JWT_SECRET: ${JWT_SECRET:?Set the production signing secret}
+  JWT_SECRET_REF: ${JWT_SECRET_REF:?Set the production signing secret reference}
   AUTOMATION_ENCRYPTION_KEY:
-  AUTOMATION_WEBHOOK_SECRET:
+  AUTOMATION_WEBHOOK_SECRET_REF: ${AUTOMATION_WEBHOOK_SECRET_REF:?Set the production webhook secret reference}
   QDRANT_URL:
   QDRANT_COLLECTION:
   MINIO_ENDPOINT:
-  MINIO_ACCESS_KEY:
-  MINIO_SECRET_KEY:
+  MINIO_ACCESS_KEY_REF: ${MINIO_ACCESS_KEY_REF:?Set the production object-store access-key reference}
+  MINIO_SECRET_KEY_REF: ${MINIO_SECRET_KEY_REF:?Set the production object-store secret-key reference}
   MINIO_BUCKET_DOCUMENTS:
   MINIO_SECURE:
   MINIO_AUTO_CREATE_BUCKET:
@@ -20,7 +20,7 @@ x-application-runtime-env: &application_runtime_env
   DOCUMENT_STORAGE_BACKEND:
   DOCUMENT_LOCAL_STORAGE_DIR:
   DOCUMENT_UPLOAD_MAX_MB:
-  DOCUMENT_ACCESS_TOKEN_SECRET:
+  DOCUMENT_ACCESS_TOKEN_SECRET_REF: ${DOCUMENT_ACCESS_TOKEN_SECRET_REF:?Set the production document-token secret reference}
   DOCUMENT_ACCESS_DEFAULT_TTL_SECONDS:
   DOCUMENT_ACCESS_MAX_TTL_SECONDS:
   DOCUMENT_ACCESS_DEFAULT_MAX_USES:
@@ -56,10 +56,10 @@ x-application-runtime-env: &application_runtime_env
   LLM_TIMEOUT_SECONDS:
   LLM_FALLBACK_TO_TEMPLATE:
 
-x-llm-secret-volume: &llm_secret_volume
+x-runtime-secret-volume: &runtime_secret_volume
   type: bind
-  source: ${LLM_SECRETS_DIR:?Set the production LLM secrets directory}
-  target: /run/secrets/llm
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}
+  target: /run/secrets/aios
   read_only: true
   bind:
     create_host_path: false
@@ -129,7 +129,7 @@ services:
       CLAMAV_BLOCK_ON_SCANNER_ERROR:
       ALLOW_INTERNAL_DRAFT_PATHWAY_SIMULATION:
     volumes:
-      - *llm_secret_volume
+      - *runtime_secret_volume
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     depends_on:
@@ -197,7 +197,7 @@ services:
     environment:
       <<: *application_runtime_env
     volumes:
-      - *llm_secret_volume
+      - *runtime_secret_volume
     depends_on:
       postgres:
         condition: service_healthy
