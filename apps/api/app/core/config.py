@@ -4,8 +4,36 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+_RUNTIME_SECRET_REF_FIELDS = {
+    "jwt_secret": "jwt_secret_ref",
+    "automation_webhook_secret": "automation_webhook_secret_ref",
+    "minio_access_key": "minio_access_key_ref",
+    "minio_secret_key": "minio_secret_key_ref",
+    "document_access_token_secret": "document_access_token_secret_ref",
+}
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    def __getattribute__(self, name: str):
+        """Resolve governed runtime-secret fields on access when a reference is configured.
+
+        The underlying direct fields stay intact for local/backward-compatible flows and
+        tests. A configured reference is authoritative and is re-resolved on every access,
+        so file-backed credential replacement is observable without silently falling back
+        to the direct value.
+        """
+        value = super().__getattribute__(name)
+        reference_field = _RUNTIME_SECRET_REF_FIELDS.get(name)
+        if reference_field is None or not isinstance(value, str):
+            return value
+        reference = super().__getattribute__(reference_field)
+        if not isinstance(reference, str) or not reference.strip():
+            return value
+        from app.core.secrets import resolve_runtime_secret
+
+        return resolve_runtime_secret(reference=reference, fallback=value)
 
     app_env: str = "local"
     log_level: str = "INFO"
@@ -18,13 +46,16 @@ class Settings(BaseSettings):
     qdrant_collection: str = "global_mobility_memory"
     minio_endpoint: str = "localhost:9000"
     minio_access_key: str = "minioadmin"
+    minio_access_key_ref: str = ""
     minio_secret_key: str = "minioadmin"
+    minio_secret_key_ref: str = ""
     minio_bucket_documents: str = "gmai-documents"
     minio_secure: bool = False
     document_storage_backend: str = "local"
     document_local_storage_dir: str = "storage/documents"
     document_upload_max_mb: int = 25
     document_access_token_secret: str = ""
+    document_access_token_secret_ref: str = ""
     document_access_default_ttl_seconds: int = 300
     document_access_max_ttl_seconds: int = 900
     document_access_default_max_uses: int = 1
@@ -60,10 +91,10 @@ class Settings(BaseSettings):
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True
 
-    # SecretsPort is the runtime secret-reference boundary. Production LLM provider
-    # credentials use bounded file:// references under /run/secrets/llm; direct values
-    # remain backward-compatible for existing local/non-production flows. OpenBao is
-    # deliberately non-production-only until a later roadmap tranche promotes it.
+    # SecretsPort is the runtime secret-reference boundary. Production credentials use
+    # bounded file:// references under /run/secrets/aios; direct values remain
+    # backward-compatible for local/non-production flows. OpenBao is deliberately
+    # non-production-only until a later roadmap tranche promotes it.
     secrets_openbao_address: str = "http://127.0.0.1:8200"
     secrets_openbao_token: str = ""
     secrets_openbao_mount: str = "secret"
@@ -98,6 +129,7 @@ class Settings(BaseSettings):
     docling_enabled: bool = False
 
     jwt_secret: str = "change-this-in-production"
+    jwt_secret_ref: str = ""
     auth_enabled: bool = True
     auth_admin_username: str = "admin"
     auth_admin_password: str = "admin"
@@ -106,6 +138,7 @@ class Settings(BaseSettings):
     auth_allow_header_role: bool = False
     automation_encryption_key: str = ""
     automation_webhook_secret: str = ""
+    automation_webhook_secret_ref: str = ""
     truth_engine_strict_mode: bool = True
     source_monitor_timeout_seconds: int = 30
     source_monitor_max_bytes: int = 5_000_000
