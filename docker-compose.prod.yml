@@ -41,20 +41,28 @@ x-application-runtime-env: &application_runtime_env
   COVERAGE_TRANCHE_ASSISTANT_MAX_ITEMS:
   DOCLING_ENABLED:
   LLM_PROVIDER:
-  DEEPSEEK_API_KEY:
+  DEEPSEEK_API_KEY_REF: ${DEEPSEEK_API_KEY_REF:-}
   DEEPSEEK_MODEL:
   DEEPSEEK_BASE_URL:
   DEEPSEEK_MAX_OUTPUT_TOKENS:
-  MOONSHOT_API_KEY:
+  MOONSHOT_API_KEY_REF: ${MOONSHOT_API_KEY_REF:-}
   MOONSHOT_MODEL:
   MOONSHOT_BASE_URL:
   MOONSHOT_MAX_COMPLETION_TOKENS:
-  GEMINI_API_KEY:
+  GEMINI_API_KEY_REF: ${GEMINI_API_KEY_REF:-}
   GEMINI_MODEL:
   GEMINI_BASE_URL:
   LLM_TEMPERATURE:
   LLM_TIMEOUT_SECONDS:
   LLM_FALLBACK_TO_TEMPLATE:
+
+x-llm-secret-volume: &llm_secret_volume
+  type: bind
+  source: ${LLM_SECRETS_DIR:?Set the production LLM secrets directory}
+  target: /run/secrets/llm
+  read_only: true
+  bind:
+    create_host_path: false
 
 services:
   postgres:
@@ -120,6 +128,8 @@ services:
       CLAMAV_TIMEOUT_SECONDS:
       CLAMAV_BLOCK_ON_SCANNER_ERROR:
       ALLOW_INTERNAL_DRAFT_PATHWAY_SIMULATION:
+    volumes:
+      - *llm_secret_volume
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     depends_on:
@@ -186,6 +196,8 @@ services:
     container_name: gmai-worker-prod
     environment:
       <<: *application_runtime_env
+    volumes:
+      - *llm_secret_volume
     depends_on:
       postgres:
         condition: service_healthy
