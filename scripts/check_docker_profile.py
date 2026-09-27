@@ -5,10 +5,14 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEV_COMPOSE = ROOT / "docker-compose.yml"
 PROD_COMPOSE = ROOT / "docker-compose.prod.yml"
 PROD_ENV_EXAMPLE = ROOT / ".env.production.example"
 API_DOCKERFILE = ROOT / "apps" / "api" / "Dockerfile"
 API_DOCKERIGNORE = ROOT / "apps" / "api" / ".dockerignore"
+WEB_DOCKERFILE = ROOT / "apps" / "web" / "Dockerfile"
+WEB_DOCKERIGNORE = ROOT / "apps" / "web" / ".dockerignore"
+WEB_NEXT_CONFIG = ROOT / "apps" / "web" / "next.config.js"
 BACKUP_RESTORE_SCRIPT = ROOT / "scripts" / "postgres_backup_restore.py"
 BACKUP_RESTORE_DOC = ROOT / "docs" / "POSTGRES_BACKUP_RESTORE_V1.md"
 
@@ -24,17 +28,48 @@ def _require(text: str, needle: str, source: Path) -> None:
         raise AssertionError(f"Missing {needle!r} in {source.relative_to(ROOT)}")
 
 
+def _require_absent(text: str, needle: str, source: Path) -> None:
+    if needle in text:
+        raise AssertionError(f"Unexpected {needle!r} in {source.relative_to(ROOT)}")
+
+
+def _service_block(compose: str, service: str, source: Path) -> str:
+    lines = compose.splitlines()
+    header = f"  {service}:"
+    try:
+        start = lines.index(header)
+    except ValueError as exc:
+        raise AssertionError(f"Missing service {service!r} in {source.relative_to(ROOT)}") from exc
+
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        line = lines[index]
+        if line.startswith("  ") and not line.startswith("    ") and line.endswith(":"):
+            end = index
+            break
+    return "\n".join(lines[start:end])
+
+
 def main() -> int:
     try:
+        dev_compose = _require_file(DEV_COMPOSE)
         compose = _require_file(PROD_COMPOSE)
         env_example = _require_file(PROD_ENV_EXAMPLE)
-        dockerfile = _require_file(API_DOCKERFILE)
-        dockerignore = _require_file(API_DOCKERIGNORE)
+        api_dockerfile = _require_file(API_DOCKERFILE)
+        api_dockerignore = _require_file(API_DOCKERIGNORE)
+        web_dockerfile = _require_file(WEB_DOCKERFILE)
+        web_dockerignore = _require_file(WEB_DOCKERIGNORE)
+        web_next_config = _require_file(WEB_NEXT_CONFIG)
         backup_restore_script = _require_file(BACKUP_RESTORE_SCRIPT)
         backup_restore_doc = _require_file(BACKUP_RESTORE_DOC)
 
-        for service in ("postgres:", "api-migrate:", "api:"):
-            _require(compose, service, PROD_COMPOSE)
+        for service in ("postgres", "api-migrate", "redis", "api", "web", "worker", "beat"):
+            _service_block(compose, service, PROD_COMPOSE)
+
+        api_block = _service_block(compose, "api", PROD_COMPOSE)
+        web_block = _service_block(compose, "web", PROD_COMPOSE)
+        dev_web_block = _service_block(dev_compose, "web", DEV_COMPOSE)
+
         _require(compose, "condition: service_healthy", PROD_COMPOSE)
         _require(compose, "condition: service_completed_successfully", PROD_COMPOSE)
         _require(compose, "alembic -c alembic.ini upgrade head", PROD_COMPOSE)
@@ -42,15 +77,45 @@ def main() -> int:
         _require(compose, "change-this-postgres-password", PROD_COMPOSE)
         _require(compose, ".env.production", PROD_COMPOSE)
         _require(compose, "postgres_prod_data:", PROD_COMPOSE)
+        _require(compose, "redis_prod_data:", PROD_COMPOSE)
+
+        _require(api_block, "condition: service_completed_successfully", PROD_COMPOSE)
+        _require(web_block, "target: production", PROD_COMPOSE)
+        _require(web_block, "NEXT_PUBLIC_API_BASE_URL", PROD_COMPOSE)
+        _require(web_block, 'NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"', PROD_COMPOSE)
+        _require(web_block, '${WEB_PORT:-3000}:3000', PROD_COMPOSE)
+        _require(web_block, "condition: service_healthy", PROD_COMPOSE)
+        _require_absent(web_block, "env_file:", PROD_COMPOSE)
+        _require(dev_web_block, "target: development", DEV_COMPOSE)
 
         _require(env_example, "APP_ENV=production", PROD_ENV_EXAMPLE)
         _require(env_example, "AUTH_ALLOW_HEADER_ROLE=false", PROD_ENV_EXAMPLE)
         _require(env_example, "DATABASE_AUTO_CREATE_TABLES=false", PROD_ENV_EXAMPLE)
         _require(env_example, "postgresql+psycopg://", PROD_ENV_EXAMPLE)
+        _require(env_example, "WEB_PORT=3000", PROD_ENV_EXAMPLE)
+        _require(env_example, "NEXT_PUBLIC_API_BASE_URL=", PROD_ENV_EXAMPLE)
 
-        _require(dockerfile, "HEALTHCHECK", API_DOCKERFILE)
-        _require(dockerignore, "gmai.db", API_DOCKERIGNORE)
-        _require(dockerignore, "tests/", API_DOCKERIGNORE)
+        _require(api_dockerfile, "HEALTHCHECK", API_DOCKERFILE)
+        _require(api_dockerignore, "gmai.db", API_DOCKERIGNORE)
+        _require(api_dockerignore, "tests/", API_DOCKERIGNORE)
+
+        for needle in (
+            "AS development",
+            "AS builder",
+            "AS production",
+            "npm ci",
+            "npm run build",
+            "NEXT_PUBLIC_API_BASE_URL",
+            "USER node",
+            "HEALTHCHECK",
+            'CMD ["node", "server.js"]',
+        ):
+            _require(web_dockerfile, needle, WEB_DOCKERFILE)
+        _require_absent(_service_block(compose, "web", PROD_COMPOSE), "npm run dev", PROD_COMPOSE)
+        _require(web_dockerignore, "node_modules", WEB_DOCKERIGNORE)
+        _require(web_dockerignore, ".next", WEB_DOCKERIGNORE)
+        _require(web_dockerignore, "e2e", WEB_DOCKERIGNORE)
+        _require(web_next_config, 'output: "standalone"', WEB_NEXT_CONFIG)
 
         for needle in (
             "pg_dump",
