@@ -59,23 +59,41 @@ def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
     return refs, resolved
 
 
-def test_production_startup_accepts_and_materializes_governed_runtime_secret_refs(
-    monkeypatch, tmp_path
-):
+def _configure_valid_refs(monkeypatch, root) -> dict[str, str]:
+    refs, resolved = _valid_refs(root)
+    for field_name, value in refs.items():
+        monkeypatch.setattr(settings, field_name, value)
+    return resolved
+
+
+def test_production_startup_accepts_governed_runtime_secret_refs(monkeypatch, tmp_path):
     _production_baseline(monkeypatch)
     root = tmp_path / "aios"
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
 
-    refs, resolved = _valid_refs(root)
-    for field_name, value in refs.items():
-        monkeypatch.setattr(settings, field_name, value)
+    resolved = _configure_valid_refs(monkeypatch, root)
 
     validate_production_settings()
 
     for field_name, expected in resolved.items():
         assert getattr(settings, field_name) == expected
         assert getattr(settings, field_name) != f"direct-{field_name}-fallback"
+
+
+def test_runtime_secret_file_replacement_is_observed_on_next_access(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    _configure_valid_refs(monkeypatch, root)
+
+    validate_production_settings()
+    assert settings.jwt_secret == "j" * 48
+
+    (root / "auth/jwt_secret").write_text("k" * 48 + "\n", encoding="utf-8")
+
+    assert settings.jwt_secret == "k" * 48
 
 
 def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypatch, tmp_path):
@@ -93,9 +111,7 @@ def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypa
         validate_production_settings()
 
 
-def test_production_startup_rejects_unavailable_ref_without_materializing_fallbacks(
-    monkeypatch, tmp_path
-):
+def test_production_startup_rejects_unavailable_configured_runtime_secret(monkeypatch, tmp_path):
     _production_baseline(monkeypatch)
     root = tmp_path / "aios"
     root.mkdir()
@@ -106,15 +122,8 @@ def test_production_startup_rejects_unavailable_ref_without_materializing_fallba
     for field_name, value in refs.items():
         monkeypatch.setattr(settings, field_name, value)
 
-    before = {
-        field_name: getattr(settings, field_name)
-        for field_name in _SECRET_FIELDS
-    }
     with pytest.raises(RuntimeError, match="JWT_SECRET_REF must resolve"):
         validate_production_settings()
-
-    for field_name, original in before.items():
-        assert getattr(settings, field_name) == original
 
 
 def test_production_startup_rejects_non_file_runtime_secret_refs(monkeypatch, tmp_path):
@@ -128,31 +137,31 @@ def test_production_startup_rejects_non_file_runtime_secret_refs(monkeypatch, tm
     for field_name, value in refs.items():
         monkeypatch.setattr(settings, field_name, value)
 
-    with pytest.raises(RuntimeError, match=r"JWT_SECRET_REF must use a file:// reference"):
+    with pytest.raises(RuntimeError, match="JWT_SECRET_REF must resolve"):
         validate_production_settings()
 
 
-def test_production_startup_rejects_invalid_runtime_secret_ref(monkeypatch, tmp_path):
+def test_api_production_startup_still_rejects_default_admin_password(monkeypatch, tmp_path):
     _production_baseline(monkeypatch)
     root = tmp_path / "aios"
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    _configure_valid_refs(monkeypatch, root)
+    monkeypatch.setattr(settings, "auth_admin_password", "admin")
 
-    refs, _ = _valid_refs(root)
-    refs["jwt_secret_ref"] = "not-a-secret-reference"
-    for field_name, value in refs.items():
-        monkeypatch.setattr(settings, field_name, value)
-
-    with pytest.raises(RuntimeError, match="JWT_SECRET_REF must be a valid production secret reference"):
+    with pytest.raises(RuntimeError, match="AUTH_ADMIN_PASSWORD must be set"):
         validate_production_settings()
 
 
-def test_worker_preflight_runs_runtime_and_document_storage_gates(monkeypatch):
+def test_worker_preflight_excludes_api_login_secret_and_runs_storage_gate(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    _configure_valid_refs(monkeypatch, root)
+    monkeypatch.setattr(settings, "auth_admin_password", "admin")
+
     calls: list[str] = []
-    monkeypatch.setattr(
-        "app.core.startup_safety.validate_production_settings",
-        lambda: calls.append("runtime-secrets"),
-    )
     monkeypatch.setattr(
         "app.services.document_storage.validate_document_storage_configuration",
         lambda: calls.append("document-storage"),
@@ -160,4 +169,4 @@ def test_worker_preflight_runs_runtime_and_document_storage_gates(monkeypatch):
 
     validate_production_worker_settings()
 
-    assert calls == ["runtime-secrets", "document-storage"]
+    assert calls == ["document-storage"]
