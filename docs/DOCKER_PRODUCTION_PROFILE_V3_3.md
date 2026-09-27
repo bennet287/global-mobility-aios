@@ -165,7 +165,7 @@ docker build --target production --build-arg NEXT_PUBLIC_API_BASE_URL=http://127
 docker run --rm -p 3000:3000 gmai-web-production-proof
 ```
 
-Then verify `http://127.0.0.1:3000/` responds from the production container. CI performs the same bounded build/smoke contract once wired into the production-proof workflow.
+Then verify `http://127.0.0.1:3000/` responds from the production container. `V12 Production Proof` now performs this bounded production-image build/smoke contract on each pull request.
 
 Backend regression remains:
 
