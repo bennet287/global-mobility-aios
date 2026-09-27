@@ -205,7 +205,12 @@ services:
         condition: service_started
       api-migrate:
         condition: service_completed_successfully
-    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        python -c 'from app.core.startup_safety import validate_production_worker_settings; validate_production_worker_settings()'
+        exec celery -A app.core.celery_app worker --loglevel=info --concurrency=2
     healthcheck:
       disable: true
     restart: unless-stopped
