@@ -142,3 +142,21 @@ def test_production_startup_rejects_invalid_runtime_secret_ref(monkeypatch, tmp_
 
     with pytest.raises(RuntimeError, match="JWT_SECRET_REF must be a valid production secret reference"):
         validate_production_settings()
+
+
+def test_worker_runtime_hook_runs_both_production_safety_gates(monkeypatch):
+    from app.core.celery_app import _validate_production_worker_runtime
+
+    calls: list[str] = []
+    monkeypatch.setattr(
+        "app.core.startup_safety.validate_production_settings",
+        lambda: calls.append("runtime-secrets"),
+    )
+    monkeypatch.setattr(
+        "app.services.document_storage.validate_document_storage_configuration",
+        lambda: calls.append("document-storage"),
+    )
+
+    _validate_production_worker_runtime()
+
+    assert calls == ["runtime-secrets", "document-storage"]
