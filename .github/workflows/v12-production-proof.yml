@@ -61,6 +61,13 @@ jobs:
                   f'{service} received unexpected environment variables'
               )
               assert 'env_file' not in services[service]
+          worker_env = services['worker'].get('environment', {})
+          assert 'env_file' not in services['worker']
+          assert {'APP_ENV', 'DATABASE_URL', 'REDIS_URL', 'JWT_SECRET',
+                  'MINIO_SECRET_KEY', 'DOCUMENT_ACCESS_TOKEN_SECRET'} <= set(worker_env)
+          assert not ({'AUTH_ADMIN_PASSWORD', 'AUTH_ADMIN_USERNAME', 'CORS_ALLOWED_ORIGINS',
+                       'POSTGRES_PASSWORD', 'WEB_DOMAIN', 'API_DOMAIN', 'NEXT_PUBLIC_API_BASE_URL'}
+                      & set(worker_env)), 'worker received unrelated production credentials or web values'
           for service in ('api', 'web'):
               ports = services[service].get('ports', [])
               assert ports and all(port.get('host_ip') == '127.0.0.1' for port in ports), (
