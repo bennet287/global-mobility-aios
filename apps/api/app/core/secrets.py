@@ -2,9 +2,9 @@
 
 A configured reference is authoritative and fails closed: the resolver never falls
 back to a plaintext setting when a reference exists but cannot be resolved. File
-references are restricted to the production LLM secret mount, while the OpenBao
-adapter remains intentionally limited to non-production use until the roadmap
-explicitly promotes a secrets backend beyond pilot status.
+references are restricted to the production AIOS runtime secret mount, while the
+OpenBao adapter remains intentionally limited to non-production use until the
+roadmap explicitly promotes a secrets backend beyond pilot status.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import httpx
 from app.core.config import settings
 
 
-_FILE_SECRET_ROOT = Path("/run/secrets/llm")
+_FILE_SECRET_ROOT = Path("/run/secrets/aios")
 _MAX_FILE_SECRET_BYTES = 64 * 1024
 
 
@@ -61,7 +61,7 @@ class SecretReference:
         elif backend == "file":
             if "#" in locator or not Path(locator).is_absolute():
                 raise SecretResolutionError(
-                    "File references must use an absolute 'file:///run/secrets/llm/<name>' path."
+                    "File references must use an absolute 'file:///run/secrets/aios/<scope>/<name>' path."
                 )
         else:
             raise SecretResolutionError(f"Unsupported secret backend: {backend}.")
@@ -106,7 +106,7 @@ class FileSecretsPort:
             resolved.relative_to(root)
         except ValueError as exc:
             raise SecretResolutionError(
-                "File secret reference is outside the allowed /run/secrets/llm scope."
+                "File secret reference is outside the allowed /run/secrets/aios scope."
             ) from exc
 
         if not resolved.is_file():
