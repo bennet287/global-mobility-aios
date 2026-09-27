@@ -11,6 +11,11 @@ from sqlmodel import Session
 from sqlmodel import select
 
 from app.models.domain import AgentRun, AuditLog, FollowUp, Lead
+from app.services.llm_client import (
+    LLMProviderConfigurationError,
+    LLMProviderResponseContractError,
+    LLMProviderTransportError,
+)
 
 from .conftest import create_lead
 
@@ -827,6 +832,64 @@ def test_llm_enabled_agent_falls_back_on_provider_error(
     run = db_session.get(AgentRun, UUID(data["run_id"]))
     assert run is not None
     assert untrusted_detail not in run.output_json
+
+
+@pytest.mark.parametrize(
+    ("failure", "expected_reason"),
+    [
+        (
+            LLMProviderConfigurationError("UNTRUSTED_FALLBACK_SECRET"),
+            "LLMProviderConfigurationError: provider execution failed",
+        ),
+        (
+            LLMProviderTransportError("UNTRUSTED_FALLBACK_SECRET"),
+            "LLMProviderTransportError: provider execution failed",
+        ),
+        (
+            LLMProviderResponseContractError("UNTRUSTED_FALLBACK_SECRET"),
+            "LLMProviderResponseContractError: provider execution failed",
+        ),
+        (
+            RuntimeError("UNTRUSTED_FALLBACK_SECRET"),
+            "RuntimeError: provider execution failed",
+        ),
+    ],
+)
+def test_llm_fallback_does_not_persist_arbitrary_exception_detail(
+    client: TestClient,
+    db_session: Session,
+    failure: Exception,
+    expected_reason: str,
+) -> None:
+    lead = create_lead(db_session)
+    provider = MagicMock()
+    provider.name = "deepseek"
+    with (
+        patch("app.services.controlled_agents.is_llm_enabled", return_value=True),
+        patch("app.services.controlled_agents.settings") as mock_settings,
+        patch("app.services.controlled_agents.LLMProviderFactory.get_provider", return_value=provider),
+        patch("app.services.controlled_agents.complete_recorded", side_effect=failure),
+    ):
+        mock_settings.llm_provider = "deepseek"
+        mock_settings.llm_fallback_to_template = True
+        response = client.post(
+            "/api/v1/controlled-agents/run",
+            json={
+                "agent_name": "sales_summary_agent",
+                "task": "Summarize this lead.",
+                "lead_id": str(lead.id),
+                "context": {},
+            },
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["output"]["_llm_meta"]["fallback_reason"] == expected_reason
+    assert "UNTRUSTED_FALLBACK_SECRET" not in response.text
+    run = db_session.get(AgentRun, UUID(data["run_id"]))
+    assert run is not None
+    assert json.loads(run.output_json)["_llm_meta"]["fallback_reason"] == expected_reason
+    assert "UNTRUSTED_FALLBACK_SECRET" not in run.output_json
 
 
 def _sample_chat_response(content_dict: dict) -> dict:
