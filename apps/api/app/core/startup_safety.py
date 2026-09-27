@@ -18,11 +18,17 @@ DEFAULT_INSECURE_PASSWORDS = {
 
 
 PRODUCTION_RUNTIME_SECRET_REFS = {
-    "JWT_SECRET_REF": "jwt_secret_ref",
-    "AUTOMATION_WEBHOOK_SECRET_REF": "automation_webhook_secret_ref",
-    "MINIO_ACCESS_KEY_REF": "minio_access_key_ref",
-    "MINIO_SECRET_KEY_REF": "minio_secret_key_ref",
-    "DOCUMENT_ACCESS_TOKEN_SECRET_REF": "document_access_token_secret_ref",
+    "JWT_SECRET_REF": ("jwt_secret_ref", "jwt_secret"),
+    "AUTOMATION_WEBHOOK_SECRET_REF": (
+        "automation_webhook_secret_ref",
+        "automation_webhook_secret",
+    ),
+    "MINIO_ACCESS_KEY_REF": ("minio_access_key_ref", "minio_access_key"),
+    "MINIO_SECRET_KEY_REF": ("minio_secret_key_ref", "minio_secret_key"),
+    "DOCUMENT_ACCESS_TOKEN_SECRET_REF": (
+        "document_access_token_secret_ref",
+        "document_access_token_secret",
+    ),
 }
 
 
@@ -45,30 +51,28 @@ def validate_production_settings() -> None:
     if settings.auth_allow_header_role:
         failures.append("AUTH_ALLOW_HEADER_ROLE must be false in production")
 
-    for env_name, field_name in PRODUCTION_RUNTIME_SECRET_REFS.items():
-        reference = getattr(settings, field_name, "")
+    resolved_runtime_secrets: dict[str, str] = {}
+    for env_name, (reference_field, value_field) in PRODUCTION_RUNTIME_SECRET_REFS.items():
+        reference = getattr(settings, reference_field, "")
         if not isinstance(reference, str) or not reference.strip():
             failures.append(f"{env_name} must be configured in production")
+            continue
+        try:
+            resolved_runtime_secrets[value_field] = getattr(settings, value_field).strip()
+        except SecretResolutionError:
+            failures.append(f"{env_name} must resolve to an available production secret")
 
-    try:
-        jwt_secret = settings.jwt_secret.strip()
-    except SecretResolutionError:
-        failures.append("JWT_SECRET_REF must resolve to an available production secret")
-    else:
-        if jwt_secret in DEFAULT_INSECURE_SECRETS:
-            failures.append("JWT secret must resolve to a non-default production secret")
-        elif len(jwt_secret) < 32:
-            failures.append("JWT secret must be at least 32 characters in production")
+    jwt_secret = resolved_runtime_secrets.get("jwt_secret", "")
+    if jwt_secret and jwt_secret in DEFAULT_INSECURE_SECRETS:
+        failures.append("JWT secret must resolve to a non-default production secret")
+    elif jwt_secret and len(jwt_secret) < 32:
+        failures.append("JWT secret must be at least 32 characters in production")
 
-    try:
-        webhook_secret = settings.automation_webhook_secret.strip()
-    except SecretResolutionError:
-        failures.append("AUTOMATION_WEBHOOK_SECRET_REF must resolve to an available production secret")
-    else:
-        if not webhook_secret or webhook_secret.lower().startswith("change-this"):
-            failures.append("Automation webhook secret must resolve to a non-default production secret")
-        elif len(webhook_secret) < 32:
-            failures.append("Automation webhook secret must be at least 32 characters in production")
+    webhook_secret = resolved_runtime_secrets.get("automation_webhook_secret", "")
+    if webhook_secret and webhook_secret.lower().startswith("change-this"):
+        failures.append("Automation webhook secret must resolve to a non-default production secret")
+    elif webhook_secret and len(webhook_secret) < 32:
+        failures.append("Automation webhook secret must be at least 32 characters in production")
 
     admin_password = settings.auth_admin_password.strip()
     if admin_password in DEFAULT_INSECURE_PASSWORDS:
