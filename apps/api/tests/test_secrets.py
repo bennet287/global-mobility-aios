@@ -32,7 +32,7 @@ def test_configured_reference_fails_closed_instead_of_using_plaintext_fallback(m
 
 def _openbao_port(*, app_env="local"):
     return OpenBaoSecretsPort(
-        address="http://openbao.test:8200",
+        address="https://openbao.test:8200",
         token="pilot-token",
         mount="secret",
         namespace="aios-pilot",
@@ -73,10 +73,11 @@ def test_openbao_pilot_reads_kv_v2_field_with_namespace():
         )
 
     assert value == "secret-value"
-    client_cls.assert_called_once_with(timeout=3)
+    client_cls.assert_called_once_with(timeout=3, trust_env=False, follow_redirects=False)
     client.get.assert_called_once_with(
-        "http://openbao.test:8200/v1/secret/data/aios/nonprod/llm/deepseek",
+        "https://openbao.test:8200/v1/secret/data/aios/nonprod/llm/deepseek",
         headers={"X-Vault-Token": "pilot-token", "X-Vault-Namespace": "aios-pilot"},
+        follow_redirects=False,
     )
 
 
@@ -88,7 +89,7 @@ def test_openbao_pilot_does_not_cache_rotated_or_revoked_values():
     second.raise_for_status.return_value = None
     second.json.return_value = {"data": {"data": {"api_key": "v2"}}}
     revoked = MagicMock()
-    request = httpx.Request("GET", "http://openbao.test")
+    request = httpx.Request("GET", "https://openbao.test")
     revoked.raise_for_status.side_effect = httpx.HTTPStatusError(
         "forbidden", request=request, response=httpx.Response(403, request=request)
     )
@@ -108,3 +109,63 @@ def test_openbao_pilot_does_not_cache_rotated_or_revoked_values():
         assert port.resolve(reference) == "v2"
         with pytest.raises(SecretResolutionError, match="retrieval failed"):
             port.resolve(reference)
+
+
+@pytest.mark.parametrize(
+    "locator",
+    [
+        "aios/nonprod/../prod/key",
+        "aios/nonprod/./key",
+        "aios/nonprod/%2e%2e/prod/key",
+        "aios/nonprod//key",
+        "aios/nonprod/..\\prod/key",
+    ],
+)
+def test_openbao_rejects_noncanonical_scope_paths_before_network(locator):
+    with patch("httpx.Client") as client_cls:
+        with pytest.raises(SecretResolutionError, match="unsafe segments"):
+            _openbao_port().resolve(SecretReference.parse(f"openbao://{locator}#api_key"))
+    client_cls.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        "http://openbao.test:8200",
+        "http://10.0.0.5:8200",
+        "https://operator:secret@openbao.test:8200",
+        "https://openbao.test:8200/base",
+        "https://openbao.test:8200?token=secret",
+    ],
+)
+def test_openbao_rejects_unsafe_token_destinations_before_network(address):
+    port = _openbao_port()
+    port.address = address
+    with patch("httpx.Client") as client_cls:
+        with pytest.raises(SecretResolutionError, match="OpenBao address|OpenBao HTTP"):
+            port.resolve(SecretReference.parse("openbao://aios/nonprod/llm#api_key"))
+    client_cls.assert_not_called()
+
+
+def test_openbao_local_loopback_address_remains_usable_without_redirecting_token():
+    requests = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(302, headers={"Location": "https://untrusted.test/collect"})
+
+    real_client = httpx.Client
+    port = _openbao_port()
+    port.address = "http://127.0.0.1:8200"
+    with patch(
+        "httpx.Client",
+        side_effect=lambda **kwargs: real_client(
+            transport=httpx.MockTransport(respond), **kwargs
+        ),
+    ):
+        with pytest.raises(SecretResolutionError, match="retrieval failed"):
+            port.resolve(SecretReference.parse("openbao://aios/nonprod/llm#api_key"))
+
+    assert len(requests) == 1
+    assert requests[0].url.host == "127.0.0.1"
+    assert requests[0].headers["X-Vault-Token"] == "pilot-token"
