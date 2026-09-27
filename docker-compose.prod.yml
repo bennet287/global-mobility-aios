@@ -2,11 +2,9 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: gmai-postgres-prod
-    env_file:
-      - .env.production
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-gmai}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-this-postgres-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a production PostgreSQL password}
       POSTGRES_DB: ${POSTGRES_DB:-gmai}
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
@@ -21,9 +19,9 @@ services:
     build:
       context: ./apps/api
     container_name: gmai-api-migrate-prod
-    env_file:
-      - .env.production
     environment:
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?Set the production PostgreSQL URL}
       DATABASE_AUTO_CREATE_TABLES: "false"
     depends_on:
       postgres:

@@ -18,6 +18,7 @@ Included in `docker-compose.prod.yml`:
 - API and web host ports bound to IPv4 loopback for local diagnostics;
 - Caddy ingress for separate web and API hostnames, with public HTTP/HTTPS ports and persisted certificate storage;
 - no `.env.production` injection into the web container, keeping database, JWT, storage, and provider secrets out of the frontend runtime;
+- PostgreSQL receives only its database identity/password and the one-shot migration container receives only the database URL plus production/migration controls; Compose still uses `.env.production` for interpolation;
 - static production-profile validation through `scripts/check_docker_profile.py`.
 
 The same `apps/web/Dockerfile` retains a separate `development` target. `docker-compose.yml` explicitly selects that target, so local hot-reload behavior is not coupled to the production image.
@@ -77,7 +78,7 @@ Set two distinct public DNS hostnames. For example, `WEB_DOMAIN=app.example.com`
 
 The ingress startup guard rejects missing, malformed, duplicate and reserved example hostnames before Caddy starts. It does not verify DNS ownership or the relationship between the browser API URL and CORS settings; prove those on the deployed host.
 
-If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
+The example leaves `LLM_PROVIDER` empty because a ChatGPT/Kimi consumer subscription is not an API credential. If a remote LLM provider is enabled, configure only the selected provider's real credential on the server side. Never expose provider credentials through `NEXT_PUBLIC_*` variables.
 
 Provision the document bucket on a TLS S3-compatible endpoint outside this Compose profile. Set `MINIO_ENDPOINT` to its real `host:port`, use a scoped non-default access key, keep `MINIO_SECURE=true`, `MINIO_AUTO_CREATE_BUCKET=false`, and `MINIO_SERVER_SIDE_ENCRYPTION=true`. The example deliberately leaves `DOCUMENT_STORAGE_BACKUP_STRATEGY` and `DOCUMENT_STORAGE_RECOVERY_TESTED_AT` empty. Fill them only after the real backup/isolated recovery procedure is defined and exercised; those strings are declarations, not restore evidence.
 
@@ -93,7 +94,7 @@ The probe checks the configured bucket and policy through the production adapter
 Validate the resolved Compose model before launch:
 
 ```powershell
-docker compose --env-file .env.production -f docker-compose.prod.yml config
+docker compose --env-file .env.production -f docker-compose.prod.yml config --quiet
 docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --no-deps ingress caddy validate --config /etc/caddy/Caddyfile
 ```
 
@@ -178,7 +179,7 @@ python -m compileall apps/api/app apps/api/tests scripts/seed_demo_data.py scrip
 python scripts/check_repo_policy.py --root .
 python scripts/check_database_migrations.py
 python scripts/check_docker_profile.py
-docker compose --env-file .env.production -f docker-compose.prod.yml config
+docker compose --env-file .env.production -f docker-compose.prod.yml config --quiet
 ```
 
 Web production-image proof:
