@@ -10,6 +10,7 @@ from app.services.llm_client import (
     LLMProviderConfigurationError,
     LLMProviderError,
     LLMProviderFactory,
+    LLMProviderResponseContractError,
     LLMProviderTransportError,
     MoonshotProvider,
     is_llm_enabled,
@@ -252,6 +253,42 @@ def test_deepseek_provider_http_error(status_code, error_type):
     with patch("httpx.Client", return_value=fake_client):
         with pytest.raises(error_type, match="API returned"):
             provider.complete("system", [{"role": "user", "content": "hi"}])
+
+
+@pytest.mark.parametrize(
+    ("failure", "error_type", "expected_message"),
+    [
+        ("status", LLMProviderTransportError, "deepseek API returned 429"),
+        ("request", LLMProviderTransportError, "deepseek API request failed"),
+        ("structure", LLMProviderResponseContractError, "Unexpected deepseek response structure"),
+    ],
+)
+def test_provider_errors_exclude_untrusted_response_and_request_details(
+    failure, error_type, expected_message,
+):
+    secret = "UNTRUSTED_PROVIDER_SECRET_SENTINEL"
+    provider = DeepSeekProvider(api_key="ds-key", model="deepseek-chat")
+    fake_client = _make_fake_client({"provider_detail": secret})
+    if failure == "status":
+        response = fake_client.post.return_value
+        response.status_code = 429
+        response.text = f"upstream echoed {secret}"
+        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            response.text,
+            request=httpx.Request("POST", "https://api.deepseek.com/chat/completions"),
+            response=response,
+        )
+    elif failure == "request":
+        fake_client.post.side_effect = httpx.RequestError(
+            f"request to https://example.com/?key={secret} failed"
+        )
+
+    with patch("httpx.Client", return_value=fake_client):
+        with pytest.raises(error_type) as captured:
+            provider.complete("system", [{"role": "user", "content": "hi"}])
+
+    assert str(captured.value) == expected_message
+    assert secret not in str(captured.value)
 
 
 def test_is_llm_enabled():

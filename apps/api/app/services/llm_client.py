@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -166,12 +165,16 @@ class _OpenAICompatibleProvider(LLMProvider):
                 if exc.response.status_code in {408, 429} or exc.response.status_code >= 500
                 else LLMProviderConfigurationError
             )
+            # Provider bodies are untrusted and can contain credentials or case
+            # data. These errors can become durable controlled-agent fallback
+            # metadata, so retain only the status needed for classification.
             raise error_type(
-                f"{self.name} API returned {exc.response.status_code}: {exc.response.text}"
+                f"{self.name} API returned {exc.response.status_code}"
             ) from exc
         except httpx.RequestError as exc:
+            # Request exception strings may include a URL with query secrets.
             raise LLMProviderTransportError(
-                f"{self.name} API request failed: {exc}"
+                f"{self.name} API request failed"
             ) from exc
 
         try:
@@ -190,7 +193,7 @@ class _OpenAICompatibleProvider(LLMProvider):
             usage = data.get("usage", {})
         except (KeyError, IndexError, TypeError) as exc:
             raise LLMProviderResponseContractError(
-                f"Unexpected {self.name} response structure: {json.dumps(data, default=str)[:500]}"
+                f"Unexpected {self.name} response structure"
             ) from exc
 
         return LLMResponse(

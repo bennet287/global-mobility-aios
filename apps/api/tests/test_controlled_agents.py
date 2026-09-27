@@ -782,10 +782,11 @@ def test_llm_enabled_agent_falls_back_on_provider_error(
     db_session: Session,
 ) -> None:
     lead = create_lead(db_session)
+    untrusted_detail = "UNTRUSTED_PROVIDER_SECRET_SENTINEL"
 
     fake_response = MagicMock()
     fake_response.status_code = 429
-    fake_response.text = "Rate limited"
+    fake_response.text = f"Rate limited; echoed {untrusted_detail}"
     request = httpx.Request("POST", "https://api.deepseek.com/chat/completions")
     fake_response.raise_for_status.side_effect = httpx.HTTPStatusError(
         "Rate limited", request=request, response=fake_response
@@ -822,6 +823,10 @@ def test_llm_enabled_agent_falls_back_on_provider_error(
     assert "Lead summary prepared for sales-safe follow-up." in data["output"]["summary"]
     assert data["output"]["_llm_meta"]["fallback_to_template"] is True
     assert "429" in data["output"]["_llm_meta"]["fallback_reason"]
+    assert untrusted_detail not in data["output"]["_llm_meta"]["fallback_reason"]
+    run = db_session.get(AgentRun, UUID(data["run_id"]))
+    assert run is not None
+    assert untrusted_detail not in run.output_json
 
 
 def _sample_chat_response(content_dict: dict) -> dict:
