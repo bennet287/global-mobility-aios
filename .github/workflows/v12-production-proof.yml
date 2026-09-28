@@ -295,6 +295,9 @@ jobs:
       - name: Verify PostgreSQL migration and physical schema contract
         run: python scripts/check_database_migrations.py
 
+      - name: Verify database-password probe against isolated PostgreSQL role
+        run: python -m pytest -q apps/api/tests/test_database_password_probe.py
+
       - name: Run governed PostgreSQL contracts
         run: >-
           python -m pytest -q
