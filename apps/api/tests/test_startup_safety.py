@@ -210,8 +210,8 @@ def test_worker_preflight_excludes_api_login_secret_and_runs_storage_gate(monkey
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
     _configure_valid_refs(monkeypatch, root)
-    monkeypatch.setattr(settings, "auth_admin_password_ref", "file:///run/secrets/aios/auth/missing-admin")
     monkeypatch.setattr(settings, "auth_admin_password", "admin")
+    monkeypatch.setattr(settings, "auth_admin_password_ref", f"file://{root / 'auth/missing-admin'}")
 
     calls: list[str] = []
     monkeypatch.setattr(
