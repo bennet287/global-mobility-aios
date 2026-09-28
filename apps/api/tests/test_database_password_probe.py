@@ -54,7 +54,7 @@ def test_probe_authenticates_file_password_against_postgresql(monkeypatch, tmp_p
                 "database": admin_url.database,
             }
             secret.write_text("a-different-strong-password", encoding="utf-8")
-            with pytest.raises(probe.DatabasePasswordProbeError, match="could not be verified"):
+            with pytest.raises(probe.DatabasePasswordProbeError, match="configured connection"):
                 probe.probe_database_password()
         finally:
             admin.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(role)))

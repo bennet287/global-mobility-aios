@@ -37,13 +37,16 @@ def probe_database_password() -> dict[str, str | bool]:
     """
     if not settings.is_production():
         raise DatabasePasswordProbeError("Production environment is required")
+    stage = "configuration"
     try:
         url = make_url(configured_database_url())
+        stage = "configured connection"
         role, database, tcp = _connect_and_identify(url)
         if role != url.username or database != url.database or not tcp:
             raise DatabasePasswordProbeError("PostgreSQL connection identity did not match configuration")
 
         incorrect = secrets.token_urlsafe(32)
+        stage = "incorrect-password rejection"
         try:
             _connect_and_identify(url.set(password=incorrect))
         except DBAPIError as exc:
@@ -56,7 +59,7 @@ def probe_database_password() -> dict[str, str | bool]:
         raise
     except Exception:
         # DBAPI errors may embed a URL or credential. Never emit the raw exception.
-        raise DatabasePasswordProbeError("PostgreSQL password authentication could not be verified") from None
+        raise DatabasePasswordProbeError(f"PostgreSQL password probe failed at {stage}") from None
 
 
 def main() -> int:
