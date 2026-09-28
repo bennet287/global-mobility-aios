@@ -7,9 +7,18 @@ import psycopg
 import pytest
 from psycopg import sql
 from sqlalchemy.engine import URL, make_url
+from sqlalchemy.exc import DBAPIError
 
 from app.core.config import settings
 from app.core import database_password_probe as probe
+
+
+def test_probe_rejects_unrelated_connection_failures():
+    auth_error = DBAPIError("connect", {}, RuntimeError('FATAL: password authentication failed for user "gmai"'))
+    network_error = DBAPIError("connect", {}, RuntimeError("connection timed out"))
+    assert probe._is_password_rejection(auth_error, "gmai")
+    assert not probe._is_password_rejection(auth_error, "other_role")
+    assert not probe._is_password_rejection(network_error, "gmai")
 
 
 def test_probe_rejects_passwordless_trust_authentication(monkeypatch):

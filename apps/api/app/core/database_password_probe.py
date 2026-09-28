@@ -18,6 +18,17 @@ class DatabasePasswordProbeError(RuntimeError):
     pass
 
 
+def _is_password_rejection(error: DBAPIError, role: str) -> bool:
+    state = getattr(error.orig, "sqlstate", None)
+    if state == "28P01":
+        return True
+    if state is not None:
+        return False
+    # libpq/psycopg may omit SQLSTATE during connection startup. Match only
+    # the server's specific rejection for this same role; never print it.
+    return f'password authentication failed for user "{role}"' in str(error.orig)
+
+
 def _connect_and_identify(url):
     engine = create_engine(url, connect_args={"connect_timeout": 5}, poolclass=NullPool)
     try:
@@ -50,7 +61,7 @@ def probe_database_password() -> dict[str, str | bool]:
         try:
             _connect_and_identify(url.set(password=incorrect))
         except DBAPIError as exc:
-            if getattr(exc.orig, "sqlstate", None) != "28P01":
+            if not _is_password_rejection(exc, role):
                 raise DatabasePasswordProbeError("Incorrect-password rejection was not established") from None
         else:
             raise DatabasePasswordProbeError("PostgreSQL accepted an incorrect password")
