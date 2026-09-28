@@ -531,6 +531,8 @@ Measure provider/model performance, employee/skill success and corrections, repe
 
 The first bounded learning observation reuses the Observatory: an admin-only, read-only view groups distinct completed WorkItems with distinct active Contribution source identities under the same explicit objective/phase and outcome shape. Corrections remove their original outcome from the signal. This is structural recurrence, **not** a successful procedure, verified attribution, skill candidate, or execution authority. Next prove source-to-work outcome attribution and a reproducible procedure/tool trace before extracting, validating, and making any learned skill eligible through the existing registry; do not add a separate memory, scheduler, or agent runtime for this path.
 
+The context broker's first bounded recall query returns same-tenant, same-source historical WorkItem/Contribution citations under a fresh assigned-work binding, excluding corrected outcomes. It is an internal read helper, not provider-facing recall or a verified-evidence channel. Next prove a narrow consumer that keeps recalled history below factual and authority-bearing context; broader semantic retrieval still needs relevance, privacy, citation, and stale-source checks.
+
 #### Preflight competency gate
 
 Before materially costly production work, evaluate the WorkItem requirements against the employee's **verified current organizational competency**, not merely a generic skill label: work requirements → capability/skill match → organization-specific competency and freshness/version check → tool/permission/authority prerequisites → estimated cost and authorized budget → READY | GAP | NOT_SUITABLE.

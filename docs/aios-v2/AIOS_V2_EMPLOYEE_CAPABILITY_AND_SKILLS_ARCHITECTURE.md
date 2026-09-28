@@ -193,6 +193,8 @@ Memory and skills are distinct:
 
 Repeated work should preferentially become a skill when the reusable value is procedural. This prevents institutional capability from degenerating into an ever-growing pile of conversational memory.
 
+The first bounded recall query belongs to the existing context broker. Given a fresh, tenant-scoped WorkItem binding, it returns references to active Contribution outcomes and completed WorkItems for the same source, objective, phase, and department. It returns no raw work output, inferred procedure, or verified fact. Its historical-observation citations remain outside the bundle's governed evidence, rules, tools, and context hash; consumers must keep this distinction when rendering or using retrieved history. Wider similarity retrieval and provider use require their own scope and trust proof.
+
 ## 10. Missions and cross-department delegation
 
 AIOS should support organization-level missions decomposed across specialist departments. Example:
