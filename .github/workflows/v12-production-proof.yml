@@ -55,7 +55,7 @@ jobs:
           expected_env = {
               'postgres': {'POSTGRES_USER', 'POSTGRES_PASSWORD_FILE', 'POSTGRES_DB'},
               'api-migrate': {'APP_ENV', 'DATABASE_URL', 'DATABASE_PASSWORD_REF', 'DATABASE_AUTO_CREATE_TABLES'},
-              'beat': {'APP_ENV', 'REDIS_URL'},
+              'beat': {'APP_ENV', 'REDIS_URL', 'CELERY_BEAT_SCHEDULER_ONLY'},
           }
           for service, keys in expected_env.items():
               assert set(services[service].get('environment', {})) == keys, (
@@ -151,12 +151,14 @@ jobs:
 
       - name: Load beat schedule with scoped production environment
         run: |
-          env -i PATH="$PATH" PYTHONPATH="$PWD/apps/api" APP_ENV=production REDIS_URL=redis://127.0.0.1:6379/0 python - <<'PY'
+          env -i PATH="$PATH" PYTHONPATH="$PWD/apps/api" APP_ENV=production CELERY_BEAT_SCHEDULER_ONLY=true REDIS_URL=redis://127.0.0.1:6379/0 python - <<'PY'
           from app.core.celery_app import celery_app
           from app.core.config import settings
 
           celery_app.loader.import_default_modules()
           assert settings.is_production()
+          assert settings.celery_beat_scheduler_only
+          assert not celery_app.conf.include
           assert celery_app.conf.broker_url == settings.redis_url
           assert celery_app.conf.beat_schedule
           assert all(entry['task'] for entry in celery_app.conf.beat_schedule.values())

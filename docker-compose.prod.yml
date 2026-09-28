@@ -228,6 +228,7 @@ services:
     environment:
       APP_ENV: production
       REDIS_URL: ${REDIS_URL:?Set the production Redis URL}
+      CELERY_BEAT_SCHEDULER_ONLY: "true"
     depends_on:
       postgres:
         condition: service_healthy

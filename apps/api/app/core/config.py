@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     database_auto_create_tables: Optional[bool] = None
     database_echo: bool = False
     redis_url: str = "redis://localhost:6379/0"
+    celery_beat_scheduler_only: bool = False
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "global_mobility_memory"
     minio_endpoint: str = "localhost:9000"

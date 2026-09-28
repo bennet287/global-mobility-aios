@@ -100,6 +100,7 @@ def main() -> int:
         _require_absent(beat_block, "env_file:", PROD_COMPOSE)
         _require(beat_block, "APP_ENV: production", PROD_COMPOSE)
         _require(beat_block, "REDIS_URL: ${REDIS_URL:?", PROD_COMPOSE)
+        _require(beat_block, 'CELERY_BEAT_SCHEDULER_ONLY: "true"', PROD_COMPOSE)
         _require_absent(beat_block, "runtime_secret_volume", PROD_COMPOSE)
         _require_absent(worker_block, "env_file:", PROD_COMPOSE)
         _require(compose, "x-application-runtime-env: &application_runtime_env", PROD_COMPOSE)

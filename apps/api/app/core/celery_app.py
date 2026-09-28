@@ -7,7 +7,7 @@ celery_app = Celery(
     "gmai",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=[
+    include=[] if settings.celery_beat_scheduler_only else [
         "app.tasks.agent_tasks",
         "app.tasks.training_tasks",
         "app.tasks.source_monitor_tasks",

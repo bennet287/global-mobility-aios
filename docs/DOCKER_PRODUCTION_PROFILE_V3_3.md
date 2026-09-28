@@ -19,7 +19,7 @@ Included in `docker-compose.prod.yml`:
 - Caddy ingress for separate web and API hostnames, with public HTTP/HTTPS ports and persisted certificate storage;
 - no `.env.production` injection into the web container, keeping database, signing, storage, and provider secrets out of the frontend runtime;
 - PostgreSQL receives its database identity and a password-file path; the migration container receives a passwordless database URL plus a reference to the same password file. Compose still uses `.env.production` for interpolation;
-- Celery beat receives only the production flag and Redis broker URL; the worker handles database and external actions with its own runtime configuration;
+- Celery beat receives only the production flag, Redis broker URL and scheduler-only switch; it does not import task modules or receive database credentials. The worker handles database and external actions with its own runtime configuration;
 - one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for PostgreSQL, migration, API and worker, with host-path auto-creation disabled;
 - JWT signing, API bootstrap admin login, automation connector encryption, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
