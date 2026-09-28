@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _RUNTIME_SECRET_REF_FIELDS = {
     "jwt_secret": "jwt_secret_ref",
+    "automation_encryption_key": "automation_encryption_key_ref",
+    "automation_encryption_previous_key": "automation_encryption_previous_key_ref",
     "automation_webhook_secret": "automation_webhook_secret_ref",
     "minio_access_key": "minio_access_key_ref",
     "minio_secret_key": "minio_secret_key_ref",
@@ -137,6 +139,9 @@ class Settings(BaseSettings):
     auth_session_ttl_seconds: int = Field(default=28_800, ge=300, le=86_400)
     auth_allow_header_role: bool = False
     automation_encryption_key: str = ""
+    automation_encryption_key_ref: str = ""
+    automation_encryption_previous_key: str = ""
+    automation_encryption_previous_key_ref: str = ""
     automation_webhook_secret: str = ""
     automation_webhook_secret_ref: str = ""
     truth_engine_strict_mode: bool = True
