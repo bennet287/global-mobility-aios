@@ -6,7 +6,7 @@ from uuid import uuid4
 import psycopg
 import pytest
 from psycopg import sql
-from sqlalchemy.engine import make_url
+from sqlalchemy.engine import URL, make_url
 
 from app.core.config import settings
 from app.core import database_password_probe as probe
@@ -37,7 +37,15 @@ def test_probe_authenticates_file_password_against_postgresql(monkeypatch, tmp_p
     secret.write_text(password, encoding="utf-8")
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
     monkeypatch.setattr(settings, "app_env", "production")
-    monkeypatch.setattr(settings, "database_url", admin_url.set(username=role, password=None).render_as_string())
+    passwordless_url = URL.create(
+        admin_url.drivername,
+        username=role,
+        host=admin_url.host,
+        port=admin_url.port,
+        database=admin_url.database,
+    )
+    assert passwordless_url.password is None
+    monkeypatch.setattr(settings, "database_url", passwordless_url.render_as_string())
     monkeypatch.setattr(settings, "database_password_ref", f"file://{secret}")
 
     admin_dsn = admin_url.set(drivername="postgresql").render_as_string(hide_password=False)
