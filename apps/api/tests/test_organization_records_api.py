@@ -782,8 +782,8 @@ def test_pagination_is_bounded_stable_and_tenant_scoped(
 
 
 def test_openapi_and_phase_architecture_boundaries() -> None:
-    # Matrix 61-64 plus schema/OpenAPI contract checks. E1 permits only the
-    # bounded GET-only Observatory read surface defined by the reconciliation contract.
+    # Matrix 61-64 plus schema/OpenAPI contract checks. Observatory permits only
+    # the bounded GET-only read surfaces, including learning recurrence observation.
     schema = app.openapi()
     paths = schema["paths"]
     organization_paths = [path for path in paths if path.startswith(BASE)]
@@ -792,6 +792,7 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
         f"{BASE}/observatory/summary",
         f"{BASE}/observatory/departments",
         f"{BASE}/observatory/contribution-reconciliation",
+        f"{BASE}/observatory/learning-recurrence",
     }
     observatory_paths = {
         path for path in organization_paths if path.startswith(f"{BASE}/observatory")
