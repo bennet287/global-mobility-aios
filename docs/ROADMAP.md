@@ -6,9 +6,9 @@
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 17 — Agent Security Assurance
 **Current checkpoint:** Phase 17A bounded authenticated sessions, Phase 17B admin-only debug routes, Phase 17C connector control plus webhook destination/connection-time egress enforcement, Phase 17D–17G prompt separation, Phase 17H native-skill content integrity, Phase 17I shared provider-error detail, Phase 17J official-source monitor connection pinning, Phase 17K fixed UN M49 registry import egress, Phase 17L connector transport error detail, Phase 17M controlled-agent worker failure detail, Phase 17N controlled-agent fallback detail, Phase 17O skill origin eligibility, and Phase 17P OpenBao pilot scope/token egress are sealed through PR #229. Phase 16 request-local completion evidence remains sealed only for the in-house consultant and business advisory (PR #194 and PR #196); other request-local paths without a real owner-completion signal remain unreconciled by age alone. Source-linked billed cost, verified paid-tool charges, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open Phase 16 prerequisites rather than claimed capabilities. System-1/AX evaluation remains recorded by PR #167.
-**Code migration head:** `0089_provider_circuit_breaker`
+**Code migration head:** `0090_reviewed_decision_output`
 
-<!-- CURRENT_MIGRATION_HEAD: 0089_provider_circuit_breaker -->
+<!-- CURRENT_MIGRATION_HEAD: 0090_reviewed_decision_output -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
@@ -534,6 +534,8 @@ The first bounded learning observation reuses the Observatory: an admin-only, re
 The recurrence read also reports whether the existing strict Austria specialist validator can resolve a bounded internal WorkItem → execution attempt → AgentRun → action-output lineage for each work item. An observed lineage remains human-review gated internal analysis, not a proof that it caused the independently governed Contribution outcome or a reproducible procedure. Unsupported and incomplete lineages are explicit; no candidate is created. The next attribution contract must bind a source transition to the exact reviewed run/output without trusting a caller-supplied WorkItem ID, then validate a reproducible procedure trace before learned-origin registry eligibility is considered.
 
 The existing automatic source-transition adapters stage Contributions without a WorkItem ID; the standalone Contribution command accepts an optional WorkItem ID but checks tenant membership only. The Observatory therefore reports active outcome counts with and without that link so an empty recurrence cannot be mistaken for proof that no useful organizational work occurred. Neither shape proves AgentRun causation. Do not synthesize a link for the Austria specialist: its reviewed internal analysis consumes governed source state and does not own publication of that state.
+
+An authenticated owner/CEO decision may explicitly accept one current, completed Austria specialist K.1 output. The decision stores its output ID and content hash, and the same transaction records a decision-sourced, WorkItem-linked Contribution for **acceptance of internal analysis**. This verifies human acceptance of that exact analysis as decision evidence; it does not attribute an independent regulatory/source outcome to the agent or establish a reproducible procedure. The Observatory's skill gate remains closed.
 
 The context broker's first bounded recall query returns same-tenant, same-source historical WorkItem/Contribution citations under a fresh assigned-work binding, excluding corrected outcomes. It is an internal read helper, not provider-facing recall or a verified-evidence channel. Next prove a narrow consumer that keeps recalled history below factual and authority-bearing context; broader semantic retrieval still needs relevance, privacy, citation, and stale-source checks.
 

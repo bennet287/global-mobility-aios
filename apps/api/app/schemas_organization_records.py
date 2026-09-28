@@ -436,6 +436,7 @@ class DecisionCreate(OrganizationInput):
 class DecisionOutcome(ReasonCommand):
     outcome: str = Field(pattern="^(approved|rejected)$")
     effect_summary: str | None = Field(default=None, max_length=4000)
+    accepted_action_output_id: UUID | None = None
 
 
 class DecisionSupersede(ReasonCommand):
@@ -450,6 +451,8 @@ class DecisionRead(OrganizationRead):
     decision_key: str
     decision_type: OrganizationDecisionType
     work_item_id: UUID | None
+    accepted_action_output_id: UUID | None
+    accepted_action_output_sha256: str | None
     supersedes_decision_id: UUID | None
     authority_level: str
     requested_by_position: str

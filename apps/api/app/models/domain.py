@@ -2484,6 +2484,10 @@ class ExecutiveDecision(SQLModel, table=True):
             "supersedes_decision_id IS NULL OR supersedes_decision_id <> id",
             name="ck_exec_decision_not_self_superseding",
         ),
+        CheckConstraint(
+            "(accepted_action_output_id IS NULL) = (accepted_action_output_sha256 IS NULL)",
+            name="ck_exec_decision_accepted_output_pair",
+        ),
         Index("ix_exec_decision_tenant_status_due", "tenant_key", "status", "due_at"),
     )
 
@@ -2496,6 +2500,8 @@ class ExecutiveDecision(SQLModel, table=True):
     )
     record_fingerprint: Optional[str] = Field(default=None, max_length=64, index=True)
     work_item_id: Optional[UUID] = Field(default=None, index=True, foreign_key="organizational_work_items.id")
+    accepted_action_output_id: Optional[UUID] = Field(default=None, foreign_key="organizational_action_outputs.id")
+    accepted_action_output_sha256: Optional[str] = Field(default=None, max_length=64)
     lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
     profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
     application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
