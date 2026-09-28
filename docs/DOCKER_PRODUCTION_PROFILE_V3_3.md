@@ -21,7 +21,7 @@ Included in `docker-compose.prod.yml`:
 - PostgreSQL receives only its database identity/password and the one-shot migration container receives only the database URL plus production/migration controls; Compose still uses `.env.production` for interpolation;
 - Celery beat receives only the production flag and Redis broker URL; the worker handles database and external actions with its own runtime configuration;
 - one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for API and worker, with host-path auto-creation disabled;
-- JWT signing, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
+- JWT signing, automation connector encryption, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
 - the API uses the same shared runtime allowlist plus login, CORS, telemetry and upload-scan settings; it no longer loads every value in `.env.production` into its container;
 - static production-profile validation through `scripts/check_docker_profile.py`.
@@ -36,7 +36,7 @@ Not included in the production Compose yet:
 - Ollama/local-model runtime;
 - live DNS, certificate issuance, ingress routing and TLS verification on the target VPS;
 - a production secrets manager/workload-identity authority beyond the bounded host-file secret mount;
-- rotation-safe keyring/re-encryption for the persisted automation connector encryption key;
+- a database-wide re-encryption command and verified host procedure for persisted automation connector credentials;
 - Kubernetes or another production orchestrator;
 - a real hosted deployment target and live post-deployment acceptance evidence.
 
@@ -79,6 +79,7 @@ WEB_DOMAIN
 API_DOMAIN
 AIOS_SECRETS_DIR
 JWT_SECRET_REF
+AUTOMATION_ENCRYPTION_KEY_REF
 AUTOMATION_WEBHOOK_SECRET_REF
 MINIO_ACCESS_KEY_REF
 MINIO_SECRET_KEY_REF
@@ -90,6 +91,7 @@ Provision `AIOS_SECRETS_DIR` on the target host before Compose starts. Keep the 
 ```text
 runtime-secrets/
   auth/jwt_secret
+  automation/encryption_key
   automation/webhook_secret
   storage/minio_access_key
   storage/minio_secret_key
@@ -99,11 +101,11 @@ runtime-secrets/
   llm/gemini_api_key
 ```
 
-Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. Production startup resolves the mandatory JWT, webhook, MinIO and document-access refs before serving.
+Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup and the worker preflight resolve the six mandatory JWT, automation encryption, webhook, MinIO and document-access refs before serving or accepting tasks.
 
 The migrated values are re-read through the existing `SecretsPort` rather than cached as a second secret system. Replacing the JWT secret invalidates sessions signed with the previous key; replacing the document-access signing secret invalidates outstanding document tokens signed with the previous key; webhook replacement applies to the next verification; and newly-created MinIO clients observe the current files. Exercise those exact consequences on the target host before claiming rotation support.
 
-`AUTOMATION_ENCRYPTION_KEY` is deliberately not part of this hot-rotation contract yet. Existing connector credentials are persisted as Fernet ciphertext, so replacing that key without a versioned keyring/re-encryption migration can make existing rows unreadable. Treat that as an explicit production blocker rather than rotating the value ad hoc.
+`AUTOMATION_ENCRYPTION_KEY_REF` points to the active file. An optional `AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF` supports decrypting ciphertext written under the prior key while new writes use the active key; the two resolved values must differ. A helper re-encrypts one ciphertext value with the active key, but there is no database-wide migration command or target-host verification procedure. Do not remove the previous key until every stored connector credential has been re-encrypted and verified with the active key. Do not replace the active file ad hoc: losing a prior key before migration makes its existing rows unreadable.
 
 Set two distinct public DNS hostnames. For example, `WEB_DOMAIN=app.example.com` and `API_DOMAIN=api.example.com` require `CORS_ALLOWED_ORIGINS=https://app.example.com` and `NEXT_PUBLIC_API_BASE_URL=https://api.example.com`. The API URL is compiled into the web image, so changing it requires a rebuild. Replace the example values before a hosted launch. Ensure both DNS records point to the VPS, public 80/443 reach ingress, and the Caddy `/data` volume persists across restarts. Record the exact image digest and certificate/routing evidence during target-host acceptance; a successful Caddy configuration check does not issue a public certificate.
 

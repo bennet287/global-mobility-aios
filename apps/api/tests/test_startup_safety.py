@@ -9,6 +9,7 @@ from app.core.startup_safety import (
 
 _SECRET_FIELDS = {
     "jwt_secret": "jwt_secret_ref",
+    "automation_encryption_key": "automation_encryption_key_ref",
     "automation_webhook_secret": "automation_webhook_secret_ref",
     "minio_access_key": "minio_access_key_ref",
     "minio_secret_key": "minio_secret_key_ref",
@@ -36,6 +37,7 @@ def _write_secret(root, relative_path: str, value: str) -> str:
 def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
     resolved = {
         "jwt_secret": "j" * 48,
+        "automation_encryption_key": "a" * 48,
         "automation_webhook_secret": "w" * 48,
         "minio_access_key": "access-key-v1",
         "minio_secret_key": "secret-key-v1",
@@ -43,6 +45,9 @@ def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
     }
     refs = {
         "jwt_secret_ref": _write_secret(root, "auth/jwt_secret", resolved["jwt_secret"]),
+        "automation_encryption_key_ref": _write_secret(
+            root, "automation/encryption_key", resolved["automation_encryption_key"]
+        ),
         "automation_webhook_secret_ref": _write_secret(
             root, "automation/webhook_secret", resolved["automation_webhook_secret"]
         ),
@@ -108,6 +113,21 @@ def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypa
         monkeypatch.setattr(settings, field_name, value)
 
     with pytest.raises(RuntimeError, match="JWT_SECRET_REF must be configured"):
+        validate_production_settings()
+
+
+def test_production_startup_rejects_missing_automation_encryption_key_ref(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+
+    refs, _ = _valid_refs(root)
+    refs.pop("automation_encryption_key_ref")
+    for field_name, value in refs.items():
+        monkeypatch.setattr(settings, field_name, value)
+
+    with pytest.raises(RuntimeError, match="AUTOMATION_ENCRYPTION_KEY_REF must be configured"):
         validate_production_settings()
 
 
