@@ -63,8 +63,8 @@ def main() -> int:
     try:
         print(json.dumps(probe_database_password(), sort_keys=True))
         return 0
-    except DatabasePasswordProbeError as exc:
-        print(str(exc))
+    except DatabasePasswordProbeError:
+        print("PostgreSQL password probe failed")
         return 1
 
 
