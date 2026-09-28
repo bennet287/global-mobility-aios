@@ -125,6 +125,8 @@ The learning system should use semantic similarity and workflow structure rather
 - repeated cross-department handoff pattern;
 - repeated successful result under materially similar constraints.
 
+An initial Observatory read model may report a narrower structural signal from completed WorkItems linked to active, governed Contribution records. It must count distinct work and source identities, remove corrected outcomes, and remain observation-only. A Contribution linked to work does not prove the work caused the outcome, and a completion does not show which procedure succeeded. No structural signal alone creates a learned skill or a new employee capability.
+
 The system should avoid creating a new skill for every minor variation. Prefer stable, composable procedures.
 
 ### 6.3 Automatic extraction

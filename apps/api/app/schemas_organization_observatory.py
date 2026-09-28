@@ -176,3 +176,26 @@ class ContributionReconciliationRead(ObservatoryRead):
     coverage: list[ContributionSourceCoverage]
     data: list[ContributionReconciliationItem]
     warnings: list[str] = Field(default_factory=list)
+
+
+class LearningRecurrencePattern(ObservatoryRead):
+    department: str
+    work_type: str
+    objective_key: str
+    phase_key: str
+    contribution_type: str
+    source_state: str
+    distinct_work_items: int
+    distinct_sources: int
+    work_item_ids: list[UUID]
+    outcome_ids: list[UUID]
+    learned_skill_eligible: Literal[False] = False
+    remaining_gate: Literal["procedure_and_outcome_attribution_unverified"]
+
+
+class LearningRecurrenceRead(ObservatoryRead):
+    tenant_scope: str
+    basis: Literal["active_contribution_linked_completed_work"]
+    observation_only: Literal[True] = True
+    skill_registry_mutated: Literal[False] = False
+    repeated_patterns: list[LearningRecurrencePattern] = Field(default_factory=list)
