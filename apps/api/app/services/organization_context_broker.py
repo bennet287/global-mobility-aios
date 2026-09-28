@@ -21,6 +21,7 @@ from app.services.organization_context_authority import (
     ContextAuthorityContribution,
     resolve_context_authority,
 )
+from app.services.organization_observatory import _active_outcomes, _outcomes_and_corrections
 
 
 CONTEXT_BUNDLE_SCHEMA_VERSION = "context-bundle.v1"
@@ -116,6 +117,16 @@ class ContextBundle:
     policy_version: str | None
     context_hash: str
     generated_at: datetime
+
+
+@dataclass(frozen=True)
+class PriorWorkContext:
+    """Citations to related history, never verified evidence or a skill grant."""
+
+    work_item_ref: ContextReference
+    contribution_ref: ContextReference
+    source_ref: ContextReference
+    epistemic_status: str = "historical_observation"
 
 
 def _reject_json_constant(value: str) -> None:
@@ -402,4 +413,71 @@ def build_work_item_context_bundle(
         policy_version=authority.policy_version,
         context_hash=context_hash,
         generated_at=now_utc(),
+    )
+
+
+def recall_prior_work_context(
+    session: Session,
+    *,
+    context: ContextBundle,
+    limit: int = 5,
+) -> tuple[PriorWorkContext, ...]:
+    """Recall cited same-source outcomes without adding them to authority fields.
+
+    A fresh broker binding is required: callers cannot use a stale or fabricated
+    bundle to cross a tenant/assignment boundary. The result contains references
+    only, never stored work output, model text, or an inferred procedure.
+    """
+    if type(limit) is not int or not 1 <= limit <= 10:
+        raise ValueError("recall limit must be between 1 and 10")
+    current = build_work_item_context_bundle(
+        session,
+        tenant_key=context.tenant_key,
+        position_key=context.position.position_key,
+        work_item_id=context.work_item.work_item_id,
+        purpose=context.purpose,
+    )
+    if current.context_hash != context.context_hash:
+        raise ContextScopeDenied("context binding is stale")
+
+    work = current.work_item
+    if not (work.source_object_type and work.source_object_id and work.objective_key and work.phase_key):
+        return ()
+    outcomes, corrections = _outcomes_and_corrections(session, current.tenant_key)
+    active = _active_outcomes(outcomes, corrections)
+    prior_ids = {
+        row.work_item_id for row in active
+        if row.work_item_id is not None and row.work_item_id != work.work_item_id
+    }
+    prior_work = {
+        row.id: row
+        for row in session.exec(
+            select(OrganizationalWorkItem).where(
+                OrganizationalWorkItem.tenant_key == current.tenant_key,
+                OrganizationalWorkItem.id.in_(prior_ids),
+            )
+        ).all()
+    } if prior_ids else {}
+    matching = []
+    for outcome in active:
+        prior = prior_work.get(outcome.work_item_id)
+        if (
+            prior is None or prior.status != "completed" or prior.completed_at is None
+            or prior.department != work.department
+            or prior.objective_key != work.objective_key or prior.phase_key != work.phase_key
+            or prior.source_object_type != work.source_object_type
+            or prior.source_object_id != work.source_object_id
+            or outcome.source_object_type != work.source_object_type
+            or outcome.source_object_id != work.source_object_id
+        ):
+            continue
+        matching.append((outcome, prior))
+    matching.sort(key=lambda pair: (pair[0].effective_at, str(pair[0].id)), reverse=True)
+    return tuple(
+        PriorWorkContext(
+            work_item_ref=ContextReference("organizational_work_item", str(prior.id), canonical_fingerprint(prior)),
+            contribution_ref=ContextReference("organization_contribution", str(outcome.id), outcome.record_fingerprint),
+            source_ref=ContextReference(outcome.source_object_type, outcome.source_object_id, outcome.source_object_version),
+        )
+        for outcome, prior in matching[:limit]
     )

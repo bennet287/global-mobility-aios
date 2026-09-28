@@ -7,7 +7,16 @@ from uuid import uuid4
 import pytest
 from sqlmodel import Session
 
-from app.models.domain import OrganizationPosition, OrganizationalWorkItem, now_utc
+from app.models.domain import (
+    OrganizationActorType,
+    OrganizationContribution,
+    OrganizationContributionImpactKind,
+    OrganizationContributionRecordKind,
+    OrganizationContributionVerificationMethod,
+    OrganizationPosition,
+    OrganizationalWorkItem,
+    now_utc,
+)
 from app.services.organization_command import TenantMismatch, canonical_json
 from app.services.organization_context_broker import (
     CONTEXT_BUNDLE_SCHEMA_VERSION,
@@ -17,6 +26,7 @@ from app.services.organization_context_broker import (
     ContextPurpose,
     ContextScopeDenied,
     build_work_item_context_bundle,
+    recall_prior_work_context,
 )
 
 
@@ -229,6 +239,84 @@ def test_working_context_cannot_promote_itself_to_evidence_tools_or_runtime_auth
     # promoted into authority-bearing ContextBundle fields.
     assert "self-declared-evidence" in bundle.work_item.working_context_json
     assert "self-selected-provider" in bundle.work_item.working_context_json
+
+
+def test_recall_cites_only_same_tenant_source_active_history_without_authority(db_session: Session) -> None:
+    _position(db_session)
+
+    def work(*, tenant: str = "tenant-a", source: str = "source-1", completed: bool = False):
+        row = _work(
+            db_session, tenant_key=tenant, source_object_type="jurisdiction_source_certification",
+            source_object_id=source, source_object_version="v1",
+        )
+        row.objective_key = "source_quality"
+        row.phase_key = "review"
+        if completed:
+            row.status = "completed"
+            row.completed_at = now_utc()
+        db_session.add(row)
+        db_session.commit()
+        return row
+
+    def outcome(row: OrganizationalWorkItem, *, kind=OrganizationContributionRecordKind.outcome, supersedes=None):
+        record = OrganizationContribution(
+            contribution_key=f"recall:{uuid4()}", record_fingerprint="c" * 64,
+            tenant_key=row.tenant_key, contribution_type="source_certification_review_completed",
+            title="Reviewed source", outcome_summary="Source review recorded.",
+            actor_type=OrganizationActorType.human, actor_id="reviewer",
+            department=row.department, accountable_position_key=row.assigned_position_key,
+            authority_level=row.authority_level, objective_key=row.objective_key,
+            phase_key=row.phase_key, work_item_id=row.id,
+            source_object_type=row.source_object_type, source_object_id=row.source_object_id,
+            source_object_version="v1", source_state="approved",
+            verification_method=OrganizationContributionVerificationMethod.human_attestation,
+            record_kind=kind, verified_by="reviewer", verified_at=now_utc(),
+            human_review_state="completed", impact_kind=OrganizationContributionImpactKind.knowledge,
+            effective_at=now_utc(), supersedes_contribution_id=supersedes,
+            retraction_reason="Withdrawn." if kind == OrganizationContributionRecordKind.retraction else None,
+            created_by="reviewer",
+        )
+        db_session.add(record)
+        db_session.commit()
+        return record
+
+    current = work()
+    prior = work(completed=True)
+    other_source = work(source="source-2", completed=True)
+    other_tenant = work(tenant="tenant-b", completed=True)
+    cited = outcome(prior)
+    outcome(other_source)
+    outcome(other_tenant)
+    bundle = build_work_item_context_bundle(
+        db_session, tenant_key="tenant-a", position_key="mobility_operations_lead", work_item_id=current.id,
+    )
+    recalled = recall_prior_work_context(db_session, context=bundle)
+    assert len(recalled) == 1
+    assert recalled[0].work_item_ref.identifier == str(prior.id)
+    assert recalled[0].contribution_ref.identifier == str(cited.id)
+    assert recalled[0].source_ref.identifier == "source-1"
+    assert recalled[0].epistemic_status == "historical_observation"
+    assert bundle.evidence_refs == ()
+    assert bundle.verified_rule_refs == ()
+    assert bundle.allowed_tools == ()
+
+    outcome(prior, kind=OrganizationContributionRecordKind.retraction, supersedes=cited.id)
+    assert recall_prior_work_context(db_session, context=bundle) == ()
+
+
+def test_recall_rejects_stale_binding_and_invalid_limit(db_session: Session) -> None:
+    _position(db_session)
+    current = _work(db_session)
+    bundle = build_work_item_context_bundle(
+        db_session, tenant_key="tenant-a", position_key="mobility_operations_lead", work_item_id=current.id,
+    )
+    with pytest.raises(ValueError):
+        recall_prior_work_context(db_session, context=bundle, limit=0)
+    current.context_json = '{"changed":true}'
+    db_session.add(current)
+    db_session.commit()
+    with pytest.raises(ContextScopeDenied):
+        recall_prior_work_context(db_session, context=bundle)
 
 
 def test_malformed_position_contract_and_incomplete_source_reference_fail_closed(
