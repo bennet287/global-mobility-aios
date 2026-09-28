@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -85,3 +86,15 @@ def test_oci_probe_current_object_cleanup(configured):
     assert result["passed"] is True
     assert result["object_encryption_independently_verified"] is False
     assert client.objects == {}
+
+
+def test_oci_client_rejects_cross_region_storage(configured, monkeypatch):
+    fake_oci = SimpleNamespace(
+        auth=SimpleNamespace(signers=SimpleNamespace(
+            InstancePrincipalsSecurityTokenSigner=lambda: SimpleNamespace(region="us-ashburn-1"),
+        )),
+        object_storage=SimpleNamespace(ObjectStorageClient=lambda *args, **kwargs: FakeOci()),
+    )
+    monkeypatch.setitem(sys.modules, "oci", fake_oci)
+    with pytest.raises(RuntimeError, match="region must match"):
+        storage._oci_client()

@@ -318,6 +318,8 @@ def _oci_client():
     import oci
 
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    if signer.region != settings.oci_region:
+        raise RuntimeError("OCI document bucket region must match the compute instance region")
     # Region is explicit; the SDK uses HTTPS and instance identity rather than
     # a customer secret key carried in the application environment.
     return oci.object_storage.ObjectStorageClient({"region": settings.oci_region}, signer=signer)

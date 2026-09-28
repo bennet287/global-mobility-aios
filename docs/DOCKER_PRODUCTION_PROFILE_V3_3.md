@@ -21,7 +21,7 @@ Included in `docker-compose.prod.yml`:
 - PostgreSQL receives its database identity and a password-file path; the migration container receives a passwordless database URL plus a reference to the same password file. Compose still uses `.env.production` for interpolation;
 - Celery beat receives only the production flag, Redis broker URL and scheduler-only switch; it does not import task modules or receive database credentials. The worker handles database and external actions with its own runtime configuration;
 - one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for PostgreSQL, migration, API and worker, with host-path auto-creation disabled;
-- JWT signing, API bootstrap admin login, automation connector encryption, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
+- JWT signing, API bootstrap admin login, automation connector encryption, automation webhook authentication, optional MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
 - the API uses the same shared runtime allowlist plus login, CORS, telemetry and upload-scan settings; it no longer loads every value in `.env.production` into its container;
 - static production-profile validation through `scripts/check_docker_profile.py`.
@@ -35,7 +35,7 @@ Not included in the production Compose yet:
 - n8n;
 - Ollama/local-model runtime;
 - live DNS, certificate issuance, ingress routing and TLS verification on the target VPS;
-- a production secrets manager/workload-identity authority beyond the bounded host-file secret mount;
+- a general production secrets manager/workload-identity authority beyond the bounded host-file secret mount and the OCI pilot's storage-specific instance principal;
 - target-host evidence for the database-wide connector credential rotation procedure;
 - Kubernetes or another production orchestrator;
 - a real hosted deployment target and live post-deployment acceptance evidence.
@@ -83,10 +83,10 @@ AIOS_SECRETS_DIR
 JWT_SECRET_REF
 AUTOMATION_ENCRYPTION_KEY_REF
 AUTOMATION_WEBHOOK_SECRET_REF
-MINIO_ACCESS_KEY_REF
-MINIO_SECRET_KEY_REF
 DOCUMENT_ACCESS_TOKEN_SECRET_REF
 ```
+
+The MinIO/S3 backend additionally requires `MINIO_ACCESS_KEY_REF` and `MINIO_SECRET_KEY_REF`. The OCI backend instead requires `OCI_REGION`, `OCI_NAMESPACE`, and `OCI_BUCKET_DOCUMENTS` plus instance-principal access on the target host.
 
 Provision `AIOS_SECRETS_DIR` on the target host before Compose starts. Keep the directory private (for example mode `0700`) and each active secret file readable only by the intended host operator/container path (for example mode `0600`). The example uses this layout:
 
@@ -105,7 +105,7 @@ runtime-secrets/
   llm/gemini_api_key
 ```
 
-Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup resolves its admin-password reference plus the seven shared database-password, JWT, automation encryption, webhook, MinIO and document-access refs before serving. The worker preflight resolves only the seven shared refs before accepting tasks. Alembic builds its database connection from the passwordless `DATABASE_URL` and `DATABASE_PASSWORD_REF`.
+Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup resolves its admin-password reference plus five shared database-password, JWT, automation encryption, webhook and document-access refs before serving; the two MinIO key refs are additionally required when `DOCUMENT_STORAGE_BACKEND=minio`. The worker uses the same shared backend-dependent rule. Alembic builds its database connection from the passwordless `DATABASE_URL` and `DATABASE_PASSWORD_REF`.
 
 PostgreSQL reads the same raw password file through `POSTGRES_PASSWORD_FILE` when initializing a new data directory. On an existing database, replacing this file does **not** change the stored role password. Use a maintenance window for a role-password rotation on the target host:
 
@@ -147,7 +147,7 @@ The probe checks the configured bucket and policy through the production adapter
 
 ### OCI Always Free storage pilot (synthetic data only)
 
-`DOCUMENT_STORAGE_BACKEND=oci` selects the OCI native Object Storage SDK and instance-principal identity. Set `OCI_REGION`, `OCI_NAMESPACE`, and `OCI_BUCKET_DOCUMENTS` to a preprovisioned **Standard**, `NoPublicAccess` bucket in the intended region. Clear the unused `MINIO_ACCESS_KEY_REF` and `MINIO_SECRET_KEY_REF`; the other runtime-secret file references remain mandatory. Create a dynamic group containing only the pilot compute instance and grant it bucket metadata read and object create/read/delete rights scoped to this one bucket. Do not grant bucket update, public access, pre-authenticated-request creation, or tenancy-wide object management. The container must be able to obtain OCI instance-principal identity and reach the regional Object Storage HTTPS API; prove both on the target host.
+`DOCUMENT_STORAGE_BACKEND=oci` selects the OCI native Object Storage SDK and instance-principal identity. Set `OCI_REGION`, `OCI_NAMESPACE`, and `OCI_BUCKET_DOCUMENTS` to a preprovisioned **Standard**, `NoPublicAccess` bucket in the compute instance's home region; the adapter rejects a region mismatch. Clear the unused `MINIO_ACCESS_KEY_REF` and `MINIO_SECRET_KEY_REF`; the other runtime-secret file references remain mandatory. Create a dynamic group containing only the pilot compute instance and grant it bucket metadata read and object create/read/delete rights scoped to this one bucket. Do not grant bucket update, public access, pre-authenticated-request creation, or tenancy-wide object management. The container must be able to obtain OCI instance-principal identity and reach the regional Object Storage HTTPS API; prove both on the target host.
 
 The OCI adapter checks `NoPublicAccess` and Standard tier before every document write/read. OCI encrypts stored objects by default; the native API does not return the S3 `AES256` evidence used by the MinIO/S3 adapter. Its synthetic preflight proves current-key write/read/deletion only and explicitly reports `object_encryption_independently_verified=false`. Bucket versioning can retain older object versions after a current-key delete. Separately inspect pre-authenticated requests, test anonymous denial from outside the host, and record bucket encryption configuration, retention, versioning and an independent document backup/recovery drill. Do not populate the recovery declarations or admit real client documents from this code-level/CI proof alone. This pilot does not create an Oracle account or any resources and makes no cost or production-readiness claim.
 
