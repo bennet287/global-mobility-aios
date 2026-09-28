@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
+import pytest
 from sqlmodel import Session, func, select
 
 from app.models.domain import (
@@ -10,6 +11,9 @@ from app.models.domain import (
     AutomationEvent,
 )
 from app.tasks.automation_tasks import dispatch_automation_deliveries_task
+
+
+pytestmark = pytest.mark.usefixtures("automation_encryption_key")
 
 
 def _headers(role: str, user: str) -> dict[str, str]:

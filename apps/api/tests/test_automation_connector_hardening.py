@@ -19,6 +19,9 @@ from app.services.automation_connector_encryption import (
 from app.tasks.automation_tasks import reconcile_automation_deliveries_task
 
 
+pytestmark = pytest.mark.usefixtures("automation_encryption_key")
+
+
 def _headers(role: str, user: str) -> dict[str, str]:
     return {"X-GMAI-Role": role, "X-GMAI-User": user}
 

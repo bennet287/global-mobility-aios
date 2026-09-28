@@ -6,7 +6,7 @@ from app.core.auth_policy import required_roles
 from app.core.config import settings
 from app.core.pagination import MAX_QUERY_LIMIT, clamp_query_limit
 from app.core.router_registry import ROUTER_SPECS
-from app.core.startup_safety import validate_production_settings
+from app.core.startup_safety import PRODUCTION_RUNTIME_SECRET_REFS, validate_production_settings
 from app.services.department_runtime import department_runtime_spec
 from app.services.document_storage import LocalDocumentStorage, document_storage_posture
 from app.services.organization_governance import department_runtime_available
@@ -25,12 +25,19 @@ def test_production_auth_configuration_fails_closed(monkeypatch: pytest.MonkeyPa
 
 def test_production_auth_configuration_accepts_explicit_secure_values(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setattr(settings, "app_env", "production")
     monkeypatch.setattr(settings, "auth_enabled", True)
     monkeypatch.setattr(settings, "auth_allow_header_role", False)
-    monkeypatch.setattr(settings, "jwt_secret", "x" * 48)
     monkeypatch.setattr(settings, "auth_admin_password", "correct-horse-battery-staple")
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    for reference_field, _ in PRODUCTION_RUNTIME_SECRET_REFS.values():
+        path = root / reference_field
+        path.write_text("x" * 48, encoding="utf-8")
+        monkeypatch.setattr(settings, reference_field, f"file://{path}")
 
     validate_production_settings()
 
