@@ -95,6 +95,12 @@ def client(raw_client: TestClient) -> Generator[TestClient, None, None]:
     yield raw_client
 
 
+@pytest.fixture()
+def automation_encryption_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "automation_encryption_key_ref", "")
+    monkeypatch.setattr(settings, "automation_encryption_key", "test-connector-encryption-key")
+
+
 def enum_value(value: Any) -> str:
     return str(getattr(value, "value", value))
 

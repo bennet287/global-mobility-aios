@@ -19,6 +19,9 @@ from app.services.automation_connector import (
 from app.tasks.automation_tasks import dispatch_automation_deliveries_task
 
 
+pytestmark = pytest.mark.usefixtures("automation_encryption_key")
+
+
 def _delivery(payload: dict[str, Any] | None = None) -> AutomationDelivery:
     return AutomationDelivery(
         id=uuid4(),

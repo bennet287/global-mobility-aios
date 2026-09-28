@@ -125,6 +125,7 @@ def main() -> int:
 
         migrated_runtime_secrets = (
             ("JWT_SECRET", "auth/jwt_secret"),
+            ("AUTOMATION_ENCRYPTION_KEY", "automation/encryption_key"),
             ("AUTOMATION_WEBHOOK_SECRET", "automation/webhook_secret"),
             ("MINIO_ACCESS_KEY", "storage/minio_access_key"),
             ("MINIO_SECRET_KEY", "storage/minio_secret_key"),
@@ -139,6 +140,13 @@ def main() -> int:
                 PROD_ENV_EXAMPLE,
             )
             _require_absent(env_example, f"\n{key}=", PROD_ENV_EXAMPLE)
+
+        _require(
+            compose,
+            "AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF: ${AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF:-}",
+            PROD_COMPOSE,
+        )
+        _require(env_example, "AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF=", PROD_ENV_EXAMPLE)
 
         for key in ("DEEPSEEK_API_KEY", "MOONSHOT_API_KEY", "GEMINI_API_KEY"):
             _require(compose, f"{key}_REF: ${{{key}_REF:-}}", PROD_COMPOSE)
