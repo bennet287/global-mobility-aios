@@ -65,8 +65,8 @@ def document_storage_posture() -> dict[str, Any]:
     backend = settings.document_storage_backend.strip().lower()
     secret = settings.document_access_token_secret.strip()
     placeholder_secret = not secret or secret.lower().startswith("change-this")
-    minio_access_key = settings.minio_access_key.strip()
-    minio_secret_key = settings.minio_secret_key.strip()
+    minio_access_key = settings.minio_access_key.strip() if backend == "minio" else ""
+    minio_secret_key = settings.minio_secret_key.strip() if backend == "minio" else ""
     minio_endpoint = settings.minio_endpoint.strip()
     default_credentials = (
         minio_access_key in {"", "minioadmin"}
@@ -81,10 +81,10 @@ def document_storage_posture() -> dict[str, Any]:
         "signed_access_secret_configured": not placeholder_secret,
         "signed_access_ttl_seconds": settings.document_access_default_ttl_seconds,
         "signed_access_max_ttl_seconds": settings.document_access_max_ttl_seconds,
-        "minio_tls_enabled": bool(settings.minio_secure),
-        "minio_default_credentials": default_credentials,
-        "bucket_auto_create": bool(settings.minio_auto_create_bucket),
-        "server_side_encryption_enabled": bool(settings.minio_server_side_encryption),
+        "minio_tls_enabled": bool(settings.minio_secure) if backend == "minio" else False,
+        "minio_default_credentials": default_credentials if backend == "minio" else False,
+        "bucket_auto_create": bool(settings.minio_auto_create_bucket) if backend == "minio" else False,
+        "server_side_encryption_enabled": bool(settings.minio_server_side_encryption) if backend == "minio" else backend == "oci",
         "retention_days": settings.document_storage_retention_days,
         "backup_strategy_configured": bool(settings.document_storage_backup_strategy.strip()),
         "recovery_test_recorded": bool(settings.document_storage_recovery_tested_at.strip()),
@@ -94,8 +94,15 @@ def document_storage_posture() -> dict[str, Any]:
     if _is_production():
         # Production identity-document storage has a mandatory security baseline
         # even when the optional extended strict posture is disabled.
-        if backend != "minio":
-            failures.append("production_requires_minio")
+        if backend not in {"minio", "oci"}:
+            failures.append("production_requires_external_object_storage")
+        if backend == "oci":
+            if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)+", settings.oci_region.strip()):
+                failures.append("oci_region_required")
+            if not settings.oci_namespace.strip() or settings.oci_namespace.lower().startswith("change-this"):
+                failures.append("oci_namespace_required")
+            if not settings.oci_bucket_documents.strip() or settings.oci_bucket_documents.lower().startswith("change-this"):
+                failures.append("oci_bucket_required")
         if backend == "minio" and not settings.minio_secure:
             failures.append("minio_tls_required")
         if backend == "minio" and (not minio_endpoint or minio_endpoint.lower().startswith("change-this")):
@@ -307,6 +314,50 @@ class MinioDocumentStorage:
             response.release_conn()
 
 
+def _oci_client():
+    import oci
+
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    # Region is explicit; the SDK uses HTTPS and instance identity rather than
+    # a customer secret key carried in the application environment.
+    return oci.object_storage.ObjectStorageClient({"region": settings.oci_region}, signer=signer)
+
+
+def validate_oci_bucket_private(client: Any) -> None:
+    bucket = client.get_bucket(settings.oci_namespace, settings.oci_bucket_documents).data
+    if bucket.public_access_type != "NoPublicAccess":
+        raise RuntimeError("Configured OCI document bucket permits public access")
+    if bucket.storage_tier != "Standard":
+        raise RuntimeError("Configured OCI document bucket must use standard storage")
+
+
+class OciDocumentStorage:
+    provider = "oci"
+
+    def put_document(self, *, content: bytes, lead_id: object, document_type: str,
+                     filename: str, mime_type: Optional[str]) -> StoredDocument:
+        validate_document_storage_configuration()
+        digest = sha256_hex(content)
+        key = validate_storage_key(build_storage_key(
+            lead_id=lead_id, document_type=document_type, filename=filename, digest=digest,
+        ))
+        client = _oci_client()
+        validate_oci_bucket_private(client)
+        client.put_object(
+            settings.oci_namespace, settings.oci_bucket_documents, key, BytesIO(content),
+            content_length=len(content), content_type=mime_type or "application/octet-stream",
+        )
+        return StoredDocument(self.provider, key, digest, len(content), mime_type)
+
+    def get_document(self, storage_key: str) -> bytes:
+        validate_document_storage_configuration()
+        key = validate_storage_key(storage_key)
+        client = _oci_client()
+        validate_oci_bucket_private(client)
+        response = client.get_object(settings.oci_namespace, settings.oci_bucket_documents, key)
+        return response.data.content
+
+
 def public_document_metadata(document: Any) -> dict[str, Any]:
     return {
         "id": getattr(document, "id", None),
@@ -327,7 +378,7 @@ def public_document_metadata(document: Any) -> dict[str, Any]:
         "updated_at": getattr(document, "updated_at", None),
         "signed_access_supported": bool(
             getattr(document, "storage_key", None)
-            and getattr(document, "storage_provider", None) in {"local", "minio"}
+            and getattr(document, "storage_provider", None) in {"local", "minio", "oci"}
             and getattr(document, "file_hash", None)
             and getattr(document, "file_size_bytes", None) is not None
         ),
@@ -339,6 +390,8 @@ def document_storage_client(provider: Optional[str] = None):
     backend = (provider or settings.document_storage_backend).strip().lower()
     if backend == "minio":
         return MinioDocumentStorage()
+    if backend == "oci":
+        return OciDocumentStorage()
     if backend == "local":
         return LocalDocumentStorage()
     raise ValueError("Unsupported document storage provider")

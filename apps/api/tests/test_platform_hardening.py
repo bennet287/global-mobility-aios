@@ -54,7 +54,7 @@ def test_production_document_storage_requires_encrypted_minio(
     monkeypatch.setattr(settings, "document_storage_production_strict", False)
     monkeypatch.setattr(settings, "document_storage_backend", "local")
     posture = document_storage_posture()
-    assert "production_requires_minio" in posture["failures"]
+    assert "production_requires_external_object_storage" in posture["failures"]
     with pytest.raises(RuntimeError, match="Local document storage is prohibited"):
         LocalDocumentStorage(str(tmp_path))
 

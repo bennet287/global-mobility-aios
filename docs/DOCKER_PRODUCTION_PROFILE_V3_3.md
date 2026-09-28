@@ -145,6 +145,12 @@ docker compose --env-file .env.production -f docker-compose.prod.yml run --rm --
 
 The probe checks the configured bucket and policy through the production adapter, writes one random synthetic object with SSE-S3, reads its bytes and encryption response header, and removes it with a missing-object check. It returns a redacted result and a synthetic key for manual cleanup if necessary. A passing probe does not prove public-read denial from outside the host, object-store backup/restore, retention, credential rotation, upload malware scanning, or the complete browser document journey. Capture those separately in the whole-product acceptance gate.
 
+### OCI Always Free storage pilot (synthetic data only)
+
+`DOCUMENT_STORAGE_BACKEND=oci` selects the OCI native Object Storage SDK and instance-principal identity. Set `OCI_REGION`, `OCI_NAMESPACE`, and `OCI_BUCKET_DOCUMENTS` to a preprovisioned **Standard**, `NoPublicAccess` bucket in the intended region. Clear the unused `MINIO_ACCESS_KEY_REF` and `MINIO_SECRET_KEY_REF`; the other runtime-secret file references remain mandatory. Create a dynamic group containing only the pilot compute instance and grant it bucket metadata read and object create/read/delete rights scoped to this one bucket. Do not grant bucket update, public access, pre-authenticated-request creation, or tenancy-wide object management. The container must be able to obtain OCI instance-principal identity and reach the regional Object Storage HTTPS API; prove both on the target host.
+
+The OCI adapter checks `NoPublicAccess` and Standard tier before every document write/read. OCI encrypts stored objects by default; the native API does not return the S3 `AES256` evidence used by the MinIO/S3 adapter. Its synthetic preflight proves current-key write/read/deletion only and explicitly reports `object_encryption_independently_verified=false`. Bucket versioning can retain older object versions after a current-key delete. Separately inspect pre-authenticated requests, test anonymous denial from outside the host, and record bucket encryption configuration, retention, versioning and an independent document backup/recovery drill. Do not populate the recovery declarations or admit real client documents from this code-level/CI proof alone. This pilot does not create an Oracle account or any resources and makes no cost or production-readiness claim.
+
 Validate the resolved Compose model before launch:
 
 ```powershell

@@ -132,7 +132,7 @@ def storage_posture_read() -> dict[str, Any]:
 
 
 def _verify_document_content(document: DocumentRecord) -> bytes:
-    if not document.storage_key or document.storage_provider not in {"local", "minio"}:
+    if not document.storage_key or document.storage_provider not in {"local", "minio", "oci"}:
         raise ValueError("Document is not stored in a supported server-readable backend")
     if not document.file_hash or document.file_size_bytes is None:
         raise ValueError("Document integrity metadata is incomplete")

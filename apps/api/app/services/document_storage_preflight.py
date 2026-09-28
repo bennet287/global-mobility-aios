@@ -9,8 +9,10 @@ from typing import Any
 
 from app.core.config import settings
 from app.services.document_storage import (
+    _oci_client,
     _minio_client,
     document_storage_posture,
+    validate_oci_bucket_private,
     validate_minio_bucket_private,
 )
 
@@ -57,6 +59,42 @@ def probe_object(client: Any, bucket: str, key: str, content: bytes, sse: Any) -
     return result
 
 
+def probe_oci_object(client: Any, namespace: str, bucket: str, key: str,
+                     content: bytes) -> dict[str, Any]:
+    """Round trip and remove a synthetic object; OCI encrypts all objects by default."""
+    result: dict[str, Any] = {"write": False, "read": False, "cleanup": False}
+    stage = "write"
+    try:
+        client.put_object(namespace, bucket, key, BytesIO(content),
+                          content_length=len(content), content_type="application/octet-stream")
+        result["write"] = True
+        stage = "read"
+        result["read"] = client.get_object(namespace, bucket, key).data.content == content
+        if not result["read"]:
+            result["failure_stage"] = "content_mismatch"
+    except Exception:
+        result["failure_stage"] = stage
+    finally:
+        try:
+            client.delete_object(namespace, bucket, key)
+            try:
+                client.head_object(namespace, bucket, key)
+            except Exception as exc:
+                if getattr(exc, "status", None) == 404:
+                    result["cleanup"] = True
+                else:
+                    result["failure_stage"] = "cleanup_verification"
+            else:
+                result["failure_stage"] = "cleanup_verification"
+        except Exception:
+            result["failure_stage"] = "cleanup"
+    result["passed"] = all(result[name] for name in ("write", "read", "cleanup"))
+    # The OCI API does not expose an SSE-S3 response header. This is a
+    # round-trip check, not independent proof of encryption or backup recovery.
+    result["object_encryption_independently_verified"] = False
+    return result
+
+
 def run_preflight() -> dict[str, Any]:
     result: dict[str, Any] = {"passed": False, "probe": "not_run"}
     if not settings.is_production():
@@ -76,6 +114,22 @@ def run_preflight() -> dict[str, Any]:
         return result
     result["declared_recovery_fields_missing"] = bool(failures & pending_recovery)
     result["recovery_proven_by_this_probe"] = False
+
+    if settings.document_storage_backend.strip().lower() == "oci":
+        key = f"documents/production-preflight/{secrets.token_hex(16)}.bin"
+        result["probe"] = "attempted"
+        result["probe_key"] = key
+        try:
+            client = _oci_client()
+            validate_oci_bucket_private(client)
+        except Exception:
+            result["failure_stage"] = "bucket_or_policy_check"
+            return result
+        result.update(probe_oci_object(
+            client, settings.oci_namespace, settings.oci_bucket_documents,
+            key, secrets.token_bytes(32),
+        ))
+        return result
 
     bucket = settings.minio_bucket_documents
     try:

@@ -13,9 +13,12 @@ x-application-runtime-env: &application_runtime_env
   QDRANT_URL:
   QDRANT_COLLECTION:
   MINIO_ENDPOINT:
-  MINIO_ACCESS_KEY_REF: ${MINIO_ACCESS_KEY_REF:?Set the production object-store access-key reference}
-  MINIO_SECRET_KEY_REF: ${MINIO_SECRET_KEY_REF:?Set the production object-store secret-key reference}
+  MINIO_ACCESS_KEY_REF: ${MINIO_ACCESS_KEY_REF:-}
+  MINIO_SECRET_KEY_REF: ${MINIO_SECRET_KEY_REF:-}
   MINIO_BUCKET_DOCUMENTS:
+  OCI_REGION:
+  OCI_NAMESPACE:
+  OCI_BUCKET_DOCUMENTS:
   MINIO_SECURE:
   MINIO_AUTO_CREATE_BUCKET:
   MINIO_SERVER_SIDE_ENCRYPTION:
