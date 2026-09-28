@@ -210,4 +210,7 @@ class LearningRecurrenceRead(ObservatoryRead):
     basis: Literal["active_contribution_linked_completed_work"]
     observation_only: Literal[True] = True
     skill_registry_mutated: Literal[False] = False
+    active_outcomes: int
+    outcomes_with_work_item: int
+    outcomes_without_work_item: int
     repeated_patterns: list[LearningRecurrencePattern] = Field(default_factory=list)
