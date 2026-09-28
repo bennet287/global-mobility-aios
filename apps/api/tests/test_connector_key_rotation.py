@@ -20,6 +20,10 @@ OLD = "old-connector-secret-for-rotation"
 NEW = "new-connector-secret-for-rotation"
 
 
+def _lock_table(session: Session) -> bool:
+    return session.bind.dialect.name == "postgresql"
+
+
 def _account(client) -> str:
     account = client.post(
         "/api/v1/corporate-mobility/accounts",
@@ -51,18 +55,18 @@ def test_rotation_is_read_only_until_apply_then_active_only(client, db_session: 
     old_token = db_session.get(AutomationConnectorConfig, old_id).credentials_json
 
     counts = rotate_connector_rows(
-        db_session, active_key=NEW, previous_key=OLD, mode="check", lock_table=False
+        db_session, active_key=NEW, previous_key=OLD, mode="check", lock_table=_lock_table(db_session)
     )
     assert counts == {"total": 2, "already_active": 1, "previous": 1}
     assert db_session.get(AutomationConnectorConfig, old_id).credentials_json == old_token
     with pytest.raises(CredentialEncryptionError, match="active key"):
-        rotate_connector_rows(db_session, active_key=NEW, mode="verify", lock_table=False)
+        rotate_connector_rows(db_session, active_key=NEW, mode="verify", lock_table=_lock_table(db_session))
 
     assert rotate_connector_rows(
-        db_session, active_key=NEW, previous_key=OLD, mode="apply", lock_table=False
+        db_session, active_key=NEW, previous_key=OLD, mode="apply", lock_table=_lock_table(db_session)
     ) == counts
     assert rotate_connector_rows(
-        db_session, active_key=NEW, mode="verify", lock_table=False
+        db_session, active_key=NEW, mode="verify", lock_table=_lock_table(db_session)
     ) == {"total": 2, "already_active": 2, "previous": 0}
     monkeypatch.setattr(settings, "automation_encryption_key", NEW)
     for row_id in (old_id, new_id):
@@ -88,7 +92,7 @@ def test_unreadable_row_aborts_whole_rotation(client, db_session: Session, monke
 
     with pytest.raises(CredentialEncryptionError, match="unreadable"):
         rotate_connector_rows(
-            db_session, active_key=NEW, previous_key=OLD, mode="apply", lock_table=False
+            db_session, active_key=NEW, previous_key=OLD, mode="apply", lock_table=_lock_table(db_session)
         )
     db_session.expire_all()
     assert db_session.get(AutomationConnectorConfig, good_id).credentials_json == good_token
@@ -108,7 +112,7 @@ def test_write_failure_rolls_back_prior_row_change(client, db_session: Session, 
     monkeypatch.setattr(connector_key_rotation, "record_audit", fail_audit)
     with pytest.raises(RuntimeError, match="audit write failure"):
         rotate_connector_rows(
-            db_session, active_key=NEW, previous_key=OLD, mode="apply", lock_table=False
+            db_session, active_key=NEW, previous_key=OLD, mode="apply", lock_table=_lock_table(db_session)
         )
     db_session.expire_all()
     assert db_session.get(AutomationConnectorConfig, old_id).credentials_json == old_token
