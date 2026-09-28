@@ -63,6 +63,7 @@ from app.schemas_organization_records import (
 )
 from app.schemas_organization_observatory import (
     ContributionReconciliationRead,
+    LearningRecurrenceRead,
     ObservatoryDepartmentsRead,
     ObservatorySummaryRead,
     ReconciliationStatus,
@@ -117,6 +118,7 @@ from app.services.organization_observatory import (
     ACCEPTED_SOURCE_TYPES,
     observatory_contribution_reconciliation,
     observatory_departments,
+    observatory_learning_recurrence,
     observatory_summary,
 )
 from app.services.organization_reference import create_record_reference
@@ -267,6 +269,16 @@ def get_observatory_departments(
     session: Session = Depends(get_session),
 ) -> dict[str, Any]:
     return observatory_departments(session, context.tenant_key)
+
+
+@router.get("/observatory/learning-recurrence", response_model=LearningRecurrenceRead)
+def get_observatory_learning_recurrence(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    if context.role != "admin":
+        raise HTTPException(status_code=403, detail="Organization action is not permitted.")
+    return observatory_learning_recurrence(session, context.tenant_key)
 
 
 @router.get(

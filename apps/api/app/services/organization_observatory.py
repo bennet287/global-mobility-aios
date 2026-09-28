@@ -201,6 +201,72 @@ def _active_outcomes(
     return [row for row in outcomes if row.id not in corrected_targets]
 
 
+def observatory_learning_recurrence(session: Session, tenant_key: str) -> dict[str, Any]:
+    """Observe repeated outcome-linked work without promoting a learned skill.
+
+    Contribution records describe governed outcomes, not a validated procedure or
+    proof that the associated WorkItem produced that outcome. Group only distinct
+    work and source identities; never inspect free-form work output or infer tools.
+    """
+    outcomes, corrections = _outcomes_and_corrections(session, tenant_key)
+    active = _active_outcomes(outcomes, corrections)
+    work_ids = {row.work_item_id for row in active if row.work_item_id is not None}
+    work_by_id = {
+        row.id: row
+        for row in _tenant_rows(session, OrganizationalWorkItem, tenant_key)
+        if row.id in work_ids
+    }
+    groups: dict[tuple[str, str, str, str, str, str], dict[str, set[Any]]] = {}
+    for outcome in active:
+        work = work_by_id.get(outcome.work_item_id)
+        if (
+            work is None or work.status != "completed" or work.completed_at is None
+            or not work.objective_key or not work.phase_key
+            or work.objective_key != outcome.objective_key
+            or work.phase_key != outcome.phase_key
+            or work.department != outcome.department
+        ):
+            continue
+        key = (
+            work.department, work.work_type, work.objective_key,
+            work.phase_key, outcome.contribution_type, outcome.source_state,
+        )
+        group = groups.setdefault(key, {"work_ids": set(), "source_ids": set(), "outcome_ids": set()})
+        group["work_ids"].add(work.id)
+        group["source_ids"].add((outcome.source_object_type, outcome.source_object_id))
+        group["outcome_ids"].add(outcome.id)
+    repeated = []
+    for key, group in groups.items():
+        if len(group["work_ids"]) < 2 or len(group["source_ids"]) < 2:
+            continue
+        department, work_type, objective_key, phase_key, contribution_type, source_state = key
+        repeated.append({
+            "department": department,
+            "work_type": work_type,
+            "objective_key": objective_key,
+            "phase_key": phase_key,
+            "contribution_type": contribution_type,
+            "source_state": source_state,
+            "distinct_work_items": len(group["work_ids"]),
+            "distinct_sources": len(group["source_ids"]),
+            "work_item_ids": sorted(group["work_ids"], key=str),
+            "outcome_ids": sorted(group["outcome_ids"], key=str),
+            "learned_skill_eligible": False,
+            "remaining_gate": "procedure_and_outcome_attribution_unverified",
+        })
+    repeated.sort(key=lambda row: (
+        row["department"], row["work_type"], row["objective_key"],
+        row["phase_key"], row["contribution_type"], row["source_state"],
+    ))
+    return {
+        "tenant_scope": tenant_key,
+        "basis": "active_contribution_linked_completed_work",
+        "observation_only": True,
+        "skill_registry_mutated": False,
+        "repeated_patterns": repeated,
+    }
+
+
 def _contribution_metrics(
     session: Session, tenant_key: str
 ) -> tuple[dict[str, Any], list[OrganizationContribution], list[OrganizationContribution]]:

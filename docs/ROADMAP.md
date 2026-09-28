@@ -529,6 +529,8 @@ Risk linkage, policy/control ownership, audit-ready evidence export, approval/ex
 
 Measure provider/model performance, employee/skill success and corrections, repeated blockers, source reliability, cost per successful outcome, routing/handoff quality, escalation, decision reversal and time-to-resolution. Add evidence-backed organizational competency and outcome attribution without turning activity into a proxy for productivity.
 
+The first bounded learning observation reuses the Observatory: an admin-only, read-only view groups distinct completed WorkItems with distinct active Contribution source identities under the same explicit objective/phase and outcome shape. Corrections remove their original outcome from the signal. This is structural recurrence, **not** a successful procedure, verified attribution, skill candidate, or execution authority. Next prove source-to-work outcome attribution and a reproducible procedure/tool trace before extracting, validating, and making any learned skill eligible through the existing registry; do not add a separate memory, scheduler, or agent runtime for this path.
+
 #### Preflight competency gate
 
 Before materially costly production work, evaluate the WorkItem requirements against the employee's **verified current organizational competency**, not merely a generic skill label: work requirements → capability/skill match → organization-specific competency and freshness/version check → tool/permission/authority prerequisites → estimated cost and authorized budget → READY | GAP | NOT_SUITABLE.
