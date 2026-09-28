@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hmac
+
 from app.core.config import settings
 from app.core.secrets import SecretResolutionError
 
@@ -19,6 +21,10 @@ DEFAULT_INSECURE_PASSWORDS = {
 
 PRODUCTION_RUNTIME_SECRET_REFS = {
     "JWT_SECRET_REF": ("jwt_secret_ref", "jwt_secret"),
+    "AUTOMATION_ENCRYPTION_KEY_REF": (
+        "automation_encryption_key_ref",
+        "automation_encryption_key",
+    ),
     "AUTOMATION_WEBHOOK_SECRET_REF": (
         "automation_webhook_secret_ref",
         "automation_webhook_secret",
@@ -57,6 +63,28 @@ def _runtime_secret_failures() -> list[str]:
         failures.append("JWT secret must resolve to a non-default production secret")
     elif jwt_secret and len(jwt_secret) < 32:
         failures.append("JWT secret must be at least 32 characters in production")
+
+    automation_key = resolved_runtime_secrets.get("automation_encryption_key", "")
+    if automation_key and automation_key in DEFAULT_INSECURE_SECRETS:
+        failures.append("Automation encryption key must resolve to a non-default production secret")
+    elif automation_key and len(automation_key) < 32:
+        failures.append("Automation encryption key must be at least 32 characters in production")
+
+    previous_reference = settings.automation_encryption_previous_key_ref
+    if isinstance(previous_reference, str) and previous_reference.strip():
+        try:
+            previous_key = settings.automation_encryption_previous_key.strip()
+        except SecretResolutionError:
+            failures.append(
+                "AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF must resolve to an available production secret"
+            )
+        else:
+            if previous_key in DEFAULT_INSECURE_SECRETS or len(previous_key) < 32:
+                failures.append(
+                    "Previous automation encryption key must resolve to a non-default secret of at least 32 characters"
+                )
+            elif automation_key and hmac.compare_digest(automation_key, previous_key):
+                failures.append("Previous automation encryption key must differ from the active key")
 
     webhook_secret = resolved_runtime_secrets.get("automation_webhook_secret", "")
     if webhook_secret and webhook_secret.lower().startswith("change-this"):
