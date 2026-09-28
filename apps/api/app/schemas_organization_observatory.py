@@ -178,6 +178,17 @@ class ContributionReconciliationRead(ObservatoryRead):
     warnings: list[str] = Field(default_factory=list)
 
 
+class LearningExecutionLineage(ObservatoryRead):
+    work_item_id: UUID
+    state: Literal["not_available", "incomplete", "bounded_internal_execution_observed"]
+    agent_run_id: UUID | None = None
+    execution_attempt_id: UUID | None = None
+    action_output_id: UUID | None = None
+    agent_run_status: str | None = None
+    outcome_attribution_verified: Literal[False] = False
+    procedure_reproducible: Literal[False] = False
+
+
 class LearningRecurrencePattern(ObservatoryRead):
     department: str
     work_type: str
@@ -189,6 +200,7 @@ class LearningRecurrencePattern(ObservatoryRead):
     distinct_sources: int
     work_item_ids: list[UUID]
     outcome_ids: list[UUID]
+    execution_lineage: list[LearningExecutionLineage] = Field(default_factory=list)
     learned_skill_eligible: Literal[False] = False
     remaining_gate: Literal["procedure_and_outcome_attribution_unverified"]
 
