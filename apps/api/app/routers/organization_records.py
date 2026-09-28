@@ -918,7 +918,7 @@ def get_decision_record(decision_id: UUID, context: OrganizationCommandContext =
 
 @router.post("/decisions/records/{decision_id}/outcome", response_model=DecisionRead)
 def record_decision_outcome_endpoint(decision_id: UUID, payload: DecisionOutcome, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)) -> ExecutiveDecision:
-    return _command(lambda: record_executive_decision_outcome(session, context, decision_id=decision_id, outcome=payload.outcome, reason=payload.reason, effect_summary=payload.effect_summary))
+    return _command(lambda: record_executive_decision_outcome(session, context, decision_id=decision_id, outcome=payload.outcome, reason=payload.reason, effect_summary=payload.effect_summary, accepted_action_output_id=payload.accepted_action_output_id))
 
 
 @router.post("/decisions/records/{decision_id}/supersede", response_model=DecisionRead, status_code=status.HTTP_201_CREATED)
