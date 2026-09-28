@@ -86,7 +86,7 @@ There is **no first-party Electron application under `apps/`**. Electron code pr
 - PostgreSQL via psycopg; SQLite for bounded local/test use
 - Redis
 - Qdrant
-- MinIO / S3-compatible document storage
+- MinIO / S3-compatible document storage or the native OCI Object Storage pilot adapter
 - httpx
 - Celery for background work
 
