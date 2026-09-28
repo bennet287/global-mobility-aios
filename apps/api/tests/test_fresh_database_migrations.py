@@ -287,7 +287,7 @@ def test_0076_refuses_duplicate_active_organization_position_identity(tmp_path: 
             {"revision": "0075_legacy_schema_reconciliation"},
         )
 
-    to_head = subprocess.run(
+    to_repair = subprocess.run(
         [
             sys.executable,
             "-m",
@@ -295,7 +295,7 @@ def test_0076_refuses_duplicate_active_organization_position_identity(tmp_path: 
             "-c",
             str(ROOT / "alembic.ini"),
             "upgrade",
-            "head",
+            "0076_organization_position_active_identity",
         ],
         cwd=ROOT,
         env=env,
@@ -304,8 +304,8 @@ def test_0076_refuses_duplicate_active_organization_position_identity(tmp_path: 
         timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
         check=False,
     )
-    assert to_head.returncode != 0
-    output = (to_head.stderr or "") + (to_head.stdout or "")
+    assert to_repair.returncode != 0
+    output = (to_repair.stderr or "") + (to_repair.stdout or "")
     assert "0076 refuses to hide duplicate active organization identities" in output
 
 
@@ -353,7 +353,7 @@ def test_0076_restores_position_version_uniqueness_on_preserved_like_0075(tmp_pa
             {"revision": "0075_legacy_schema_reconciliation"},
         )
 
-    to_head = subprocess.run(
+    to_repair = subprocess.run(
         [
             sys.executable,
             "-m",
@@ -361,7 +361,7 @@ def test_0076_restores_position_version_uniqueness_on_preserved_like_0075(tmp_pa
             "-c",
             str(ROOT / "alembic.ini"),
             "upgrade",
-            "head",
+            "0076_organization_position_active_identity",
         ],
         cwd=ROOT,
         env=env,
@@ -370,7 +370,7 @@ def test_0076_restores_position_version_uniqueness_on_preserved_like_0075(tmp_pa
         timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
         check=False,
     )
-    assert to_head.returncode == 0, to_head.stderr or to_head.stdout
+    assert to_repair.returncode == 0, to_repair.stderr or to_repair.stdout
 
     inspector = inspect(create_engine(database_url))
     indexes = {
