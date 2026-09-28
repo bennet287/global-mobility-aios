@@ -104,13 +104,15 @@ def main() -> int:
         _require(compose, "REDIS_URL: ${REDIS_URL:?", PROD_COMPOSE)
         _require(worker_block, "<<: *application_runtime_env", PROD_COMPOSE)
         _require_absent(worker_block, "AUTH_ADMIN_PASSWORD:", PROD_COMPOSE)
+        _require_absent(worker_block, "AUTH_ADMIN_PASSWORD_REF:", PROD_COMPOSE)
         _require(worker_block, "- /bin/sh", PROD_COMPOSE)
         _require(worker_block, "- -ec", PROD_COMPOSE)
         _require(worker_block, "validate_production_worker_settings()", PROD_COMPOSE)
         _require(worker_block, "exec celery -A app.core.celery_app worker", PROD_COMPOSE)
         _require_absent(api_block, "env_file:", PROD_COMPOSE)
         _require(api_block, "<<: *application_runtime_env", PROD_COMPOSE)
-        _require(api_block, "AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:?", PROD_COMPOSE)
+        _require(api_block, "AUTH_ADMIN_PASSWORD_REF: ${AUTH_ADMIN_PASSWORD_REF:?", PROD_COMPOSE)
+        _require_absent(api_block, "AUTH_ADMIN_PASSWORD:", PROD_COMPOSE)
         _require(api_block, "CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?", PROD_COMPOSE)
         _require(api_block, '127.0.0.1:${API_PORT:-8000}:8000', PROD_COMPOSE)
 
@@ -140,6 +142,13 @@ def main() -> int:
                 PROD_ENV_EXAMPLE,
             )
             _require_absent(env_example, f"\n{key}=", PROD_ENV_EXAMPLE)
+
+        _require(
+            env_example,
+            "AUTH_ADMIN_PASSWORD_REF=file:///run/secrets/aios/auth/admin_password",
+            PROD_ENV_EXAMPLE,
+        )
+        _require_absent(env_example, "\nAUTH_ADMIN_PASSWORD=", PROD_ENV_EXAMPLE)
 
         _require(
             compose,

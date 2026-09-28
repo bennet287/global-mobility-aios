@@ -115,11 +115,18 @@ def validate_production_settings() -> None:
     if settings.auth_allow_header_role:
         failures.append("AUTH_ALLOW_HEADER_ROLE must be false in production")
 
-    admin_password = settings.auth_admin_password.strip()
-    if admin_password in DEFAULT_INSECURE_PASSWORDS:
-        failures.append("AUTH_ADMIN_PASSWORD must be set to a non-default production password")
-    elif len(admin_password) < 12:
-        failures.append("AUTH_ADMIN_PASSWORD must be at least 12 characters in production")
+    if not settings.auth_admin_password_ref.strip():
+        failures.append("AUTH_ADMIN_PASSWORD_REF must be configured in production")
+    else:
+        try:
+            admin_password = settings.auth_admin_password.strip()
+        except SecretResolutionError:
+            failures.append("AUTH_ADMIN_PASSWORD_REF must resolve to an available production secret")
+        else:
+            if admin_password in DEFAULT_INSECURE_PASSWORDS:
+                failures.append("AUTH_ADMIN_PASSWORD must be set to a non-default production password")
+            elif len(admin_password) < 12:
+                failures.append("AUTH_ADMIN_PASSWORD must be at least 12 characters in production")
 
     _raise_production_failures(failures)
 
