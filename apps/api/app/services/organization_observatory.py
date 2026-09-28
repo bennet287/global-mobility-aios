@@ -12,6 +12,8 @@ from sqlmodel import Session, func, select
 
 from app.models.domain import (
     AuditLog,
+    AgentRun,
+    AgentRunStatus,
     ExecutiveDecision,
     InitialRuleAssertion,
     JurisdictionSourceCertification,
@@ -19,6 +21,7 @@ from app.models.domain import (
     MobilityPathwayVersion,
     OfficialSource,
     OrganizationActivity,
+    OrganizationalActionOutput,
     OrganizationBlocker,
     OrganizationBlockerStatus,
     OrganizationContribution,
@@ -201,6 +204,73 @@ def _active_outcomes(
     return [row for row in outcomes if row.id not in corrected_targets]
 
 
+def _learning_execution_lineage(
+    session: Session,
+    work: OrganizationalWorkItem,
+    work_by_id: dict[UUID, OrganizationalWorkItem],
+) -> dict[str, Any]:
+    """Report only the one K.1 execution lineage with an existing strict validator.
+
+    K.1 is internal analysis; even a valid run/output cannot attribute a governed
+    source transition to the run or reproduce a procedure from its model output.
+    """
+    result: dict[str, Any] = {
+        "work_item_id": work.id,
+        "state": "not_available",
+        "outcome_attribution_verified": False,
+        "procedure_reproducible": False,
+    }
+    if work.work_type != "mobility_specialist_work" or work.parent_work_item_id is None:
+        return result
+
+    # Import here because the context broker also uses the Observatory's active
+    # outcome projection; module-level runtime imports would form a cycle.
+    from app.services.organization_mobility_objective_runtime import (
+        AUSTRIA_MOBILITY_SPECIALIST_POSITIONS,
+        austria_specialist_execution_evidence_reason,
+        austria_specialist_output_key,
+    )
+
+    if work.assigned_position_key not in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
+        return result
+    result["state"] = "incomplete"
+    root = work_by_id.get(work.parent_work_item_id)
+    if root is None or root.tenant_key != work.tenant_key:
+        return result
+    if austria_specialist_execution_evidence_reason(
+        session, root=root, child=work, position_key=work.assigned_position_key,
+    ) is not None:
+        return result
+    output = session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.output_key == austria_specialist_output_key(work.id)
+        )
+    ).first()
+    if output is None:
+        return result
+    try:
+        payload = json.loads(output.output_json)
+        run_id = UUID(str(payload["agent_run_id"]))
+        attempt_id = UUID(str(payload["execution_attempt_id"]))
+    except (TypeError, ValueError, KeyError):
+        return result
+    run = session.get(AgentRun, run_id)
+    if run is None or run.status not in {
+        AgentRunStatus.pending_review.value,
+        AgentRunStatus.completed.value,
+        AgentRunStatus.approved.value,
+    }:
+        return result
+    result.update({
+        "state": "bounded_internal_execution_observed",
+        "agent_run_id": run_id,
+        "execution_attempt_id": attempt_id,
+        "action_output_id": output.id,
+        "agent_run_status": run.status,
+    })
+    return result
+
+
 def observatory_learning_recurrence(session: Session, tenant_key: str) -> dict[str, Any]:
     """Observe repeated outcome-linked work without promoting a learned skill.
 
@@ -211,11 +281,9 @@ def observatory_learning_recurrence(session: Session, tenant_key: str) -> dict[s
     outcomes, corrections = _outcomes_and_corrections(session, tenant_key)
     active = _active_outcomes(outcomes, corrections)
     work_ids = {row.work_item_id for row in active if row.work_item_id is not None}
-    work_by_id = {
-        row.id: row
-        for row in _tenant_rows(session, OrganizationalWorkItem, tenant_key)
-        if row.id in work_ids
-    }
+    tenant_work = _tenant_rows(session, OrganizationalWorkItem, tenant_key)
+    parent_ids = {row.parent_work_item_id for row in tenant_work if row.id in work_ids}
+    work_by_id = {row.id: row for row in tenant_work if row.id in work_ids or row.id in parent_ids}
     groups: dict[tuple[str, str, str, str, str, str], dict[str, set[Any]]] = {}
     for outcome in active:
         work = work_by_id.get(outcome.work_item_id)
@@ -251,6 +319,10 @@ def observatory_learning_recurrence(session: Session, tenant_key: str) -> dict[s
             "distinct_sources": len(group["source_ids"]),
             "work_item_ids": sorted(group["work_ids"], key=str),
             "outcome_ids": sorted(group["outcome_ids"], key=str),
+            "execution_lineage": [
+                _learning_execution_lineage(session, work_by_id[work_id], work_by_id)
+                for work_id in sorted(group["work_ids"], key=str)
+            ],
             "learned_skill_eligible": False,
             "remaining_gate": "procedure_and_outcome_attribution_unverified",
         })

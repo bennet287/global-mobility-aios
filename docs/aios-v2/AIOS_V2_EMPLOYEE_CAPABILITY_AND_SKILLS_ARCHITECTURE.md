@@ -127,6 +127,8 @@ The learning system should use semantic similarity and workflow structure rather
 
 An initial Observatory read model may report a narrower structural signal from completed WorkItems linked to active, governed Contribution records. It must count distinct work and source identities, remove corrected outcomes, and remain observation-only. A Contribution linked to work does not prove the work caused the outcome, and a completion does not show which procedure succeeded. No structural signal alone creates a learned skill or a new employee capability.
 
+For the bounded Austria specialist path, the Observatory may additionally report a validated internal execution lineage using the existing K.1 WorkItem/output/attempt/AgentRun check. A pending-review or completed internal run is still not source-outcome attribution. The Contribution source validator and execution runtime have separate owners; a linked WorkItem ID alone cannot bridge them. Keep learned-skill eligibility closed until a source transition proves exact reviewed execution causation and a stable procedure trace passes validation.
+
 The system should avoid creating a new skill for every minor variation. Prefer stable, composable procedures.
 
 ### 6.3 Automatic extraction

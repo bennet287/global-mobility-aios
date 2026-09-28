@@ -2,21 +2,33 @@
 
 from __future__ import annotations
 
+import json
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, func, select
 
 from app.models.domain import (
+    AgentRun,
+    AgentRunStatus,
     OrganizationActorType,
     OrganizationContribution,
     OrganizationContributionImpactKind,
     OrganizationContributionRecordKind,
     OrganizationContributionVerificationMethod,
+    OrganizationExecutionAttempt,
+    OrganizationalActionOutput,
     OrganizationalWorkItem,
     now_utc,
 )
 from app.models.skill_registry import OrganizationSkill
+from app.services.organization_mobility_objective_runtime import (
+    AUSTRIA_MOBILITY_PATHWAY_POSITION,
+    AUSTRIA_MOBILITY_SPECIALIST_AGENT_NAMES,
+    AUSTRIA_MOBILITY_SPECIALIST_EXECUTION_CONTRACT_VERSION,
+    austria_completed_work_fingerprint,
+    austria_specialist_output_key,
+)
 
 
 URL = "/api/v1/organization/observatory/learning-recurrence"
@@ -121,6 +133,7 @@ def test_recurrence_requires_distinct_completed_work_and_sources_and_grants_noth
     assert str(first_outcome.id) in pattern["outcome_ids"]
     assert pattern["learned_skill_eligible"] is False
     assert pattern["remaining_gate"] == "procedure_and_outcome_attribution_unverified"
+    assert {item["state"] for item in pattern["execution_lineage"]} == {"not_available"}
     assert db_session.exec(select(func.count()).select_from(OrganizationSkill)).one() == before
 
 
@@ -142,3 +155,76 @@ def test_correction_and_same_source_remove_recurrence(
     )
     assert _get(raw_client).json()["repeated_patterns"] == []
     assert original.id != distinct.id
+
+
+def test_valid_internal_agent_lineage_still_cannot_attribute_outcome_or_promote_skill(
+    raw_client: TestClient, db_session: Session,
+) -> None:
+    root = _work(db_session, key="root", status="running")
+    children = []
+    for key in ("specialist-1", "specialist-2"):
+        child = _work(db_session, key=key)
+        child.work_type = "mobility_specialist_work"
+        child.parent_work_item_id = root.id
+        child.assigned_position_key = AUSTRIA_MOBILITY_PATHWAY_POSITION
+        db_session.add(child)
+        db_session.commit()
+        children.append(child)
+    first, second = children
+    _outcome(db_session, first, source_id="source-1")
+    _outcome(db_session, second, source_id="source-2")
+
+    attempt = OrganizationExecutionAttempt(
+        attempt_key=f"learning:{first.id}:1", work_item_id=first.id, attempt_number=1,
+        execution_token="bounded-attempt", status="completed", completed_at=now_utc(),
+    )
+    run = AgentRun(
+        agent_name=AUSTRIA_MOBILITY_SPECIALIST_AGENT_NAMES[AUSTRIA_MOBILITY_PATHWAY_POSITION],
+        task="Internal analysis", status=AgentRunStatus.pending_review.value,
+        input_json="{}",
+    )
+    db_session.add(attempt)
+    db_session.add(run)
+    db_session.commit()
+    provenance = {
+        "work_item_id": str(first.id), "position_key": AUSTRIA_MOBILITY_PATHWAY_POSITION,
+        "context_hash": "context-1", "runtime_binding_hash": "runtime-1",
+    }
+    run.input_json = json.dumps({"context": {"k1_provenance": provenance}})
+    payload = {
+        "contract_version": AUSTRIA_MOBILITY_SPECIALIST_EXECUTION_CONTRACT_VERSION,
+        "root_work_item_id": str(root.id), "work_item_id": str(first.id),
+        "position_key": AUSTRIA_MOBILITY_PATHWAY_POSITION,
+        "completed_work_fingerprint": austria_completed_work_fingerprint(first),
+        "agent_name": run.agent_name, "agent_run_id": str(run.id),
+        "execution_attempt_id": str(attempt.id), "execution_token": attempt.execution_token,
+        "context_hash": "context-1", "runtime_binding_hash": "runtime-1",
+    }
+    output = OrganizationalActionOutput(
+        output_key=austria_specialist_output_key(first.id), work_item_id=first.id,
+        accountable_position_key=AUSTRIA_MOBILITY_PATHWAY_POSITION,
+        authority_basis="Bounded internal analysis", confidence_basis="Review required",
+        rollback_posture="Discard internal output", status="completed",
+        output_json=json.dumps(payload),
+        impact_json='{"external_action_authorized":false,"client_facing":false}',
+    )
+    db_session.add(run)
+    db_session.add(output)
+    db_session.commit()
+
+    body = _get(raw_client).json()
+    pattern = body["repeated_patterns"][0]
+    lineage = {item["work_item_id"]: item for item in pattern["execution_lineage"]}
+    assert lineage[str(first.id)]["state"] == "bounded_internal_execution_observed"
+    assert lineage[str(first.id)]["agent_run_id"] == str(run.id)
+    assert lineage[str(first.id)]["execution_attempt_id"] == str(attempt.id)
+    assert lineage[str(second.id)]["state"] == "incomplete"
+    assert all(item["outcome_attribution_verified"] is False for item in lineage.values())
+    assert all(item["procedure_reproducible"] is False for item in lineage.values())
+    assert pattern["learned_skill_eligible"] is False
+
+    run.status = AgentRunStatus.failed.value
+    db_session.add(run)
+    db_session.commit()
+    changed = _get(raw_client).json()["repeated_patterns"][0]["execution_lineage"]
+    assert all(item["state"] != "bounded_internal_execution_observed" for item in changed)
