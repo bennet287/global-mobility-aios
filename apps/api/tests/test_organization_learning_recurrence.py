@@ -125,6 +125,9 @@ def test_recurrence_requires_distinct_completed_work_and_sources_and_grants_noth
     assert body["basis"] == "active_contribution_linked_completed_work"
     assert body["observation_only"] is True
     assert body["skill_registry_mutated"] is False
+    assert body["active_outcomes"] == 4
+    assert body["outcomes_with_work_item"] == 4
+    assert body["outcomes_without_work_item"] == 0
     assert len(body["repeated_patterns"]) == 1
     pattern = body["repeated_patterns"][0]
     assert pattern["distinct_work_items"] == 2
@@ -155,6 +158,22 @@ def test_correction_and_same_source_remove_recurrence(
     )
     assert _get(raw_client).json()["repeated_patterns"] == []
     assert original.id != distinct.id
+
+
+def test_unlinked_governed_outcome_is_counted_but_cannot_become_recurrence(
+    raw_client: TestClient, db_session: Session,
+) -> None:
+    work = _work(db_session, key="unlinked")
+    row = _outcome(db_session, work, source_id="unlinked-source")
+    row.work_item_id = None
+    db_session.add(row)
+    db_session.commit()
+
+    body = _get(raw_client).json()
+    assert body["active_outcomes"] == 1
+    assert body["outcomes_with_work_item"] == 0
+    assert body["outcomes_without_work_item"] == 1
+    assert body["repeated_patterns"] == []
 
 
 def test_valid_internal_agent_lineage_still_cannot_attribute_outcome_or_promote_skill(

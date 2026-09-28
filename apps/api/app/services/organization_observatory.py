@@ -335,6 +335,9 @@ def observatory_learning_recurrence(session: Session, tenant_key: str) -> dict[s
         "basis": "active_contribution_linked_completed_work",
         "observation_only": True,
         "skill_registry_mutated": False,
+        "active_outcomes": len(active),
+        "outcomes_with_work_item": sum(row.work_item_id is not None for row in active),
+        "outcomes_without_work_item": sum(row.work_item_id is None for row in active),
         "repeated_patterns": repeated,
     }
 

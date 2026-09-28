@@ -129,6 +129,8 @@ An initial Observatory read model may report a narrower structural signal from c
 
 For the bounded Austria specialist path, the Observatory may additionally report a validated internal execution lineage using the existing K.1 WorkItem/output/attempt/AgentRun check. A pending-review or completed internal run is still not source-outcome attribution. The Contribution source validator and execution runtime have separate owners; a linked WorkItem ID alone cannot bridge them. Keep learned-skill eligibility closed until a source transition proves exact reviewed execution causation and a stable procedure trace passes validation.
 
+Automatic source-transition Contributions currently have no WorkItem/AgentRun association. The optional WorkItem link on a standalone Contribution is tenant checked but not causal proof. Report linked and unlinked outcome coverage honestly; do not infer that an empty recurrence means there is no history to learn from, and do not attach an internal-analysis run to a source publication it merely consumed.
+
 The system should avoid creating a new skill for every minor variation. Prefer stable, composable procedures.
 
 ### 6.3 Automatic extraction
