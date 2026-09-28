@@ -6,7 +6,8 @@ x-application-runtime-env: &application_runtime_env
   DATABASE_ECHO:
   REDIS_URL: ${REDIS_URL:?Set the production Redis URL}
   JWT_SECRET_REF: ${JWT_SECRET_REF:?Set the production signing secret reference}
-  AUTOMATION_ENCRYPTION_KEY:
+  AUTOMATION_ENCRYPTION_KEY_REF: ${AUTOMATION_ENCRYPTION_KEY_REF:?Set the production automation encryption key reference}
+  AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF: ${AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF:-}
   AUTOMATION_WEBHOOK_SECRET_REF: ${AUTOMATION_WEBHOOK_SECRET_REF:?Set the production webhook secret reference}
   QDRANT_URL:
   QDRANT_COLLECTION:
