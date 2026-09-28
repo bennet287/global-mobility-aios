@@ -50,6 +50,8 @@ def _runtime_secret_failures() -> list[str]:
     resolved_runtime_secrets: dict[str, str] = {}
 
     for env_name, (reference_field, value_field) in PRODUCTION_RUNTIME_SECRET_REFS.items():
+        if env_name.startswith("MINIO_") and settings.document_storage_backend.strip().lower() == "oci":
+            continue
         reference = getattr(settings, reference_field, "")
         if not isinstance(reference, str) or not reference.strip():
             failures.append(f"{env_name} must be configured in production")

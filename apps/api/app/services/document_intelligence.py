@@ -208,7 +208,7 @@ def create_extraction_job(
     document = session.get(DocumentRecord, document_id)
     if document is None:
         raise ValueError("Document not found")
-    if not document.storage_key or document.storage_provider not in {"local", "minio"}:
+    if not document.storage_key or document.storage_provider not in {"local", "minio", "oci"}:
         raise ValueError("Document has no server-readable stored file")
     if document.lead_id:
         profile = current_mobility_profile(session, document.lead_id)

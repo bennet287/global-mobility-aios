@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     minio_secret_key_ref: str = ""
     minio_bucket_documents: str = "gmai-documents"
     minio_secure: bool = False
+    oci_region: str = ""
+    oci_namespace: str = ""
+    oci_bucket_documents: str = ""
     document_storage_backend: str = "local"
     document_local_storage_dir: str = "storage/documents"
     document_upload_max_mb: int = 25

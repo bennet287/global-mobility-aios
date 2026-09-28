@@ -27,6 +27,7 @@ qdrant-client==1.12.0
 redis==5.0.0
 celery==5.4.0
 minio==7.2.0
+oci==2.187.0
 httpx==0.27.0
 python-multipart==0.0.9
 pyyaml==6.0.3
@@ -34,7 +35,8 @@ pypdf==5.0.0
 pillow==11.0.0
 pytesseract==0.3.13
 email-validator==2.2.0
-cryptography==42.0.0
+# OCI SDK 2.187.0 resolves pyOpenSSL 26.x, which requires cryptography >=49.
+cryptography==49.0.0
 opentelemetry-api==1.28.0
 opentelemetry-sdk==1.28.0
 opentelemetry-instrumentation-fastapi==0.49b0

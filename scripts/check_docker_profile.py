@@ -142,7 +142,8 @@ def main() -> int:
             ("DOCUMENT_ACCESS_TOKEN_SECRET", "documents/access_token_secret"),
         )
         for key, filename in migrated_runtime_secrets:
-            _require(compose, f"{key}_REF: ${{{key}_REF:?", PROD_COMPOSE)
+            suffix = ":-" if key.startswith("MINIO_") else ":?"
+            _require(compose, f"{key}_REF: ${{{key}_REF{suffix}", PROD_COMPOSE)
             _require_absent(compose, f"  {key}:", PROD_COMPOSE)
             _require(
                 env_example,

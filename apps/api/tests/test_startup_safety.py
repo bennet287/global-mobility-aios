@@ -96,6 +96,19 @@ def test_production_startup_accepts_governed_runtime_secret_refs(monkeypatch, tm
         assert getattr(settings, field_name) != f"direct-{field_name}-fallback"
 
 
+def test_oci_startup_does_not_require_unused_minio_keys(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    refs, _ = _valid_refs(root)
+    for field_name, value in refs.items():
+        if not field_name.startswith("minio_"):
+            monkeypatch.setattr(settings, field_name, value)
+    monkeypatch.setattr(settings, "document_storage_backend", "oci")
+    validate_production_settings()
+
+
 def test_runtime_secret_file_replacement_is_observed_on_next_access(monkeypatch, tmp_path):
     _production_baseline(monkeypatch)
     root = tmp_path / "aios"
