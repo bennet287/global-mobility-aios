@@ -83,8 +83,11 @@ def main() -> int:
         _require(compose, "condition: service_completed_successfully", PROD_COMPOSE)
         _require(compose, "alembic -c alembic.ini upgrade head", PROD_COMPOSE)
         _require(compose, 'DATABASE_AUTO_CREATE_TABLES: "false"', PROD_COMPOSE)
-        _require(postgres_block, "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?", PROD_COMPOSE)
+        _require(postgres_block, "POSTGRES_PASSWORD_FILE: /run/secrets/aios/database/postgres_password", PROD_COMPOSE)
+        _require_absent(postgres_block, "POSTGRES_PASSWORD:", PROD_COMPOSE)
         _require(migration_block, "DATABASE_URL: ${DATABASE_URL:?", PROD_COMPOSE)
+        _require(migration_block, "DATABASE_PASSWORD_REF: ${DATABASE_PASSWORD_REF:?", PROD_COMPOSE)
+        _require_absent(migration_block, "POSTGRES_PASSWORD:", PROD_COMPOSE)
         _require_absent(compose, "env_file:", PROD_COMPOSE)
         _require(compose, "postgres_prod_data:", PROD_COMPOSE)
         _require(compose, "redis_prod_data:", PROD_COMPOSE)
@@ -97,10 +100,12 @@ def main() -> int:
         _require_absent(beat_block, "env_file:", PROD_COMPOSE)
         _require(beat_block, "APP_ENV: production", PROD_COMPOSE)
         _require(beat_block, "REDIS_URL: ${REDIS_URL:?", PROD_COMPOSE)
+        _require(beat_block, 'CELERY_BEAT_SCHEDULER_ONLY: "true"', PROD_COMPOSE)
         _require_absent(beat_block, "runtime_secret_volume", PROD_COMPOSE)
         _require_absent(worker_block, "env_file:", PROD_COMPOSE)
         _require(compose, "x-application-runtime-env: &application_runtime_env", PROD_COMPOSE)
         _require(compose, "DATABASE_URL: ${DATABASE_URL:?", PROD_COMPOSE)
+        _require(compose, "DATABASE_PASSWORD_REF: ${DATABASE_PASSWORD_REF:?", PROD_COMPOSE)
         _require(compose, "REDIS_URL: ${REDIS_URL:?", PROD_COMPOSE)
         _require(worker_block, "<<: *application_runtime_env", PROD_COMPOSE)
         _require_absent(worker_block, "AUTH_ADMIN_PASSWORD:", PROD_COMPOSE)
@@ -124,8 +129,11 @@ def main() -> int:
         _require(compose, "create_host_path: false", PROD_COMPOSE)
         _require(api_block, "- *runtime_secret_volume", PROD_COMPOSE)
         _require(worker_block, "- *runtime_secret_volume", PROD_COMPOSE)
+        _require(postgres_block, "- *runtime_secret_volume", PROD_COMPOSE)
+        _require(migration_block, "- *runtime_secret_volume", PROD_COMPOSE)
 
         migrated_runtime_secrets = (
+            ("DATABASE_PASSWORD", "database/postgres_password"),
             ("JWT_SECRET", "auth/jwt_secret"),
             ("AUTOMATION_ENCRYPTION_KEY", "automation/encryption_key"),
             ("AUTOMATION_WEBHOOK_SECRET", "automation/webhook_secret"),
@@ -191,7 +199,8 @@ def main() -> int:
         _require(env_example, "APP_ENV=production", PROD_ENV_EXAMPLE)
         _require(env_example, "AUTH_ALLOW_HEADER_ROLE=false", PROD_ENV_EXAMPLE)
         _require(env_example, "DATABASE_AUTO_CREATE_TABLES=false", PROD_ENV_EXAMPLE)
-        _require(env_example, "postgresql+psycopg://", PROD_ENV_EXAMPLE)
+        _require(env_example, "DATABASE_URL=postgresql+psycopg://gmai@postgres:5432/gmai", PROD_ENV_EXAMPLE)
+        _require_absent(env_example, "\nPOSTGRES_PASSWORD=", PROD_ENV_EXAMPLE)
         _require(env_example, "WEB_PORT=3000", PROD_ENV_EXAMPLE)
         _require(env_example, "NEXT_PUBLIC_API_BASE_URL=", PROD_ENV_EXAMPLE)
         _require(env_example, "WEB_DOMAIN=", PROD_ENV_EXAMPLE)

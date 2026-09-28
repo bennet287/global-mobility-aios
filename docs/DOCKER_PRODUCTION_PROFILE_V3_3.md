@@ -18,9 +18,9 @@ Included in `docker-compose.prod.yml`:
 - API and web host ports bound to IPv4 loopback for local diagnostics;
 - Caddy ingress for separate web and API hostnames, with public HTTP/HTTPS ports and persisted certificate storage;
 - no `.env.production` injection into the web container, keeping database, signing, storage, and provider secrets out of the frontend runtime;
-- PostgreSQL receives only its database identity/password and the one-shot migration container receives only the database URL plus production/migration controls; Compose still uses `.env.production` for interpolation;
-- Celery beat receives only the production flag and Redis broker URL; the worker handles database and external actions with its own runtime configuration;
-- one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for API and worker, with host-path auto-creation disabled;
+- PostgreSQL receives its database identity and a password-file path; the migration container receives a passwordless database URL plus a reference to the same password file. Compose still uses `.env.production` for interpolation;
+- Celery beat receives only the production flag, Redis broker URL and scheduler-only switch; it does not import task modules or receive database credentials. The worker handles database and external actions with its own runtime configuration;
+- one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for PostgreSQL, migration, API and worker, with host-path auto-creation disabled;
 - JWT signing, API bootstrap admin login, automation connector encryption, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
 - the API uses the same shared runtime allowlist plus login, CORS, telemetry and upload-scan settings; it no longer loads every value in `.env.production` into its container;
@@ -70,8 +70,10 @@ Copy-Item .env.production.example .env.production
 Replace every relevant `change-this-*` placeholder before starting. At minimum configure the database/admin/browser settings plus the runtime-secret directory and required references:
 
 ```text
-POSTGRES_PASSWORD
+POSTGRES_USER
+POSTGRES_DB
 DATABASE_URL
+DATABASE_PASSWORD_REF
 AUTH_ADMIN_PASSWORD_REF
 CORS_ALLOWED_ORIGINS
 NEXT_PUBLIC_API_BASE_URL
@@ -90,6 +92,7 @@ Provision `AIOS_SECRETS_DIR` on the target host before Compose starts. Keep the 
 
 ```text
 runtime-secrets/
+  database/postgres_password
   auth/jwt_secret
   auth/admin_password
   automation/encryption_key
@@ -102,7 +105,9 @@ runtime-secrets/
   llm/gemini_api_key
 ```
 
-Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup resolves its admin-password reference plus the six shared JWT, automation encryption, webhook, MinIO and document-access refs before serving. The worker preflight resolves only the six shared refs before accepting tasks.
+Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup resolves its admin-password reference plus the seven shared database-password, JWT, automation encryption, webhook, MinIO and document-access refs before serving. The worker preflight resolves only the seven shared refs before accepting tasks. Alembic builds its database connection from the passwordless `DATABASE_URL` and `DATABASE_PASSWORD_REF`.
+
+PostgreSQL reads the same raw password file through `POSTGRES_PASSWORD_FILE` when initializing a new data directory. On an existing database, replacing this file does **not** change the stored role password. A controlled rotation must update the PostgreSQL role, coordinate the file replacement and restart or reconnect migration/API/worker clients, then prove authenticated connections on the target host. Do not claim database password hot rotation from a file edit alone.
 
 The migrated values are re-read through the existing `SecretsPort` rather than cached as a second secret system. Replacing the admin-password file applies to the next login; replacing the JWT secret invalidates sessions signed with the previous key; replacing the document-access signing secret invalidates outstanding document tokens signed with the previous key; webhook replacement applies to the next verification; and newly-created MinIO clients observe the current files. Exercise those exact consequences on the target host before claiming rotation support.
 

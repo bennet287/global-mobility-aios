@@ -4,9 +4,9 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import SQLModel, Session, create_engine
 
 from app.core.config import settings
-from app.core.database_url import is_sqlite_url, normalize_database_url, should_auto_create_tables
+from app.core.database_url import configured_database_url, is_sqlite_url, should_auto_create_tables
 
-DATABASE_URL = normalize_database_url(settings.database_url)
+DATABASE_URL = configured_database_url()
 connect_args = {"check_same_thread": False} if is_sqlite_url(DATABASE_URL) else {}
 engine = create_engine(
     DATABASE_URL,

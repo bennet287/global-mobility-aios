@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 _RUNTIME_SECRET_REF_FIELDS = {
+    "database_password": "database_password_ref",
     "jwt_secret": "jwt_secret_ref",
     "auth_admin_password": "auth_admin_password_ref",
     "automation_encryption_key": "automation_encryption_key_ref",
@@ -42,9 +43,12 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     cors_allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     database_url: str = "sqlite:///./gmai.db"
+    database_password: str = ""
+    database_password_ref: str = ""
     database_auto_create_tables: Optional[bool] = None
     database_echo: bool = False
     redis_url: str = "redis://localhost:6379/0"
+    celery_beat_scheduler_only: bool = False
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "global_mobility_memory"
     minio_endpoint: str = "localhost:9000"

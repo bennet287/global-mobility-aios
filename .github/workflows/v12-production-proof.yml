@@ -47,20 +47,26 @@ jobs:
           docker compose --env-file .env.production -f docker-compose.prod.yml config --format json >/tmp/gmai-production-compose.json
           python - <<'PY'
           import json
+          from urllib.parse import urlsplit
 
           with open('/tmp/gmai-production-compose.json', encoding='utf-8') as handle:
               services = json.load(handle)['services']
           assert not services['postgres'].get('ports'), 'PostgreSQL must not publish a host port'
           expected_env = {
-              'postgres': {'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB'},
-              'api-migrate': {'APP_ENV', 'DATABASE_URL', 'DATABASE_AUTO_CREATE_TABLES'},
-              'beat': {'APP_ENV', 'REDIS_URL'},
+              'postgres': {'POSTGRES_USER', 'POSTGRES_PASSWORD_FILE', 'POSTGRES_DB'},
+              'api-migrate': {'APP_ENV', 'DATABASE_URL', 'DATABASE_PASSWORD_REF', 'DATABASE_AUTO_CREATE_TABLES'},
+              'beat': {'APP_ENV', 'REDIS_URL', 'CELERY_BEAT_SCHEDULER_ONLY'},
           }
           for service, keys in expected_env.items():
               assert set(services[service].get('environment', {})) == keys, (
                   f'{service} received unexpected environment variables'
               )
               assert 'env_file' not in services[service]
+          assert services['postgres']['environment']['POSTGRES_PASSWORD_FILE'] == '/run/secrets/aios/database/postgres_password'
+          for service in ('postgres', 'api-migrate', 'api', 'worker'):
+              volumes = services[service].get('volumes', [])
+              assert any(volume.get('target') == '/run/secrets/aios' and volume.get('read_only')
+                         for volume in volumes), f'{service} lacks the read-only secret mount'
           worker_env = services['worker'].get('environment', {})
           assert 'env_file' not in services['worker']
           runtime_refs = {'JWT_SECRET_REF', 'AUTOMATION_ENCRYPTION_KEY_REF',
@@ -70,20 +76,23 @@ jobs:
           plaintext_secrets = {'JWT_SECRET', 'AUTOMATION_ENCRYPTION_KEY',
                                'AUTOMATION_ENCRYPTION_PREVIOUS_KEY', 'AUTOMATION_WEBHOOK_SECRET',
                                'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'DOCUMENT_ACCESS_TOKEN_SECRET'}
-          assert {'APP_ENV', 'DATABASE_URL', 'REDIS_URL'} | runtime_refs <= set(worker_env)
+          assert {'APP_ENV', 'DATABASE_URL', 'DATABASE_PASSWORD_REF', 'REDIS_URL'} | runtime_refs <= set(worker_env)
           assert not (plaintext_secrets & set(worker_env))
           assert not ({'AUTH_ADMIN_PASSWORD', 'AUTH_ADMIN_PASSWORD_REF', 'AUTH_ADMIN_USERNAME', 'CORS_ALLOWED_ORIGINS',
                        'POSTGRES_PASSWORD', 'WEB_DOMAIN', 'API_DOMAIN', 'NEXT_PUBLIC_API_BASE_URL'}
                       & set(worker_env)), 'worker received unrelated production credentials or web values'
           api_env = services['api'].get('environment', {})
           assert 'env_file' not in services['api']
-          assert {'APP_ENV', 'DATABASE_URL', 'REDIS_URL', 'AUTH_ADMIN_PASSWORD_REF',
+          assert {'APP_ENV', 'DATABASE_URL', 'DATABASE_PASSWORD_REF', 'REDIS_URL', 'AUTH_ADMIN_PASSWORD_REF',
                   'CORS_ALLOWED_ORIGINS'} | runtime_refs <= set(api_env)
           assert not ((plaintext_secrets | {'AUTH_ADMIN_PASSWORD'}) & set(api_env))
           assert not ({'POSTGRES_PASSWORD', 'POSTGRES_USER', 'POSTGRES_DB', 'WEB_DOMAIN',
                        'API_DOMAIN', 'NEXT_PUBLIC_API_BASE_URL', 'API_PORT', 'WEB_PORT'} & set(api_env))
-          for key in ('DATABASE_URL', 'REDIS_URL', *sorted(runtime_refs)):
+          for key in ('DATABASE_URL', 'DATABASE_PASSWORD_REF', 'REDIS_URL', *sorted(runtime_refs)):
               assert api_env[key] == worker_env[key], f'{key} differs between API and worker'
+          assert services['api-migrate']['environment']['DATABASE_PASSWORD_REF'] == api_env['DATABASE_PASSWORD_REF']
+          assert api_env['DATABASE_PASSWORD_REF'] == 'file:///run/secrets/aios/database/postgres_password'
+          assert urlsplit(api_env['DATABASE_URL']).password is None
           for service in ('api', 'web'):
               ports = services[service].get('ports', [])
               assert ports and all(port.get('host_ip') == '127.0.0.1' for port in ports), (
@@ -142,12 +151,14 @@ jobs:
 
       - name: Load beat schedule with scoped production environment
         run: |
-          env -i PATH="$PATH" PYTHONPATH="$PWD/apps/api" APP_ENV=production REDIS_URL=redis://127.0.0.1:6379/0 python - <<'PY'
+          env -i PATH="$PATH" PYTHONPATH="$PWD/apps/api" APP_ENV=production CELERY_BEAT_SCHEDULER_ONLY=true REDIS_URL=redis://127.0.0.1:6379/0 python - <<'PY'
           from app.core.celery_app import celery_app
           from app.core.config import settings
 
           celery_app.loader.import_default_modules()
           assert settings.is_production()
+          assert settings.celery_beat_scheduler_only
+          assert not celery_app.conf.include
           assert celery_app.conf.broker_url == settings.redis_url
           assert celery_app.conf.beat_schedule
           assert all(entry['task'] for entry in celery_app.conf.beat_schedule.values())
