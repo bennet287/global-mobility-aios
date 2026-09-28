@@ -38,6 +38,9 @@ def test_production_auth_configuration_accepts_explicit_secure_values(
         path = root / reference_field
         path.write_text("x" * 48, encoding="utf-8")
         monkeypatch.setattr(settings, reference_field, f"file://{path}")
+    admin_path = root / "auth_admin_password"
+    admin_path.write_text("correct-horse-battery-staple", encoding="utf-8")
+    monkeypatch.setattr(settings, "auth_admin_password_ref", f"file://{admin_path}")
 
     validate_production_settings()
 

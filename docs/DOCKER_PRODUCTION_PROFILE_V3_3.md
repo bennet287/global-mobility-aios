@@ -21,7 +21,7 @@ Included in `docker-compose.prod.yml`:
 - PostgreSQL receives only its database identity/password and the one-shot migration container receives only the database URL plus production/migration controls; Compose still uses `.env.production` for interpolation;
 - Celery beat receives only the production flag and Redis broker URL; the worker handles database and external actions with its own runtime configuration;
 - one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for API and worker, with host-path auto-creation disabled;
-- JWT signing, automation connector encryption, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
+- JWT signing, API bootstrap admin login, automation connector encryption, automation webhook authentication, MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
 - the API uses the same shared runtime allowlist plus login, CORS, telemetry and upload-scan settings; it no longer loads every value in `.env.production` into its container;
 - static production-profile validation through `scripts/check_docker_profile.py`.
@@ -72,7 +72,7 @@ Replace every relevant `change-this-*` placeholder before starting. At minimum c
 ```text
 POSTGRES_PASSWORD
 DATABASE_URL
-AUTH_ADMIN_PASSWORD
+AUTH_ADMIN_PASSWORD_REF
 CORS_ALLOWED_ORIGINS
 NEXT_PUBLIC_API_BASE_URL
 WEB_DOMAIN
@@ -91,6 +91,7 @@ Provision `AIOS_SECRETS_DIR` on the target host before Compose starts. Keep the 
 ```text
 runtime-secrets/
   auth/jwt_secret
+  auth/admin_password
   automation/encryption_key
   automation/webhook_secret
   storage/minio_access_key
@@ -101,9 +102,9 @@ runtime-secrets/
   llm/gemini_api_key
 ```
 
-Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup and the worker preflight resolve the six mandatory JWT, automation encryption, webhook, MinIO and document-access refs before serving or accepting tasks.
+Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup resolves its admin-password reference plus the six shared JWT, automation encryption, webhook, MinIO and document-access refs before serving. The worker preflight resolves only the six shared refs before accepting tasks.
 
-The migrated values are re-read through the existing `SecretsPort` rather than cached as a second secret system. Replacing the JWT secret invalidates sessions signed with the previous key; replacing the document-access signing secret invalidates outstanding document tokens signed with the previous key; webhook replacement applies to the next verification; and newly-created MinIO clients observe the current files. Exercise those exact consequences on the target host before claiming rotation support.
+The migrated values are re-read through the existing `SecretsPort` rather than cached as a second secret system. Replacing the admin-password file applies to the next login; replacing the JWT secret invalidates sessions signed with the previous key; replacing the document-access signing secret invalidates outstanding document tokens signed with the previous key; webhook replacement applies to the next verification; and newly-created MinIO clients observe the current files. Exercise those exact consequences on the target host before claiming rotation support.
 
 `AUTOMATION_ENCRYPTION_KEY_REF` points to the active file. An optional `AUTOMATION_ENCRYPTION_PREVIOUS_KEY_REF` supports decrypting ciphertext written under the prior key while new writes use the active key; the two resolved values must differ. A helper re-encrypts one ciphertext value with the active key, but there is no database-wide migration command or target-host verification procedure. Do not remove the previous key until every stored connector credential has been re-encrypted and verified with the active key. Do not replace the active file ad hoc: losing a prior key before migration makes its existing rows unreadable.
 

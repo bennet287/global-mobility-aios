@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _RUNTIME_SECRET_REF_FIELDS = {
     "jwt_secret": "jwt_secret_ref",
+    "auth_admin_password": "auth_admin_password_ref",
     "automation_encryption_key": "automation_encryption_key_ref",
     "automation_encryption_previous_key": "automation_encryption_previous_key_ref",
     "automation_webhook_secret": "automation_webhook_secret_ref",
@@ -135,6 +136,7 @@ class Settings(BaseSettings):
     auth_enabled: bool = True
     auth_admin_username: str = "admin"
     auth_admin_password: str = "admin"
+    auth_admin_password_ref: str = ""
     auth_session_cookie: str = "gmai_session"
     auth_session_ttl_seconds: int = Field(default=28_800, ge=300, le=86_400)
     auth_allow_header_role: bool = False

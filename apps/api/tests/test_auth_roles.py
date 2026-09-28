@@ -169,6 +169,28 @@ def test_local_login_sets_session_cookie(raw_client: TestClient) -> None:
     assert f"Max-Age={settings.auth_session_ttl_seconds}" in set_cookie
 
 
+def test_login_uses_replaced_admin_password_file(raw_client: TestClient, monkeypatch, tmp_path) -> None:
+    root = tmp_path / "aios"
+    root.mkdir()
+    password_file = root / "admin_password"
+    password_file.write_text("first-test-password\n", encoding="utf-8")
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    monkeypatch.setattr(settings, "auth_admin_password_ref", f"file://{password_file}")
+    monkeypatch.setattr(settings, "auth_admin_password", "unused-direct-value")
+
+    def login(password: str):
+        return raw_client.post(
+            "/auth/login",
+            data={"username": "admin", "password": password, "role": "operator"},
+            follow_redirects=False,
+        )
+
+    assert login("first-test-password").status_code == 303
+    password_file.write_text("replacement-test-password\n", encoding="utf-8")
+    assert login("first-test-password").status_code == 200
+    assert login("replacement-test-password").status_code == 303
+
+
 def test_source_authority_reassignment_is_admin_or_reviewer_only(
     raw_client: TestClient,
 ) -> None:

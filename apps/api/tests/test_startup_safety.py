@@ -9,6 +9,7 @@ from app.core.startup_safety import (
 
 _SECRET_FIELDS = {
     "jwt_secret": "jwt_secret_ref",
+    "auth_admin_password": "auth_admin_password_ref",
     "automation_encryption_key": "automation_encryption_key_ref",
     "automation_webhook_secret": "automation_webhook_secret_ref",
     "minio_access_key": "minio_access_key_ref",
@@ -21,7 +22,6 @@ def _production_baseline(monkeypatch) -> None:
     monkeypatch.setattr(settings, "app_env", "production")
     monkeypatch.setattr(settings, "auth_enabled", True)
     monkeypatch.setattr(settings, "auth_allow_header_role", False)
-    monkeypatch.setattr(settings, "auth_admin_password", "strong-production-admin-password")
     for field_name, ref_field_name in _SECRET_FIELDS.items():
         monkeypatch.setattr(settings, ref_field_name, "")
         monkeypatch.setattr(settings, field_name, f"direct-{field_name}-fallback")
@@ -37,6 +37,7 @@ def _write_secret(root, relative_path: str, value: str) -> str:
 def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
     resolved = {
         "jwt_secret": "j" * 48,
+        "auth_admin_password": "strong-production-admin-password",
         "automation_encryption_key": "a" * 48,
         "automation_webhook_secret": "w" * 48,
         "minio_access_key": "access-key-v1",
@@ -45,6 +46,9 @@ def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
     }
     refs = {
         "jwt_secret_ref": _write_secret(root, "auth/jwt_secret", resolved["jwt_secret"]),
+        "auth_admin_password_ref": _write_secret(
+            root, "auth/admin_password", resolved["auth_admin_password"]
+        ),
         "automation_encryption_key_ref": _write_secret(
             root, "automation/encryption_key", resolved["automation_encryption_key"]
         ),
@@ -99,6 +103,8 @@ def test_runtime_secret_file_replacement_is_observed_on_next_access(monkeypatch,
     (root / "auth/jwt_secret").write_text("k" * 48 + "\n", encoding="utf-8")
 
     assert settings.jwt_secret == "k" * 48
+    (root / "auth/admin_password").write_text("replacement-admin-password\n", encoding="utf-8")
+    assert settings.auth_admin_password == "replacement-admin-password"
 
 
 def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypatch, tmp_path):
@@ -167,9 +173,34 @@ def test_api_production_startup_still_rejects_default_admin_password(monkeypatch
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
     _configure_valid_refs(monkeypatch, root)
-    monkeypatch.setattr(settings, "auth_admin_password", "admin")
+    (root / "auth/admin_password").write_text("admin\n", encoding="utf-8")
 
     with pytest.raises(RuntimeError, match="AUTH_ADMIN_PASSWORD must be set"):
+        validate_production_settings()
+
+
+def test_api_production_startup_requires_admin_password_ref_even_with_direct_value(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    _configure_valid_refs(monkeypatch, root)
+    monkeypatch.setattr(settings, "auth_admin_password_ref", "")
+    monkeypatch.setattr(settings, "auth_admin_password", "strong-direct-password")
+
+    with pytest.raises(RuntimeError, match="AUTH_ADMIN_PASSWORD_REF must be configured"):
+        validate_production_settings()
+
+
+def test_api_production_startup_rejects_unavailable_admin_password_file(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    _configure_valid_refs(monkeypatch, root)
+    (root / "auth/admin_password").unlink()
+
+    with pytest.raises(RuntimeError, match="AUTH_ADMIN_PASSWORD_REF must resolve"):
         validate_production_settings()
 
 
@@ -179,6 +210,7 @@ def test_worker_preflight_excludes_api_login_secret_and_runs_storage_gate(monkey
     root.mkdir()
     monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
     _configure_valid_refs(monkeypatch, root)
+    monkeypatch.setattr(settings, "auth_admin_password_ref", "file:///run/secrets/aios/auth/missing-admin")
     monkeypatch.setattr(settings, "auth_admin_password", "admin")
 
     calls: list[str] = []
