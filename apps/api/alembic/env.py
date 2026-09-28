@@ -5,12 +5,13 @@ from sqlalchemy import engine_from_config, inspect, pool, text
 from sqlmodel import SQLModel
 
 from app.core.config import settings
-from app.core.database_url import is_sqlite_url, normalize_database_url
+from app.core.database_url import configured_database_url, is_sqlite_url
 from app.core.db import register_models
 
 config = context.config
-database_url = normalize_database_url(settings.database_url)
-config.set_main_option("sqlalchemy.url", database_url)
+database_url = configured_database_url()
+# ConfigParser treats percent signs in URL-encoded passwords as interpolation.
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

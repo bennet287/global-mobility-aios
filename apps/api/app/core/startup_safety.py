@@ -20,6 +20,7 @@ DEFAULT_INSECURE_PASSWORDS = {
 
 
 PRODUCTION_RUNTIME_SECRET_REFS = {
+    "DATABASE_PASSWORD_REF": ("database_password_ref", "database_password"),
     "JWT_SECRET_REF": ("jwt_secret_ref", "jwt_secret"),
     "AUTOMATION_ENCRYPTION_KEY_REF": (
         "automation_encryption_key_ref",
@@ -59,6 +60,20 @@ def _runtime_secret_failures() -> list[str]:
             failures.append(f"{env_name} must resolve to an available production secret")
 
     jwt_secret = resolved_runtime_secrets.get("jwt_secret", "")
+    database_password = resolved_runtime_secrets.get("database_password", "")
+    if database_password and (
+        len(database_password) < 12 or database_password.lower().startswith("change-this")
+    ):
+        failures.append("Database password must resolve to a non-default secret of at least 12 characters")
+
+    from app.core.database_url import configured_database_url
+
+    if database_password:
+        try:
+            configured_database_url()
+        except (RuntimeError, SecretResolutionError):
+            failures.append("DATABASE_URL must be a passwordless PostgreSQL URL in production")
+
     if jwt_secret and jwt_secret in DEFAULT_INSECURE_SECRETS:
         failures.append("JWT secret must resolve to a non-default production secret")
     elif jwt_secret and len(jwt_secret) < 32:

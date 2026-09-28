@@ -8,6 +8,7 @@ from app.core.startup_safety import (
 
 
 _SECRET_FIELDS = {
+    "database_password": "database_password_ref",
     "jwt_secret": "jwt_secret_ref",
     "auth_admin_password": "auth_admin_password_ref",
     "automation_encryption_key": "automation_encryption_key_ref",
@@ -20,6 +21,7 @@ _SECRET_FIELDS = {
 
 def _production_baseline(monkeypatch) -> None:
     monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "database_url", "postgresql+psycopg://gmai@postgres:5432/gmai")
     monkeypatch.setattr(settings, "auth_enabled", True)
     monkeypatch.setattr(settings, "auth_allow_header_role", False)
     for field_name, ref_field_name in _SECRET_FIELDS.items():
@@ -36,6 +38,7 @@ def _write_secret(root, relative_path: str, value: str) -> str:
 
 def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
     resolved = {
+        "database_password": "strong-database-password",
         "jwt_secret": "j" * 48,
         "auth_admin_password": "strong-production-admin-password",
         "automation_encryption_key": "a" * 48,
@@ -45,6 +48,9 @@ def _valid_refs(root) -> tuple[dict[str, str], dict[str, str]]:
         "document_access_token_secret": "d" * 48,
     }
     refs = {
+        "database_password_ref": _write_secret(
+            root, "database/postgres_password", resolved["database_password"]
+        ),
         "jwt_secret_ref": _write_secret(root, "auth/jwt_secret", resolved["jwt_secret"]),
         "auth_admin_password_ref": _write_secret(
             root, "auth/admin_password", resolved["auth_admin_password"]
@@ -119,6 +125,21 @@ def test_production_startup_rejects_missing_required_runtime_secret_ref(monkeypa
         monkeypatch.setattr(settings, field_name, value)
 
     with pytest.raises(RuntimeError, match="JWT_SECRET_REF must be configured"):
+        validate_production_settings()
+
+
+def test_production_startup_rejects_missing_database_password_ref(monkeypatch, tmp_path):
+    _production_baseline(monkeypatch)
+    root = tmp_path / "aios"
+    root.mkdir()
+    monkeypatch.setattr("app.core.secrets._FILE_SECRET_ROOT", root)
+    refs, _ = _valid_refs(root)
+    refs.pop("database_password_ref")
+    for field_name, value in refs.items():
+        monkeypatch.setattr(settings, field_name, value)
+    monkeypatch.setattr(settings, "database_password", "strong-direct-password")
+
+    with pytest.raises(RuntimeError, match="DATABASE_PASSWORD_REF must be configured"):
         validate_production_settings()
 
 

@@ -30,6 +30,7 @@ def test_production_auth_configuration_accepts_explicit_secure_values(
     monkeypatch.setattr(settings, "app_env", "production")
     monkeypatch.setattr(settings, "auth_enabled", True)
     monkeypatch.setattr(settings, "auth_allow_header_role", False)
+    monkeypatch.setattr(settings, "database_url", "postgresql+psycopg://gmai@postgres:5432/gmai")
     monkeypatch.setattr(settings, "auth_admin_password", "correct-horse-battery-staple")
     root = tmp_path / "aios"
     root.mkdir()
