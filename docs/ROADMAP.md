@@ -6,9 +6,9 @@
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 17 — Agent Security Assurance
 **Current checkpoint:** Phase 17A bounded authenticated sessions, Phase 17B admin-only debug routes, Phase 17C connector control plus webhook destination/connection-time egress enforcement, Phase 17D–17G prompt separation, Phase 17H native-skill content integrity, Phase 17I shared provider-error detail, Phase 17J official-source monitor connection pinning, Phase 17K fixed UN M49 registry import egress, Phase 17L connector transport error detail, Phase 17M controlled-agent worker failure detail, Phase 17N controlled-agent fallback detail, Phase 17O skill origin eligibility, and Phase 17P OpenBao pilot scope/token egress are sealed through PR #229. Phase 16 request-local completion evidence remains sealed only for the in-house consultant and business advisory (PR #194 and PR #196); other request-local paths without a real owner-completion signal remain unreconciled by age alone. Source-linked billed cost, verified paid-tool charges, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open Phase 16 prerequisites rather than claimed capabilities. System-1/AX evaluation remains recorded by PR #167.
-**Code migration head:** `0091_grc_risk_control_reference`
+**Code migration head:** `0092_grc_standards_mapping`
 
-<!-- CURRENT_MIGRATION_HEAD: 0091_grc_risk_control_reference -->
+<!-- CURRENT_MIGRATION_HEAD: 0092_grc_standards_mapping -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
