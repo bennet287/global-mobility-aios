@@ -63,6 +63,7 @@ from app.schemas_organization_records import (
 )
 from app.schemas_organization_grc_capability_review import GRCCapabilityAuthorizationReviewRead
 from app.schemas_organization_grc_evidence import GRCEvidenceExportRead
+from app.schemas_organization_grc_standards import GRCStandardsMappingCreate, GRCStandardsMappingRead
 from app.schemas_organization_observatory import (
     ContributionReconciliationRead,
     LearningRecurrenceRead,
@@ -107,6 +108,7 @@ from app.services.organization_decision import (
 )
 from app.services.organization_grc_capability_review import project_grc_capability_authorization_review
 from app.services.organization_grc_evidence_export import export_grc_risk_evidence
+from app.services.organization_grc_standards_mapping import create_standards_mapping, project_standards_mappings
 from app.services.organization_human_action import (
     acknowledge_human_action_request,
     append_human_action,
@@ -978,6 +980,32 @@ def get_record_reference(reference_id: UUID, context: OrganizationCommandContext
 @router.post("/record-references", response_model=ReferenceRead, status_code=status.HTTP_201_CREATED)
 def create_record_reference_endpoint(payload: ReferenceCreate, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)) -> OrganizationRecordReference:
     return _command(lambda: create_record_reference(session, context, **payload.model_dump()))
+
+
+@router.post("/grc/standards-mappings", response_model=GRCStandardsMappingRead, status_code=status.HTTP_201_CREATED)
+def create_standards_mapping_endpoint(
+    payload: GRCStandardsMappingCreate,
+    response: Response,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> GRCStandardsMappingRead:
+    row = _command(lambda: create_standards_mapping(session, context, **payload.model_dump()))
+    response.headers["Cache-Control"] = "no-store"
+    return GRCStandardsMappingRead(
+        **row.model_dump(),
+        evidence_reference_ids=tuple(UUID(value) for value in __import__("json").loads(row.evidence_reference_ids_json)),
+    )
+
+
+@router.get("/grc/standards-mappings", response_model=tuple[GRCStandardsMappingRead, ...])
+def list_standards_mappings_endpoint(
+    response: Response,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> tuple[GRCStandardsMappingRead, ...]:
+    result = _command(lambda: project_standards_mappings(session, context))
+    response.headers["Cache-Control"] = "no-store"
+    return result
 
 
 @router.get("/grc/capabilities/authorization-review", response_model=GRCCapabilityAuthorizationReviewRead)
