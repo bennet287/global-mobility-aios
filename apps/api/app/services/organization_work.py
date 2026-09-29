@@ -17,6 +17,7 @@ from app.models.domain import (
     OrganizationWorkItemDependency,
     OrganizationWorkPriority,
     OrganizationalWorkItem,
+    RiskEscalation,
     now_utc,
 )
 from app.services.organization_command import (
@@ -512,6 +513,7 @@ def open_blocker(
     description: str,
     work_item_id: UUID | None = None,
     decision_id: UUID | None = None,
+    risk_escalation_id: UUID | None = None,
     contribution_id: UUID | None = None,
     lead_id: UUID | None = None,
     profile_id: UUID | None = None,
@@ -537,6 +539,18 @@ def open_blocker(
         tenant_record(session, OrganizationalWorkItem, work_item_id, context.tenant_key, label="work item")
     if decision_id:
         tenant_record(session, ExecutiveDecision, decision_id, context.tenant_key, label="decision")
+    if risk_escalation_id is not None:
+        require_human(context, admin=True)
+        risk = session.get(RiskEscalation, risk_escalation_id)
+        if risk is None or work_item_id is None or risk.work_item_id != work_item_id:
+            raise DependencyConflict("risk blocker requires the risk's exact tenant-scoped WorkItem")
+        tenant_record(session, OrganizationalWorkItem, risk.work_item_id, context.tenant_key, label="risk work item")
+        if decision_id is not None:
+            decision = tenant_record(session, ExecutiveDecision, decision_id, context.tenant_key, label="decision")
+            if decision.work_item_id != work_item_id:
+                raise DependencyConflict("risk blocker decision must belong to the risk WorkItem")
+            if decision.source_object_type == "risk_escalation" and decision.source_object_id != str(risk.id):
+                raise DependencyConflict("risk blocker decision names a different risk")
     if contribution_id:
         tenant_record(session, OrganizationContribution, contribution_id, context.tenant_key, label="contribution")
     if any((lead_id, profile_id, application_id, corporate_account_id, corporate_mobility_case_id)) and context.tenant_key != "default":
@@ -544,6 +558,8 @@ def open_blocker(
     predecessor = None
     if supersedes_blocker_id:
         predecessor = tenant_record(session, OrganizationBlocker, supersedes_blocker_id, context.tenant_key, label="superseded blocker")
+        if (predecessor.risk_escalation_id is not None or risk_escalation_id is not None) and predecessor.risk_escalation_id != risk_escalation_id:
+            raise DependencyConflict("risk blocker successor must retain the same risk")
     command = {
         "blocker_key": blocker_key,
         "blocker_type": blocker_type,
@@ -560,6 +576,8 @@ def open_blocker(
         "supersedes_blocker_id": supersedes_blocker_id,
         "tenant_key": context.tenant_key,
     }
+    if risk_escalation_id is not None:
+        command["risk_escalation_id"] = risk_escalation_id
     fingerprint = canonical_fingerprint(command)
     existing = session.exec(select(OrganizationBlocker).where(OrganizationBlocker.tenant_key == context.tenant_key, OrganizationBlocker.blocker_key == blocker_key)).first()
     replay = idempotent_existing(existing, fingerprint, fingerprint_field="record_fingerprint", label="blocker")
@@ -583,6 +601,7 @@ def open_blocker(
         authority_level=authority_level,
         work_item_id=work_item_id,
         decision_id=decision_id,
+        risk_escalation_id=risk_escalation_id,
         contribution_id=contribution_id,
         lead_id=lead_id,
         profile_id=profile_id,

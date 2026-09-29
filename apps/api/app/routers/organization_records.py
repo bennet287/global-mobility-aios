@@ -675,6 +675,7 @@ def list_blockers(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),
     work_item_id: UUID | None = None,
+    risk_escalation_id: UUID | None = None,
     status_filter: OrganizationBlockerStatus | None = Query(default=None, alias="status"),
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
@@ -682,6 +683,8 @@ def list_blockers(
     conditions: list[Any] = [OrganizationBlocker.tenant_key == context.tenant_key]
     if work_item_id is not None:
         conditions.append(OrganizationBlocker.work_item_id == work_item_id)
+    if risk_escalation_id is not None:
+        conditions.append(OrganizationBlocker.risk_escalation_id == risk_escalation_id)
     if status_filter is not None:
         conditions.append(OrganizationBlocker.status == status_filter)
     total = session.exec(select(func.count()).select_from(OrganizationBlocker).where(*conditions)).one()

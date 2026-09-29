@@ -261,6 +261,7 @@ class BlockerFields(OrganizationInput):
     description: str = Field(min_length=1, max_length=4000)
     work_item_id: UUID | None = None
     decision_id: UUID | None = None
+    risk_escalation_id: UUID | None = None
     contribution_id: UUID | None = None
     lead_id: UUID | None = None
     profile_id: UUID | None = None
@@ -294,6 +295,7 @@ class BlockerRead(OrganizationRead):
     accountable_position_key: str | None
     work_item_id: UUID | None
     decision_id: UUID | None
+    risk_escalation_id: UUID | None
     contribution_id: UUID | None
     requires_human_action: bool
     due_at: datetime | None
@@ -302,6 +304,9 @@ class BlockerRead(OrganizationRead):
     resolution_summary: str | None
     resolving_actor_type: OrganizationActorType | None
     resolving_actor_id: str | None
+    waived_by_human_id: str | None
+    waiver_reason: str | None
+    waived_at: datetime | None
     supersedes_blocker_id: UUID | None
     created_at: datetime
     updated_at: datetime
