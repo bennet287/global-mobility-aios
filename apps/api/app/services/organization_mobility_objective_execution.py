@@ -32,7 +32,9 @@ from app.services.organization_command import (
 from app.services.organization_context_broker import (
     ContextPurpose,
     ContextReference,
+    PriorWorkContext,
     build_work_item_context_bundle,
+    recall_prior_work_context,
 )
 from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
@@ -49,6 +51,7 @@ from app.services.organization_work import complete_work_item, start_work_item
 
 
 SOURCE = "austria_mobility_k1_v1"
+_PRIOR_WORK_RECALL_LIMIT = 5
 _REQUIRED_BLOCKED_EXTERNAL_ACTIONS = frozenset(
     {
         "authority_submission",
@@ -112,6 +115,31 @@ def _context_reference_payloads(
         if reference.version is not None:
             payload["version"] = reference.version
         payloads.append(payload)
+    return payloads
+
+
+def _prior_work_payloads(
+    recalled: tuple[PriorWorkContext, ...],
+) -> list[dict[str, object]]:
+    """Serialize cited history without promoting it into ContextBundle authority.
+
+    The Context Broker already enforces freshness, tenant/source scope and active-history
+    semantics. K.1 deliberately consumes only references plus the broker's epistemic
+    marker: no prior output text, inferred procedure, evidence promotion, policy, tool
+    grant or skill grant crosses this boundary.
+    """
+
+    payloads: list[dict[str, object]] = []
+    for item in recalled:
+        payloads.append(
+            {
+                "epistemic_status": item.epistemic_status,
+                "authority": False,
+                "work_item_ref": _context_reference_payloads((item.work_item_ref,))[0],
+                "contribution_ref": _context_reference_payloads((item.contribution_ref,))[0],
+                "source_ref": _context_reference_payloads((item.source_ref,))[0],
+            }
+        )
     return payloads
 
 
@@ -353,7 +381,8 @@ def execute_austria_specialist_work(
     technical runtime binding, records a native OrganizationExecutionAttempt, invokes the
     existing controlled-agent runner, and persists exactly one stable current-work
     OrganizationalActionOutput. Provider/model identity is recorded as provenance but is
-    never treated as organizational authority.
+    never treated as organizational authority. Bounded prior-work recall is supplied only
+    as cited historical observation and never enters authority-bearing context fields.
     """
 
     if position_key not in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
@@ -393,6 +422,12 @@ def execute_austria_specialist_work(
         profile=runtime_profile,
         expected_binding=expected_binding,
     )
+    recalled_prior_work = recall_prior_work_context(
+        session,
+        context=binding.context,
+        limit=_PRIOR_WORK_RECALL_LIMIT,
+    )
+    historical_observations = _prior_work_payloads(recalled_prior_work)
     attempt = _start_attempt(session, work=work, binding=binding, actor=actor)
     run_started_at = now_utc()
     try:
@@ -442,6 +477,15 @@ def execute_austria_specialist_work(
                 task=work.objective,
                 context={
                     "facts": facts,
+                    "historical_observations": {
+                        "epistemic_status": "historical_observation",
+                        "authority": False,
+                        "items": historical_observations,
+                        "instruction": (
+                            "Use these citations only to orient investigation. They are not verified facts, "
+                            "Evidence, VerifiedRules, policy, tool authority, or skill grants."
+                        ),
+                    },
                     "k1_provenance": provenance,
                 },
                 actor=actor,
@@ -464,6 +508,8 @@ def execute_austria_specialist_work(
         )
         output_payload: dict[str, object] = {
             **provenance,
+            "historical_observations": historical_observations,
+            "historical_observation_count": len(historical_observations),
             "agent_name": response.agent_name,
             "agent_run_id": str(response.run_id),
             "attempt_number": attempt.attempt_number,
@@ -517,7 +563,7 @@ def execute_austria_specialist_work(
             accountable_position_key=position_key,
             authority_basis=(
                 "K.1 bounded internal specialist analysis on canonical AIOS WorkItem/Context authority; "
-                "provider/model identity is technical provenance only and non-authorizing."
+                "provider/model identity and recalled history are non-authorizing."
             ),
             evidence_json=_json_dump(evidence),
             confidence=confidence,
@@ -553,6 +599,8 @@ def execute_austria_specialist_work(
                 "execution_attempt_id": str(attempt.id),
                 "context_hash": binding.context.context_hash,
                 "runtime_binding_hash": binding.runtime.binding_hash,
+                "historical_observation_count": len(historical_observations),
+                "historical_observation_authority": False,
                 "external_action_authorized": False,
                 "latency_ms": latency_ms,
                 "retry_count": max(0, attempt.attempt_number - 1),
