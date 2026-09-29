@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Callable, TypeVar
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import func
 from sqlmodel import Session, SQLModel, select
 
@@ -61,6 +61,7 @@ from app.schemas_organization_records import (
     WorkItemCreate,
     WorkItemRead,
 )
+from app.schemas_organization_grc_evidence import GRCEvidenceExportRead
 from app.schemas_organization_observatory import (
     ContributionReconciliationRead,
     LearningRecurrenceRead,
@@ -103,6 +104,7 @@ from app.services.organization_decision import (
     record_executive_decision_outcome,
     supersede_executive_decision,
 )
+from app.services.organization_grc_evidence_export import export_grc_risk_evidence
 from app.services.organization_human_action import (
     acknowledge_human_action_request,
     append_human_action,
@@ -974,3 +976,16 @@ def get_record_reference(reference_id: UUID, context: OrganizationCommandContext
 @router.post("/record-references", response_model=ReferenceRead, status_code=status.HTTP_201_CREATED)
 def create_record_reference_endpoint(payload: ReferenceCreate, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)) -> OrganizationRecordReference:
     return _command(lambda: create_record_reference(session, context, **payload.model_dump()))
+
+
+@router.get("/grc/risks/{risk_id}/evidence-export", response_model=GRCEvidenceExportRead)
+def export_risk_evidence_endpoint(
+    risk_id: UUID,
+    response: Response,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> GRCEvidenceExportRead:
+    result = _command(lambda: export_grc_risk_evidence(session, context, risk_id=risk_id))
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Content-Disposition"] = f'attachment; filename="grc-risk-{risk_id}.json"'
+    return result
