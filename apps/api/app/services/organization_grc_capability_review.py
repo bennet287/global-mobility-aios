@@ -45,7 +45,7 @@ def project_grc_capability_authorization_review(
         (revision for revision in profile.revisions if revision.profile_id == profile.current_profile_id),
         None,
     )
-    if current is None or current.lifecycle_status != "CURRENT":
+    if current is None or current.lifecycle_status != "current":
         raise RuntimeError("current capability autonomy profile revision is inconsistent")
 
     evidence = capability_autonomy_evidence_profile_snapshot(
