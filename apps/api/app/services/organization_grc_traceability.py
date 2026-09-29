@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import ExecutiveDecision, OrganizationalWorkItem, RiskEscalation
+from app.models.domain import (
+    ExecutiveDecision, OrganizationControl, OrganizationRecordReference,
+    OrganizationReferenceRole, OrganizationReferenceTargetType,
+    OrganizationalWorkItem, RiskEscalation,
+)
+from app.models.autonomy_promotion_policy import CapabilityAutonomyPromotionPolicy
+from app.models.autonomy_evidence_evaluation_policy import CapabilityAutonomyEvidenceEvaluationPolicy
 from app.services.organization_capability_architecture import (
     CapabilityDomain,
     capability_domain_for_position,
@@ -54,8 +61,7 @@ class GRCRiskTrace:
     accountable_position_key: str
     accountable_capability: GRCCapabilityRef | None
     linked_work_item_decisions: tuple[GRCDecisionTrace, ...]
-    # Phase 18A deliberately exposes no inferred risk->control relationship. A later
-    # slice may populate this only from an explicit governed mapping contract.
+    # Explicit reference identities only; no control effectiveness or risk mitigation claim.
     control_refs: tuple[str, ...] = ()
 
 
@@ -73,6 +79,52 @@ def _capability_ref(domain: CapabilityDomain | None) -> GRCCapabilityRef | None:
     )
 
 
+def _current_mapping_ref(session: Session, reference: OrganizationRecordReference, tenant_key: str) -> str | None:
+    """Include only a current, exact target from the governed risk mapping allowlist."""
+    if (
+        reference.reference_role is not OrganizationReferenceRole.governance_mapping
+        or not (reference.label or "").strip()
+    ):
+        return None
+    try:
+        mapping_metadata = json.loads(reference.metadata_json)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(mapping_metadata, dict) or mapping_metadata.get("mapping_state", "current") != "current":
+        return None
+    try:
+        target_id = UUID(reference.target_id)
+    except ValueError:
+        return None
+    if reference.target_type is OrganizationReferenceTargetType.organization_control:
+        if tenant_key != "default":
+            return None
+        control = session.get(OrganizationControl, target_id)
+        if control is None or control.control_key != "global" or control.status not in {"active", "paused"}:
+            return None
+    elif reference.target_type in {
+        OrganizationReferenceTargetType.capability_autonomy_promotion_policy,
+        OrganizationReferenceTargetType.capability_autonomy_evidence_evaluation_policy,
+    }:
+        model = (
+            CapabilityAutonomyPromotionPolicy
+            if reference.target_type is OrganizationReferenceTargetType.capability_autonomy_promotion_policy
+            else CapabilityAutonomyEvidenceEvaluationPolicy
+        )
+        policy = session.get(model, target_id)
+        if (
+            policy is None or policy.tenant_key != tenant_key
+            or reference.target_version != policy.record_fingerprint
+            or session.exec(select(model.id).where(
+                model.tenant_key == tenant_key, model.supersedes_policy_id == policy.id,
+            )).first() is not None
+        ):
+            return None
+    else:
+        return None
+    return f"{reference.target_type.value}:{target_id}"
+
+
 def project_organization_grc_traceability(
     session: Session,
     *,
@@ -86,11 +138,10 @@ def project_organization_grc_traceability(
     durable Activity history is delegated to the existing transparency projection and is
     narrowed by the semantic-activity source identity ``executive_decision/<uuid>``.
 
-    Capability data is an annotation from the canonical capability architecture. This
-    projection never creates or updates risks, controls, decisions, Activities, policy,
-    authority, or capability assignments. In particular it does not infer a control from
-    category/name similarity; ``control_refs`` stays empty until an explicit mapping is
-    governed by a later phase.
+    Capability data is an annotation from the canonical capability architecture.
+    ``control_refs`` comes only from exact, current, human-governed reference records.
+    These references attest a relationship, not policy applicability, enforcement,
+    control effectiveness or risk mitigation. No category/name similarity is used.
     """
 
     normalized_tenant = tenant_key.strip()
@@ -120,6 +171,21 @@ def project_organization_grc_traceability(
         ]
         if not risks:
             return ()
+
+        risk_ids = tuple(risk.id for risk in risks)
+        references = session.exec(select(OrganizationRecordReference).where(
+            OrganizationRecordReference.tenant_key == normalized_tenant,
+            OrganizationRecordReference.risk_escalation_id.in_(risk_ids),
+            OrganizationRecordReference.reference_role == OrganizationReferenceRole.governance_mapping,
+        )).all()
+        superseded_refs = {ref.supersedes_reference_id for ref in references if ref.supersedes_reference_id is not None}
+        refs_by_risk: dict[UUID, list[str]] = {}
+        for reference in references:
+            if reference.id in superseded_refs:
+                continue
+            mapped = _current_mapping_ref(session, reference, normalized_tenant)
+            if mapped is not None and reference.risk_escalation_id is not None:
+                refs_by_risk.setdefault(reference.risk_escalation_id, []).append(mapped)
 
         risk_work_ids = tuple({risk.work_item_id for risk in risks if risk.work_item_id is not None})
         decisions = session.exec(
@@ -197,6 +263,7 @@ def project_organization_grc_traceability(
                     capability_domain_for_position(risk.accountable_position_key)
                 ),
                 linked_work_item_decisions=tuple(decision_traces),
+                control_refs=tuple(sorted(set(refs_by_risk.get(risk.id, ())))),
             )
         )
 

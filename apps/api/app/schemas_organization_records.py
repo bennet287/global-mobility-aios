@@ -492,6 +492,7 @@ class ReferenceCreate(OrganizationInput):
     blocker_id: UUID | None = None
     human_action_request_id: UUID | None = None
     human_action_id: UUID | None = None
+    risk_escalation_id: UUID | None = None
     target_version: str | None = Field(default=None, max_length=255)
     target_state: str | None = Field(default=None, max_length=255)
     content_hash: str | None = Field(default=None, max_length=255)
@@ -511,6 +512,7 @@ class ReferenceRead(OrganizationRead):
     blocker_id: UUID | None
     human_action_request_id: UUID | None
     human_action_id: UUID | None
+    risk_escalation_id: UUID | None
     reference_role: OrganizationReferenceRole
     target_type: OrganizationReferenceTargetType
     target_id: str

@@ -14,11 +14,15 @@ from app.models.domain import (
     OrganizationActivityStream,
     OrganizationActorType,
     OrganizationControl,
+    OrganizationRecordReference,
     OrganizationDecisionType,
     OrganizationalWorkItem,
     RiskEscalation,
 )
+from app.services.organization_command import InvalidReference, NotFound
 from app.services.organization_grc_traceability import project_organization_grc_traceability
+from app.services.organization_reference import create_record_reference
+from tests.test_organization_autonomy_promotion_policy import _board_context, _position, _profile, _policy
 
 
 _BASE_TIME = datetime(2026, 9, 29, 8, 0, tzinfo=timezone.utc)
@@ -312,3 +316,113 @@ def test_grc_projection_is_deterministic_and_read_only(db_session: Session) -> N
 def test_grc_projection_rejects_blank_tenant(db_session: Session) -> None:
     with pytest.raises(ValueError, match="tenant_key is required"):
         project_organization_grc_traceability(db_session, tenant_key="   ")
+
+
+def test_risk_control_mapping_is_explicit_tenant_scoped_and_read_only(
+    client, db_session: Session,
+) -> None:
+    work = _work(db_session, tenant_key="default", key="control-work")
+    risk = _risk(db_session, key="control-risk", work_item_id=work.id)
+    other_work = _work(db_session, tenant_key="other", key="other-control-work")
+    other_risk = _risk(db_session, key="other-control-risk", work_item_id=other_work.id)
+    control = OrganizationControl(control_key="global", status="active", changed_by="pytest")
+    db_session.add(control)
+    db_session.commit()
+    payload = {
+        "reference_key": "18b:global-control-risk",
+        "reference_role": "governance_mapping",
+        "target_type": "organization_control",
+        "target_id": str(control.id),
+        "risk_escalation_id": str(risk.id),
+        "label": "Global pause switch is relevant to containment review; effectiveness unverified.",
+    }
+    denied = client.post("/api/v1/organization/record-references", json=payload,
+                         headers={"X-GMAI-Role": "operator", "X-GMAI-User": "operator"})
+    assert denied.status_code == 403
+    created = client.post("/api/v1/organization/record-references", json=payload)
+    assert created.status_code == 201, created.text
+    assert created.json()["risk_escalation_id"] == str(risk.id)
+    replay = client.post("/api/v1/organization/record-references", json=payload)
+    assert replay.status_code == 201 and replay.json()["id"] == created.json()["id"]
+    assert len(db_session.exec(select(OrganizationRecordReference)).all()) == 1
+    assert client.get("/api/v1/organization/record-references", params={
+        "risk_escalation_id": str(risk.id),
+    }).json()["total"] == 1
+
+    traces = project_organization_grc_traceability(db_session, tenant_key="default")
+    assert traces[0].control_refs == (f"organization_control:{control.id}",)
+    assert project_organization_grc_traceability(db_session, tenant_key="other")[0].control_refs == ()
+    invalid = client.post("/api/v1/organization/record-references", json={
+        **payload, "reference_key": "wrong-risk", "risk_escalation_id": str(other_risk.id),
+    })
+    assert invalid.status_code == 404
+    unrelated = client.post("/api/v1/organization/record-references", json={
+        **payload, "reference_key": "wrong-owner", "risk_escalation_id": None,
+        "work_item_id": str(work.id),
+    })
+    assert unrelated.status_code == 422
+
+    control.status = "unknown"
+    db_session.add(control)
+    db_session.commit()
+    assert project_organization_grc_traceability(db_session, tenant_key="default")[0].control_refs == ()
+    control.status = "active"
+    db_session.add(control)
+    db_session.commit()
+    withdrawn = client.post("/api/v1/organization/record-references", json={
+        **payload,
+        "reference_key": "18b:global-control-withdrawn",
+        "label": "Owner withdrew the mapping after review; no control effectiveness asserted.",
+        "metadata": {"mapping_state": "withdrawn"},
+        "supersedes_reference_id": created.json()["id"],
+    })
+    assert withdrawn.status_code == 201, withdrawn.text
+    assert project_organization_grc_traceability(db_session, tenant_key="default")[0].control_refs == ()
+
+
+def test_risk_policy_mapping_binds_exact_current_revision(db_session: Session) -> None:
+    board = _board_context()
+    _position(db_session)
+    _profile(db_session, board)
+    policy = _policy(db_session, board, key="grc-map")
+    work = _work(db_session, tenant_key="default", key="policy-work")
+    risk = _risk(db_session, key="policy-risk", work_item_id=work.id)
+    db_session.commit()
+
+    reference = create_record_reference(
+        db_session, board,
+        reference_key="18b:policy-risk", reference_role="governance_mapping",
+        target_type="capability_autonomy_promotion_policy", target_id=policy.id,
+        risk_escalation_id=risk.id,
+        label="Review this exact Board-authored policy against the risk; applicability unverified.",
+        target_version=policy.record_fingerprint,
+    )
+    assert reference.target_version == policy.record_fingerprint
+    assert project_organization_grc_traceability(db_session, tenant_key="default")[0].control_refs == (
+        f"capability_autonomy_promotion_policy:{policy.id}",
+    )
+    with pytest.raises(InvalidReference, match="version is stale"):
+        create_record_reference(
+            db_session, board,
+            reference_key="18b:stale-policy", reference_role="governance_mapping",
+            target_type="capability_autonomy_promotion_policy", target_id=policy.id,
+            risk_escalation_id=risk.id, label="Stale revision", target_version="0" * 64,
+        )
+    with pytest.raises(NotFound):
+        create_record_reference(
+            db_session, _board_context("other"),
+            reference_key="18b:cross-tenant", reference_role="governance_mapping",
+            target_type="capability_autonomy_promotion_policy", target_id=policy.id,
+            risk_escalation_id=risk.id, label="Cross tenant denial",
+        )
+    original_fingerprint = policy.record_fingerprint
+    policy.record_fingerprint = "f" * 64
+    db_session.add(policy)
+    db_session.commit()
+    assert project_organization_grc_traceability(db_session, tenant_key="default")[0].control_refs == ()
+    policy.record_fingerprint = original_fingerprint
+    db_session.add(policy)
+    db_session.commit()
+    successor = _policy(db_session, board, key="grc-map-v2", expected_policy_sequence=1)
+    assert successor.supersedes_policy_id == policy.id
+    assert project_organization_grc_traceability(db_session, tenant_key="default")[0].control_refs == ()
