@@ -265,15 +265,11 @@ class MoonshotProvider(_OpenAICompatibleProvider):
         )
 
 
-class GeminiProvider(_OpenAICompatibleProvider):
-    """Google Gemini through the documented OpenAI-compatible chat endpoint."""
+class GeminiProvider(LLMProvider):
+    """Google Gemini through the documented native generateContent endpoint."""
 
     name = "gemini"
-    base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
-    # Gemini 3.7 deprecates sampling parameters such as temperature. Keep the shared
-    # compatibility adapter configurable instead of sending an obsolete parameter at
-    # the acceptance boundary.
-    include_temperature = False
+    base_url = "https://generativelanguage.googleapis.com/v1beta"
 
     def __init__(
         self,
@@ -281,18 +277,16 @@ class GeminiProvider(_OpenAICompatibleProvider):
         model: str | None = None,
         base_url: str | None = None,
     ):
-        super().__init__(
-            api_key=(
-                _provider_api_key(
-                    value_setting="gemini_api_key",
-                    reference_setting="gemini_api_key_ref",
-                )
-                if api_key is None
-                else api_key
-            ),
-            default_model=settings.gemini_model if model is None else model,
-            base_url=settings.gemini_base_url if base_url is None else base_url,
+        self.api_key = (
+            _provider_api_key(
+                value_setting="gemini_api_key",
+                reference_setting="gemini_api_key_ref",
+            )
+            if api_key is None
+            else api_key
         )
+        self.default_model = settings.gemini_model if model is None else model
+        self.base_url = (settings.gemini_base_url if base_url is None else base_url).rstrip("/")
 
     def complete(
         self,
@@ -300,14 +294,101 @@ class GeminiProvider(_OpenAICompatibleProvider):
         messages: list[dict[str, str]],
         response_format: dict[str, Any] | None = None,
     ) -> LLMResponse:
-        # Controlled agents require machine-readable JSON. The existing controlled-agent
-        # caller only requests json_object explicitly for the historical providers, so
-        # Gemini enforces the same contract at its adapter boundary rather than relying
-        # on prompt-only JSON compliance.
-        return super().complete(
-            system_prompt=system_prompt,
-            messages=messages,
-            response_format=response_format or {"type": "json_object"},
+        if not self.api_key:
+            raise LLMProviderConfigurationError("gemini API key is not configured.")
+
+        limit = settings.gemini_max_output_tokens
+        if limit is not None and (type(limit) is not int or limit < 1):
+            raise LLMProviderConfigurationError(
+                "gemini_max_output_tokens must be a positive integer."
+            )
+
+        contents: list[dict[str, Any]] = []
+        for message in messages:
+            role = message.get("role")
+            content = message.get("content")
+            if role not in {"user", "assistant", "model"} or not isinstance(content, str):
+                raise LLMProviderConfigurationError(
+                    "gemini messages require string user/assistant content."
+                )
+            contents.append(
+                {
+                    "role": "model" if role in {"assistant", "model"} else "user",
+                    "parts": [{"text": content}],
+                }
+            )
+
+        generation_config: dict[str, Any] = {"responseMimeType": "application/json"}
+        if limit is not None:
+            generation_config["maxOutputTokens"] = limit
+        payload = {
+            "systemInstruction": {"parts": [{"text": system_prompt}]},
+            "contents": contents,
+            "generationConfig": generation_config,
+        }
+        headers = {
+            "x-goog-api-key": self.api_key,
+            "Content-Type": "application/json",
+        }
+
+        try:
+            with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+                response = client.post(
+                    f"{self.base_url}/models/{self.default_model}:generateContent",
+                    headers=headers,
+                    json=payload,
+                )
+                response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            error_type = (
+                LLMProviderTransportError
+                if exc.response.status_code in {408, 429} or exc.response.status_code >= 500
+                else LLMProviderConfigurationError
+            )
+            raise error_type(
+                f"gemini API returned {exc.response.status_code}"
+            ) from exc
+        except httpx.RequestError as exc:
+            raise LLMProviderTransportError("gemini API request failed") from exc
+
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise LLMProviderResponseContractError(
+                "Unexpected gemini response body: invalid JSON"
+            ) from exc
+
+        try:
+            candidate = data["candidates"][0]
+            parts = candidate["content"]["parts"]
+            content = "".join(
+                part.get("text", "") for part in parts if isinstance(part, dict)
+            )
+            usage = data.get("usageMetadata", {})
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMProviderResponseContractError(
+                "Unexpected gemini response structure"
+            ) from exc
+        if not content:
+            raise LLMProviderResponseContractError(
+                "Unexpected gemini response structure"
+            )
+
+        return LLMResponse(
+            content=content,
+            provider=self.name,
+            model=self.default_model,
+            finish_reason=candidate.get("finishReason"),
+            prompt_tokens=usage.get("promptTokenCount"),
+            completion_tokens=usage.get("candidatesTokenCount"),
+            total_tokens=usage.get("totalTokenCount"),
+            provider_response_id=(
+                data["responseId"].strip()
+                if isinstance(data.get("responseId"), str)
+                and 0 < len(data["responseId"].strip()) <= 255
+                else None
+            ),
+            raw_response=data,
         )
 
 
