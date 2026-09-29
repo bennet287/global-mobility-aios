@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 from datetime import datetime
 from typing import Any, Callable, TypeVar
@@ -993,7 +994,7 @@ def create_standards_mapping_endpoint(
     response.headers["Cache-Control"] = "no-store"
     return GRCStandardsMappingRead(
         **row.model_dump(),
-        evidence_reference_ids=tuple(UUID(value) for value in __import__("json").loads(row.evidence_reference_ids_json)),
+        evidence_reference_ids=tuple(UUID(value) for value in json.loads(row.evidence_reference_ids_json)),
     )
 
 
