@@ -79,3 +79,26 @@ class ProviderCallAllocation(SQLModel, table=True):
     reason: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class MonetaryAllocation(SQLModel, table=True):
+    """Recorded human monetary authorization; never evidence of spend or enforcement."""
+
+    __tablename__ = "monetary_allocations"
+    __table_args__ = (
+        CheckConstraint("authorized_usd > 0", name="ck_monetary_allocation_positive"),
+        CheckConstraint("status IN ('active','superseded','withdrawn')", name="ck_monetary_allocation_status"),
+        UniqueConstraint("supersedes_allocation_id", name="uq_monetary_allocation_supersedes"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    authorized_usd: Decimal = Field(sa_type=Numeric(18, 2))
+    authority_label: str
+    authorization_reference: str
+    reason: str
+    status: str = "active"
+    supersedes_allocation_id: Optional[UUID] = Field(
+        default=None, foreign_key="monetary_allocations.id"
+    )
+    recorded_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
