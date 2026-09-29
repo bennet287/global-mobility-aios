@@ -67,7 +67,7 @@ def test_llm_provider_factory_returns_gemini():
         mock_settings.llm_provider = "gemini"
         mock_settings.gemini_api_key = "gm-key"
         mock_settings.gemini_model = "gemini-3.7-flash"
-        mock_settings.gemini_base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+        mock_settings.gemini_base_url = "https://generativelanguage.googleapis.com/v1beta"
         mock_settings.llm_temperature = 0.2
         mock_settings.llm_timeout_seconds = 30
 
@@ -173,38 +173,72 @@ def test_invalid_output_ceiling_fails_before_network_egress(
         client_cls.assert_not_called()
 
 
-def test_gemini_provider_success_uses_documented_openai_compatible_endpoint():
+def test_gemini_provider_success_uses_documented_native_endpoint_and_output_ceiling():
     provider = GeminiProvider(
         api_key="gm-key",
         model="gemini-3.7-flash",
-        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        base_url="https://generativelanguage.googleapis.com/v1beta/",
     )
     response_data = {
-        **SAMPLE_CHAT_RESPONSE,
-        "model": "gemini-3.7-flash",
+        "responseId": "gemini-response-test",
+        "candidates": [
+            {
+                "content": {
+                    "role": "model",
+                    "parts": [{"text": '{"summary": "test"}'}],
+                },
+                "finishReason": "STOP",
+            }
+        ],
+        "usageMetadata": {
+            "promptTokenCount": 100,
+            "candidatesTokenCount": 20,
+            "totalTokenCount": 120,
+        },
     }
     fake_client = _make_fake_client(response_data)
 
-    with patch("httpx.Client", return_value=fake_client):
-        # The generic controlled-agent caller currently does not pass response_format
-        # for Gemini, so the provider adapter must enforce the JSON-object contract.
-        resp = provider.complete(
-            "You are a test assistant.",
-            [{"role": "user", "content": "hi"}],
-        )
+    with patch("app.services.llm_client.settings") as mock_settings:
+        mock_settings.gemini_max_output_tokens = 512
+        mock_settings.llm_timeout_seconds = 30
+        with patch("httpx.Client", return_value=fake_client):
+            resp = provider.complete(
+                "You are a test assistant.",
+                [{"role": "user", "content": "hi"}],
+            )
 
     assert resp.provider == "gemini"
     assert resp.model == "gemini-3.7-flash"
     assert resp.content == '{"summary": "test"}'
+    assert resp.prompt_tokens == 100
+    assert resp.completion_tokens == 20
     assert resp.total_tokens == 120
+    assert resp.provider_response_id == "gemini-response-test"
     assert resp.estimated_cost_usd is None
     fake_client.post.assert_called_once()
     args, kwargs = fake_client.post.call_args
-    assert args[0] == "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
-    assert kwargs["headers"]["Authorization"] == "Bearer gm-key"
-    assert kwargs["json"]["model"] == "gemini-3.7-flash"
-    assert kwargs["json"]["response_format"] == {"type": "json_object"}
-    assert "temperature" not in kwargs["json"]
+    assert args[0] == (
+        "https://generativelanguage.googleapis.com/v1beta/"
+        "models/gemini-3.7-flash:generateContent"
+    )
+    assert kwargs["headers"]["x-goog-api-key"] == "gm-key"
+    assert kwargs["json"]["generationConfig"] == {
+        "responseMimeType": "application/json",
+        "maxOutputTokens": 512,
+    }
+    assert kwargs["json"]["systemInstruction"]["parts"][0]["text"] == "You are a test assistant."
+    assert kwargs["json"]["contents"] == [{"role": "user", "parts": [{"text": "hi"}]}]
+
+
+@pytest.mark.parametrize("bad_limit", [0, -1, "512", True])
+def test_invalid_gemini_output_ceiling_fails_before_network_egress(bad_limit):
+    provider = GeminiProvider(api_key="gm-key", model="gemini-3.7-flash")
+    with patch("app.services.llm_client.settings") as mock_settings:
+        mock_settings.gemini_max_output_tokens = bad_limit
+        with patch("httpx.Client") as client_cls:
+            with pytest.raises(LLMProviderConfigurationError, match="positive integer"):
+                provider.complete("system", [{"role": "user", "content": "hi"}])
+        client_cls.assert_not_called()
 
 
 @pytest.mark.parametrize(
