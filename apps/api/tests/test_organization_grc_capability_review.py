@@ -25,7 +25,7 @@ def test_capability_authorization_review_reuses_canonical_profile_and_is_read_on
     before_activities = len(db_session.exec(select(OrganizationActivity)).all())
 
     route = (
-        "/api/v1/organization/records/grc/capabilities/authorization-review"
+        "/api/v1/organization/grc/capabilities/authorization-review"
         f"?position_key={POSITION_KEY}&capability_key={CAPABILITY_KEY}"
         f"&context_scope={CONTEXT_SCOPE}"
     )
@@ -73,7 +73,7 @@ def test_capability_authorization_review_is_tenant_scoped(client, db_session: Se
     _position(db_session)
     _profile(db_session, board, key="18e-other")
     route = (
-        "/api/v1/organization/records/grc/capabilities/authorization-review"
+        "/api/v1/organization/grc/capabilities/authorization-review"
         f"?position_key={POSITION_KEY}&capability_key={CAPABILITY_KEY}"
         f"&context_scope={CONTEXT_SCOPE}"
     )
