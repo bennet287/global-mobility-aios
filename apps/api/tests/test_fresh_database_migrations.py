@@ -175,7 +175,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0091_grc_risk_control_reference"
+            "0092_grc_standards_mapping"
         )
         position_inspector = inspect(connection)
         position_indexes = {
