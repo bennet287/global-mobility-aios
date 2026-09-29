@@ -96,7 +96,8 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_api_key_ref: str = ""
     gemini_model: str = "gemini-3.7-flash"
-    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    gemini_max_output_tokens: int | None = Field(default=None, ge=1)
     llm_temperature: float = 0.2
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True
