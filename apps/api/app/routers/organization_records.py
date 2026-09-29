@@ -61,6 +61,7 @@ from app.schemas_organization_records import (
     WorkItemCreate,
     WorkItemRead,
 )
+from app.schemas_organization_grc_capability_review import GRCCapabilityAuthorizationReviewRead
 from app.schemas_organization_grc_evidence import GRCEvidenceExportRead
 from app.schemas_organization_observatory import (
     ContributionReconciliationRead,
@@ -104,6 +105,7 @@ from app.services.organization_decision import (
     record_executive_decision_outcome,
     supersede_executive_decision,
 )
+from app.services.organization_grc_capability_review import project_grc_capability_authorization_review
 from app.services.organization_grc_evidence_export import export_grc_risk_evidence
 from app.services.organization_human_action import (
     acknowledge_human_action_request,
@@ -976,6 +978,28 @@ def get_record_reference(reference_id: UUID, context: OrganizationCommandContext
 @router.post("/record-references", response_model=ReferenceRead, status_code=status.HTTP_201_CREATED)
 def create_record_reference_endpoint(payload: ReferenceCreate, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)) -> OrganizationRecordReference:
     return _command(lambda: create_record_reference(session, context, **payload.model_dump()))
+
+
+@router.get("/grc/capabilities/authorization-review", response_model=GRCCapabilityAuthorizationReviewRead)
+def capability_authorization_review_endpoint(
+    position_key: str,
+    capability_key: str,
+    context_scope: str,
+    response: Response,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> GRCCapabilityAuthorizationReviewRead:
+    result = _command(
+        lambda: project_grc_capability_authorization_review(
+            session,
+            context,
+            position_key=position_key,
+            capability_key=capability_key,
+            context_scope=context_scope,
+        )
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return result
 
 
 @router.get("/grc/risks/{risk_id}/evidence-export", response_model=GRCEvidenceExportRead)
