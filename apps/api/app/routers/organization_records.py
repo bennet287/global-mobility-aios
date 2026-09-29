@@ -935,6 +935,7 @@ def list_record_references(
     reference_role: OrganizationReferenceRole | None = None,
     work_item_id: UUID | None = None,
     decision_id: UUID | None = None,
+    risk_escalation_id: UUID | None = None,
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
 ) -> dict[str, Any]:
@@ -945,6 +946,7 @@ def list_record_references(
         (reference_role, OrganizationRecordReference.reference_role),
         (work_item_id, OrganizationRecordReference.work_item_id),
         (decision_id, OrganizationRecordReference.decision_id),
+        (risk_escalation_id, OrganizationRecordReference.risk_escalation_id),
     ):
         if value is not None:
             conditions.append(column == value)

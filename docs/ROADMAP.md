@@ -6,9 +6,9 @@
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Phase 17 — Agent Security Assurance
 **Current checkpoint:** Phase 17A bounded authenticated sessions, Phase 17B admin-only debug routes, Phase 17C connector control plus webhook destination/connection-time egress enforcement, Phase 17D–17G prompt separation, Phase 17H native-skill content integrity, Phase 17I shared provider-error detail, Phase 17J official-source monitor connection pinning, Phase 17K fixed UN M49 registry import egress, Phase 17L connector transport error detail, Phase 17M controlled-agent worker failure detail, Phase 17N controlled-agent fallback detail, Phase 17O skill origin eligibility, and Phase 17P OpenBao pilot scope/token egress are sealed through PR #229. Phase 16 request-local completion evidence remains sealed only for the in-house consultant and business advisory (PR #194 and PR #196); other request-local paths without a real owner-completion signal remain unreconciled by age alone. Source-linked billed cost, verified paid-tool charges, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open Phase 16 prerequisites rather than claimed capabilities. System-1/AX evaluation remains recorded by PR #167.
-**Code migration head:** `0090_reviewed_decision_output`
+**Code migration head:** `0091_grc_risk_control_reference`
 
-<!-- CURRENT_MIGRATION_HEAD: 0090_reviewed_decision_output -->
+<!-- CURRENT_MIGRATION_HEAD: 0091_grc_risk_control_reference -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
@@ -524,6 +524,8 @@ The next Phase 17 work is evidence-led inspection of remaining provenance, adver
 ### Phase 18 — Enterprise Governance, Risk & Compliance
 
 Risk linkage, policy/control ownership, audit-ready evidence export, approval/exception lineage, incident tracking, capability authorization reviews and justified standards mappings.
+
+Phase 18A projects tenant-scoped RiskEscalation → WorkItem → decision/activity/capability neighbours without treating co-location as a control. Phase 18B permits an authenticated admin to attach an explicit, reasoned risk-owned reference to the existing global organization pause control or an exact autonomy-policy revision. The risk's WorkItem determines tenant scope; the legacy global control is available only to the default tenant. A superseding reference can withdraw the mapping with its reason preserved. The read projection resolves only current, non-withdrawn targets. A reference records a relationship for review, never that a policy applies to the risk, a control was exercised, or mitigation succeeded. Broader control catalogs, remediation and exception lineage remain future work.
 
 ### Phase 19 — Organizational Learning, Competency & Economic Outcomes
 

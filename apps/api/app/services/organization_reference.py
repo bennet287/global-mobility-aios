@@ -24,12 +24,14 @@ from app.models.domain import (
     OrganizationActivity,
     OrganizationBlocker,
     OrganizationContribution,
+    OrganizationControl,
     OrganizationHumanAction,
     OrganizationHumanActionRequest,
     OrganizationRecordReference,
     OrganizationReferenceRole,
     OrganizationReferenceTargetType,
     OrganizationalWorkItem,
+    RiskEscalation,
     PathwayComparisonAssessment,
     Profile,
     RegulatoryChange,
@@ -37,6 +39,8 @@ from app.models.domain import (
     VerifiedRule,
     ExecutiveDecision,
 )
+from app.models.autonomy_promotion_policy import CapabilityAutonomyPromotionPolicy
+from app.models.autonomy_evidence_evaluation_policy import CapabilityAutonomyEvidenceEvaluationPolicy
 from app.services.organization_command import (
     AuditMutation,
     InvalidReference,
@@ -47,6 +51,7 @@ from app.services.organization_command import (
     commit_mutations,
     idempotent_existing,
     require_mutation_role,
+    require_human,
     tenant_record,
 )
 
@@ -71,7 +76,16 @@ TARGET_MODELS: dict[OrganizationReferenceTargetType, type[SQLModel]] = {
     OrganizationReferenceTargetType.agency_submission: AgencySubmission,
     OrganizationReferenceTargetType.corporate_compliance_event: CorporateComplianceEvent,
     OrganizationReferenceTargetType.mobility_timeline_milestone: MobilityTimelineMilestone,
+    OrganizationReferenceTargetType.organization_control: OrganizationControl,
+    OrganizationReferenceTargetType.capability_autonomy_promotion_policy: CapabilityAutonomyPromotionPolicy,
+    OrganizationReferenceTargetType.capability_autonomy_evidence_evaluation_policy: CapabilityAutonomyEvidenceEvaluationPolicy,
 }
+
+_GRC_TARGETS = frozenset({
+    OrganizationReferenceTargetType.organization_control,
+    OrganizationReferenceTargetType.capability_autonomy_promotion_policy,
+    OrganizationReferenceTargetType.capability_autonomy_evidence_evaluation_policy,
+})
 
 _OWNER_MODELS = {
     "activity_id": OrganizationActivity,
@@ -126,6 +140,12 @@ def _validate_owner(
     if len(selected) != 1:
         raise InvalidReference("organization reference requires exactly one owner")
     name, record_id = selected[0]
+    if name == "risk_escalation_id":
+        risk = session.get(RiskEscalation, record_id)
+        if risk is None or risk.work_item_id is None:
+            raise InvalidReference("risk escalation has no tenant-scoped WorkItem")
+        tenant_record(session, OrganizationalWorkItem, risk.work_item_id, context.tenant_key, label="risk WorkItem")
+        return
     tenant_record(session, _OWNER_MODELS[name], record_id, context.tenant_key, label="reference owner")  # type: ignore[arg-type]
 
 
@@ -156,6 +176,8 @@ def _validate_target(
         target = session.get(model, typed_id)
         if target is None:
             raise InvalidReference("reference target does not exist")
+    if target_type is OrganizationReferenceTargetType.organization_control and target.control_key != "global":
+        raise InvalidReference("only the existing global organization control is mapped")
     actual_state = _record_state(target)
     if target_state is not None and actual_state is not None and target_state != actual_state:
         raise InvalidReference("reference target state does not match the authoritative record")
@@ -182,6 +204,7 @@ def create_record_reference(
     blocker_id: UUID | None = None,
     human_action_request_id: UUID | None = None,
     human_action_id: UUID | None = None,
+    risk_escalation_id: UUID | None = None,
     target_version: str | None = None,
     target_state: str | None = None,
     content_hash: str | None = None,
@@ -204,18 +227,53 @@ def create_record_reference(
         "blocker_id": blocker_id,
         "human_action_request_id": human_action_request_id,
         "human_action_id": human_action_id,
+        "risk_escalation_id": risk_escalation_id,
     }
+    if risk_escalation_id is not None or target_type in _GRC_TARGETS or reference_role is OrganizationReferenceRole.governance_mapping:
+        require_human(context, admin=True)
+        if (
+            risk_escalation_id is None or target_type not in _GRC_TARGETS
+            or reference_role is not OrganizationReferenceRole.governance_mapping
+            or not (label or "").strip()
+        ):
+            raise InvalidReference("risk-control mapping requires one risk, an allowlisted target and a reason")
+        mapping_state = (metadata or {}).get("mapping_state", "current")
+        if mapping_state not in ("current", "withdrawn") or (
+            mapping_state == "withdrawn" and supersedes_reference_id is None
+        ):
+            raise InvalidReference("mapping correction must have a valid state and predecessor")
     _validate_owner(session, context, owners)
     normalized_target_id = str(target_id)
-    _validate_target(session, context, target_type, normalized_target_id, target_state, reference_role)
+    target = _validate_target(session, context, target_type, normalized_target_id, target_state, reference_role)
+    if reference_role is OrganizationReferenceRole.governance_mapping:
+        if target_type is not OrganizationReferenceTargetType.organization_control:
+            successor = session.exec(
+                select(type(target).id).where(
+                    type(target).tenant_key == context.tenant_key,
+                    type(target).supersedes_policy_id == target.id,
+                )
+            ).first()
+            if successor is not None:
+                raise InvalidReference("mapping target policy was superseded")
+            current_version = target.record_fingerprint
+            if target_version is not None and target_version != current_version:
+                raise InvalidReference("mapping target policy version is stale")
+            target_version = current_version
     if supersedes_reference_id is not None:
-        tenant_record(
+        predecessor = tenant_record(
             session,
             OrganizationRecordReference,
             supersedes_reference_id,
             context.tenant_key,
             label="superseded reference",
         )
+        if reference_role is OrganizationReferenceRole.governance_mapping and (
+            predecessor.reference_role is not OrganizationReferenceRole.governance_mapping
+            or predecessor.risk_escalation_id != risk_escalation_id
+            or predecessor.target_type is not target_type
+            or predecessor.target_id != normalized_target_id
+        ):
+            raise InvalidReference("mapping correction must retain the same risk and target")
     command = {
         "reference_key": reference_key,
         "reference_role": reference_role,
@@ -252,6 +310,7 @@ def create_record_reference(
         blocker_id=blocker_id,
         human_action_request_id=human_action_request_id,
         human_action_id=human_action_id,
+        risk_escalation_id=risk_escalation_id,
         reference_role=reference_role,
         target_type=target_type,
         target_id=normalized_target_id,

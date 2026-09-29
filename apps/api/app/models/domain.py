@@ -196,6 +196,7 @@ class OrganizationReferenceRole(str, Enum):
     caused_by = "caused_by"
     supports = "supports"
     contradicts = "contradicts"
+    governance_mapping = "governance_mapping"
 
 
 class OrganizationReferenceTargetType(str, Enum):
@@ -218,6 +219,9 @@ class OrganizationReferenceTargetType(str, Enum):
     agency_submission = "agency_submission"
     corporate_compliance_event = "corporate_compliance_event"
     mobility_timeline_milestone = "mobility_timeline_milestone"
+    organization_control = "organization_control"
+    capability_autonomy_promotion_policy = "capability_autonomy_promotion_policy"
+    capability_autonomy_evidence_evaluation_policy = "capability_autonomy_evidence_evaluation_policy"
 
 
 def _string_enum(enum_type: type[Enum]) -> SQLAlchemyEnum:
@@ -3202,16 +3206,21 @@ class OrganizationRecordReference(SQLModel, table=True):
             ["organization_record_references.tenant_key", "organization_record_references.id"],
             name="fk_org_reference_supersedes_tenant",
         ),
+        ForeignKeyConstraint(
+            ["risk_escalation_id"], ["risk_escalations.id"],
+            name="fk_org_reference_risk_escalation",
+        ),
         CheckConstraint("length(record_fingerprint) = 64", name="ck_org_record_reference_fingerprint_length"),
         CheckConstraint(
-            "reference_role IN ('authoritative_outcome','affected_subject','evidence','caused_by','supports','contradicts')",
+            "reference_role IN ('authoritative_outcome','affected_subject','evidence','caused_by','supports','contradicts','governance_mapping')",
             name="ck_org_record_reference_role",
         ),
         CheckConstraint(
             "target_type IN ('lead','profile','application','corporate_mobility_case','pathway_comparison_assessment',"
             "'eligibility_assessment','source_snapshot','official_source','external_validation_run',"
             "'external_validation_finding','agent_run','automation_event','audit_log','regulatory_change','verified_rule',"
-            "'mobility_pathway_version','agency_submission','corporate_compliance_event','mobility_timeline_milestone')",
+            "'mobility_pathway_version','agency_submission','corporate_compliance_event','mobility_timeline_milestone',"
+            "'organization_control','capability_autonomy_promotion_policy','capability_autonomy_evidence_evaluation_policy')",
             name="ck_org_record_reference_target_type",
         ),
         CheckConstraint(
@@ -3221,7 +3230,8 @@ class OrganizationRecordReference(SQLModel, table=True):
             "CASE WHEN decision_id IS NOT NULL THEN 1 ELSE 0 END + "
             "CASE WHEN blocker_id IS NOT NULL THEN 1 ELSE 0 END + "
             "CASE WHEN human_action_request_id IS NOT NULL THEN 1 ELSE 0 END + "
-            "CASE WHEN human_action_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
+            "CASE WHEN human_action_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN risk_escalation_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
             name="ck_org_record_reference_one_owner",
         ),
         CheckConstraint(
@@ -3242,6 +3252,7 @@ class OrganizationRecordReference(SQLModel, table=True):
     blocker_id: Optional[UUID] = Field(default=None, index=True)
     human_action_request_id: Optional[UUID] = Field(default=None, index=True)
     human_action_id: Optional[UUID] = Field(default=None, index=True)
+    risk_escalation_id: Optional[UUID] = Field(default=None, index=True)
     reference_role: OrganizationReferenceRole = Field(
         sa_column=Column(_string_enum(OrganizationReferenceRole), nullable=False)
     )
