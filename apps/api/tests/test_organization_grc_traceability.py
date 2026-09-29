@@ -14,14 +14,21 @@ from app.models.domain import (
     OrganizationActivityStream,
     OrganizationActorType,
     OrganizationControl,
+    OrganizationBlocker,
+    OrganizationBlockerType,
+    OrganizationHumanAction,
+    OrganizationHumanActionRequest,
     OrganizationRecordReference,
     OrganizationDecisionType,
     OrganizationalWorkItem,
     RiskEscalation,
 )
-from app.services.organization_command import InvalidReference, NotFound
+from app.services.organization_command import DependencyConflict, InvalidReference, NotFound
 from app.services.organization_grc_traceability import project_organization_grc_traceability
+from app.services.organization_decision import create_executive_decision, record_executive_decision_outcome
+from app.services.organization_human_action import create_human_action_request, complete_human_action_request
 from app.services.organization_reference import create_record_reference
+from app.services.organization_work import open_blocker, waive_blocker
 from tests.test_organization_autonomy_promotion_policy import _board_context, _position, _profile, _policy
 
 
@@ -426,3 +433,144 @@ def test_risk_policy_mapping_binds_exact_current_revision(db_session: Session) -
     successor = _policy(db_session, board, key="grc-map-v2", expected_policy_sequence=1)
     assert successor.supersedes_policy_id == policy.id
     assert project_organization_grc_traceability(db_session, tenant_key="default")[0].control_refs == ()
+
+
+def test_risk_governance_lineage_uses_exact_blocker_decision_and_human_links(db_session: Session) -> None:
+    board = _board_context()
+    work = _work(db_session, tenant_key="default", key="18c-governance")
+    other_work = _work(db_session, tenant_key="default", key="18c-unrelated")
+    risk = _risk(db_session, key="18c-risk", work_item_id=work.id)
+    other_risk = _risk(db_session, key="18c-other-risk", work_item_id=other_work.id)
+    db_session.commit()
+
+    decision = create_executive_decision(
+        db_session, board, decision_key="18c-exception", decision_type="exception",
+        authority_level="L4", requested_by_position="security_grc_lead",
+        decision_owner_position="board", title="Review exception", question="Allow exception?",
+        recommendation="Hold pending Board review", work_item_id=work.id,
+        source_object_type="risk_escalation", source_object_id=str(risk.id),
+    )
+    unrelated = create_executive_decision(
+        db_session, board, decision_key="18c-neighbour", decision_type="exception",
+        authority_level="L4", requested_by_position="security_grc_lead",
+        decision_owner_position="board", title="Unrelated decision", question="Other matter?",
+        recommendation="Hold", work_item_id=work.id,
+    )
+    blocker = open_blocker(
+        db_session, board, blocker_key="18c-remediation", blocker_type=OrganizationBlockerType.safety,
+        severity="high", title="Risk response blocked", description="Review the exception and recovery.",
+        work_item_id=work.id, risk_escalation_id=risk.id, decision_id=decision.id,
+    )
+    request = create_human_action_request(
+        db_session, board, request_key="18c-human-approval", request_type="approval",
+        title="Review risk exception", instructions="Inspect the specific blocker and decision.",
+        required_role="admin", assigned_human_id=board.actor_id,
+        blocker_id=blocker.id, decision_id=decision.id, work_item_id=work.id,
+    )
+    exception_request = create_human_action_request(
+        db_session, board, request_key="18c-decision-exception", request_type="exception",
+        title="Board exception request", instructions="Review the risk-source decision.",
+        required_role="admin", decision_id=decision.id, work_item_id=work.id,
+    )
+    before = {model: len(db_session.exec(select(model)).all()) for model in (
+        OrganizationBlocker, OrganizationHumanActionRequest, OrganizationHumanAction,
+    )}
+    first = project_organization_grc_traceability(db_session, tenant_key="default")
+    trace = {item.risk_id: item for item in first}[risk.id]
+    assert {item.decision_id for item in trace.linked_work_item_decisions} == {decision.id, unrelated.id}
+    assert tuple(item.decision_id for item in trace.governance_decisions) == (decision.id,)
+    assert trace.governance_decisions[0].status == "pending_board"
+    assert tuple(item.request_id for item in trace.governance_decisions[0].human_requests) == (exception_request.id,)
+    assert tuple(item.blocker_id for item in trace.remediation_blockers) == (blocker.id,)
+    assert tuple(item.request_id for item in trace.remediation_blockers[0].human_requests) == (request.id,)
+    assert trace.remediation_blockers[0].human_requests[0].status == "required"
+    assert trace.remediation_blockers[0].human_requests[0].actions == ()
+    assert {item.risk_id: item for item in first}[other_risk.id].remediation_blockers == ()
+    assert first == project_organization_grc_traceability(db_session, tenant_key="default")
+    assert before == {model: len(db_session.exec(select(model)).all()) for model in before}
+
+    completed, action = complete_human_action_request(
+        db_session, board, request_id=request.id, action_key="18c-human-action",
+        action_type="approved", outcome="review accepted", occurred_at=_BASE_TIME,
+        reason="Evidence reviewed; decision remains pending Board outcome.",
+    )
+    trace = {item.risk_id: item for item in project_organization_grc_traceability(db_session, tenant_key="default")}[risk.id]
+    approval = trace.remediation_blockers[0].human_requests[0]
+    assert approval.status == "completed" and approval.completed_by_human_id == board.actor_id
+    assert approval.actions[0].action_id == action.id
+    assert approval.actions[0].action_type == "approved"
+    assert trace.governance_decisions[0].status == "pending_board"
+
+    record_executive_decision_outcome(db_session, board, decision_id=decision.id, outcome="approved", reason="Board decision recorded")
+    waive_blocker(db_session, board, blocker_id=blocker.id, reason="Board waived this blocker after review")
+    trace = {item.risk_id: item for item in project_organization_grc_traceability(db_session, tenant_key="default")}[risk.id]
+    assert trace.governance_decisions[0].status == "approved"
+    assert trace.governance_decisions[0].decided_by == board.actor_id
+    assert trace.remediation_blockers[0].status == "waived"
+    assert trace.remediation_blockers[0].waived_by_human_id == board.actor_id
+    assert trace.remediation_blockers[0].waiver_reason == "Board waived this blocker after review"
+    assert trace.status == "open"  # A waived blocker does not settle the risk.
+
+
+def test_risk_blocker_requires_same_tenant_work_and_cannot_move_risk_on_supersession(
+    db_session: Session, client,
+) -> None:
+    board = _board_context()
+    work = _work(db_session, tenant_key="default", key="18c-boundary")
+    wrong_work = _work(db_session, tenant_key="default", key="18c-wrong-work")
+    other_work = _work(db_session, tenant_key="other", key="18c-cross-tenant")
+    risk = _risk(db_session, key="18c-boundary-risk", work_item_id=work.id)
+    sibling_risk = _risk(db_session, key="18c-sibling-risk", work_item_id=work.id)
+    cross_risk = _risk(db_session, key="18c-cross-risk", work_item_id=other_work.id)
+    db_session.commit()
+    params = dict(blocker_type="safety", severity="high", title="Response blocked", description="Exact risk target")
+    with pytest.raises(DependencyConflict, match="exact tenant-scoped WorkItem"):
+        open_blocker(db_session, board, blocker_key="18c-wrong", work_item_id=wrong_work.id,
+                     risk_escalation_id=risk.id, **params)
+    with pytest.raises(DependencyConflict, match="exact tenant-scoped WorkItem"):
+        open_blocker(db_session, board, blocker_key="18c-cross", work_item_id=work.id,
+                     risk_escalation_id=cross_risk.id, **params)
+    sibling_decision = create_executive_decision(
+        db_session, board, decision_key="18c-sibling-decision", decision_type="exception",
+        authority_level="L4", requested_by_position="security_grc_lead",
+        decision_owner_position="board", title="Sibling risk", question="Which risk?",
+        recommendation="Review", work_item_id=work.id,
+        source_object_type="risk_escalation", source_object_id=str(sibling_risk.id),
+    )
+    with pytest.raises(DependencyConflict, match="different risk"):
+        open_blocker(db_session, board, blocker_key="18c-wrong-decision", work_item_id=work.id,
+                     risk_escalation_id=risk.id, decision_id=sibling_decision.id, **params)
+    blocker = open_blocker(db_session, board, blocker_key="18c-valid", work_item_id=work.id,
+                           risk_escalation_id=risk.id, **params)
+    with pytest.raises(DependencyConflict, match="retain the same risk"):
+        open_blocker(db_session, board, blocker_key="18c-drop", work_item_id=work.id,
+                     supersedes_blocker_id=blocker.id, **params)
+    payload = {
+        "blocker_key": "18c-api", "blocker_type": "safety", "severity": "high",
+        "title": "Approval blocked", "description": "Exact risk lineage",
+        "work_item_id": str(work.id), "risk_escalation_id": str(risk.id),
+    }
+    denied = client.post("/api/v1/organization/blockers", json=payload,
+                         headers={"X-GMAI-Role": "operator", "X-GMAI-User": "operator"})
+    assert denied.status_code == 403
+    created = client.post("/api/v1/organization/blockers", json=payload)
+    assert created.status_code == 201, created.text
+    assert created.json()["risk_escalation_id"] == str(risk.id)
+    listed = client.get("/api/v1/organization/blockers", params={"risk_escalation_id": str(risk.id)})
+    assert listed.status_code == 200 and listed.json()["total"] == 2
+    assert project_organization_grc_traceability(db_session, tenant_key="other")[0].remediation_blockers == ()
+
+
+def test_risk_governance_ignores_inconsistent_legacy_links(db_session: Session) -> None:
+    work = _work(db_session, tenant_key="default", key="18c-legacy")
+    other_work = _work(db_session, tenant_key="default", key="18c-legacy-other")
+    risk = _risk(db_session, key="18c-legacy-risk", work_item_id=work.id)
+    blocker = OrganizationBlocker(
+        blocker_key="18c-stale", record_fingerprint="a" * 64, tenant_key="default",
+        blocker_type=OrganizationBlockerType.safety, severity="high", title="Stale link",
+        description="Incorrect work", work_item_id=other_work.id, risk_escalation_id=risk.id,
+        created_by="legacy", updated_by="legacy",
+    )
+    db_session.add(blocker)
+    db_session.commit()
+    assert project_organization_grc_traceability(db_session, tenant_key="default")[0].remediation_blockers == ()

@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from sqlmodel import Session, select
 
 from app.models.domain import (
-    ExecutiveDecision, OrganizationControl, OrganizationRecordReference,
+    ExecutiveDecision, OrganizationBlocker, OrganizationControl,
+    OrganizationHumanAction, OrganizationHumanActionRequest, OrganizationRecordReference,
     OrganizationReferenceRole, OrganizationReferenceTargetType,
     OrganizationalWorkItem, RiskEscalation,
 )
@@ -43,6 +45,52 @@ class GRCDecisionTrace:
 
 
 @dataclass(frozen=True, slots=True)
+class GRCHumanActionTrace:
+    action_id: UUID
+    action_type: str
+    human_actor_id: str
+    outcome: str
+    reason: str | None
+    occurred_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class GRCHumanRequestTrace:
+    request_id: UUID
+    request_type: str
+    status: str
+    required_role: str
+    outcome: str | None
+    completed_by_human_id: str | None
+    actions: tuple[GRCHumanActionTrace, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class GRCGovernanceDecisionTrace:
+    decision_id: UUID
+    decision_type: str
+    status: str
+    decided_by: str | None
+    decision_reason: str | None
+    supersedes_decision_id: UUID | None
+    human_requests: tuple[GRCHumanRequestTrace, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class GRCBlockerTrace:
+    blocker_id: UUID
+    blocker_type: str
+    status: str
+    decision_id: UUID | None
+    supersedes_blocker_id: UUID | None
+    resolution_summary: str | None
+    resolving_actor_id: str | None
+    waived_by_human_id: str | None
+    waiver_reason: str | None
+    human_requests: tuple[GRCHumanRequestTrace, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class GRCRiskTrace:
     risk_id: UUID
     risk_key: str
@@ -61,6 +109,8 @@ class GRCRiskTrace:
     accountable_position_key: str
     accountable_capability: GRCCapabilityRef | None
     linked_work_item_decisions: tuple[GRCDecisionTrace, ...]
+    governance_decisions: tuple[GRCGovernanceDecisionTrace, ...] = ()
+    remediation_blockers: tuple[GRCBlockerTrace, ...] = ()
     # Explicit reference identities only; no control effectiveness or risk mitigation claim.
     control_refs: tuple[str, ...] = ()
 
@@ -141,7 +191,8 @@ def project_organization_grc_traceability(
     Capability data is an annotation from the canonical capability architecture.
     ``control_refs`` comes only from exact, current, human-governed reference records.
     These references attest a relationship, not policy applicability, enforcement,
-    control effectiveness or risk mitigation. No category/name similarity is used.
+    control effectiveness or risk mitigation. Approval/exception and remediation
+    lineage follows exact risk/blocker/decision/request IDs, not WorkItem proximity.
     """
 
     normalized_tenant = tenant_key.strip()
@@ -201,6 +252,98 @@ def project_organization_grc_traceability(
                 continue
             decisions_by_work.setdefault(decision.work_item_id, []).append(decision)
 
+        decision_by_id = {decision.id: decision for decision in decisions}
+        blockers = session.exec(select(OrganizationBlocker).where(
+            OrganizationBlocker.tenant_key == normalized_tenant,
+            OrganizationBlocker.risk_escalation_id.in_(risk_ids),
+        )).all()
+        risk_by_id = {risk.id: risk for risk in risks}
+        blockers_by_risk: dict[UUID, list[OrganizationBlocker]] = {}
+        blocker_by_id: dict[UUID, OrganizationBlocker] = {}
+        for blocker in blockers:
+            risk = risk_by_id.get(blocker.risk_escalation_id)
+            if risk is None or blocker.work_item_id != risk.work_item_id:
+                continue
+            if blocker.decision_id is not None and (
+                blocker.decision_id not in decision_by_id
+                or decision_by_id[blocker.decision_id].work_item_id != risk.work_item_id
+                or (
+                    decision_by_id[blocker.decision_id].source_object_type == "risk_escalation"
+                    and decision_by_id[blocker.decision_id].source_object_id != str(risk.id)
+                )
+            ):
+                continue
+            blockers_by_risk.setdefault(risk.id, []).append(blocker)
+            blocker_by_id[blocker.id] = blocker
+
+        governance_decisions_by_risk: dict[UUID, list[ExecutiveDecision]] = {}
+        for risk in risks:
+            explicit_ids = {blocker.decision_id for blocker in blockers_by_risk.get(risk.id, ())}
+            governance_decisions_by_risk[risk.id] = [
+                decision for decision in decisions_by_work.get(risk.work_item_id, ())
+                if decision.id in explicit_ids or (
+                    decision.source_object_type == "risk_escalation"
+                    and decision.source_object_id == str(risk.id)
+                )
+            ]
+
+        blocker_ids = tuple(blocker_by_id)
+        direct_decision_ids = tuple({
+            decision.id for risk in risks
+            for decision in governance_decisions_by_risk[risk.id]
+            if decision.source_object_type == "risk_escalation"
+            and decision.source_object_id == str(risk.id)
+        })
+        requests: dict[UUID, OrganizationHumanActionRequest] = {}
+        if blocker_ids:
+            for request in session.exec(select(OrganizationHumanActionRequest).where(
+                OrganizationHumanActionRequest.tenant_key == normalized_tenant,
+                OrganizationHumanActionRequest.blocker_id.in_(blocker_ids),
+            )).all():
+                requests[request.id] = request
+        if direct_decision_ids:
+            for request in session.exec(select(OrganizationHumanActionRequest).where(
+                OrganizationHumanActionRequest.tenant_key == normalized_tenant,
+                OrganizationHumanActionRequest.decision_id.in_(direct_decision_ids),
+            )).all():
+                requests[request.id] = request
+        actions_by_request: dict[UUID, list[OrganizationHumanAction]] = {}
+        if requests:
+            actions = session.exec(select(OrganizationHumanAction).where(
+                OrganizationHumanAction.tenant_key == normalized_tenant,
+                OrganizationHumanAction.human_action_request_id.in_(tuple(requests)),
+            )).all()
+            for action in actions:
+                request = requests[action.human_action_request_id]
+                if (
+                    (action.work_item_id is not None and action.work_item_id != request.work_item_id)
+                    or (action.blocker_id is not None and action.blocker_id != request.blocker_id)
+                    or (action.decision_id is not None and action.decision_id != request.decision_id)
+                ):
+                    continue
+                actions_by_request.setdefault(request.id, []).append(action)
+
+        def request_trace(request: OrganizationHumanActionRequest) -> GRCHumanRequestTrace:
+            return GRCHumanRequestTrace(
+                request_id=request.id,
+                request_type=_enum_value(request.request_type),
+                status=_enum_value(request.status),
+                required_role=request.required_role,
+                outcome=request.outcome,
+                completed_by_human_id=request.completed_by_human_id,
+                actions=tuple(
+                    GRCHumanActionTrace(
+                        action_id=action.id,
+                        action_type=_enum_value(action.action_type),
+                        human_actor_id=action.human_actor_id,
+                        outcome=action.outcome,
+                        reason=action.reason,
+                        occurred_at=action.occurred_at,
+                    )
+                    for action in sorted(actions_by_request.get(request.id, ()), key=lambda item: (item.occurred_at, str(item.id)))
+                ),
+            )
+
         activities_by_work: dict[UUID, tuple[TransparencyActivityRecord, ...]] = {}
         for work_id in sorted(risk_work_ids, key=str):
             activities_by_work[work_id] = activities_for_work_item(
@@ -242,6 +385,47 @@ def project_organization_grc_traceability(
                 )
             )
 
+        risk_blockers = sorted(blockers_by_risk.get(risk.id, ()), key=lambda item: (item.created_at, str(item.id)))
+        blocker_traces = tuple(
+            GRCBlockerTrace(
+                blocker_id=blocker.id,
+                blocker_type=_enum_value(blocker.blocker_type),
+                status=_enum_value(blocker.status),
+                decision_id=blocker.decision_id,
+                supersedes_blocker_id=blocker.supersedes_blocker_id,
+                resolution_summary=blocker.resolution_summary,
+                resolving_actor_id=blocker.resolving_actor_id,
+                waived_by_human_id=blocker.waived_by_human_id,
+                waiver_reason=blocker.waiver_reason,
+                human_requests=tuple(
+                    request_trace(request)
+                    for request in sorted(requests.values(), key=lambda item: (item.created_at, str(item.id)))
+                    if request.blocker_id == blocker.id
+                    and request.work_item_id in (None, work.id)
+                    and request.decision_id in (None, blocker.decision_id)
+                ),
+            )
+            for blocker in risk_blockers
+        )
+        governance_decisions = tuple(
+            GRCGovernanceDecisionTrace(
+                decision_id=decision.id,
+                decision_type=_enum_value(decision.decision_type),
+                status=decision.status,
+                decided_by=decision.decided_by,
+                decision_reason=decision.decision_reason,
+                supersedes_decision_id=decision.supersedes_decision_id,
+                human_requests=tuple(
+                    request_trace(request)
+                    for request in sorted(requests.values(), key=lambda item: (item.created_at, str(item.id)))
+                    if request.blocker_id is None and request.decision_id == decision.id
+                    and request.work_item_id in (None, work.id)
+                    and decision.source_object_type == "risk_escalation"
+                    and decision.source_object_id == str(risk.id)
+                ),
+            )
+            for decision in sorted(governance_decisions_by_risk[risk.id], key=lambda item: (item.created_at, str(item.id)))
+        )
         traces.append(
             GRCRiskTrace(
                 risk_id=risk.id,
@@ -263,6 +447,8 @@ def project_organization_grc_traceability(
                     capability_domain_for_position(risk.accountable_position_key)
                 ),
                 linked_work_item_decisions=tuple(decision_traces),
+                governance_decisions=governance_decisions,
+                remediation_blockers=blocker_traces,
                 control_refs=tuple(sorted(set(refs_by_risk.get(risk.id, ())))),
             )
         )

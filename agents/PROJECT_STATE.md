@@ -2,12 +2,12 @@
 
 **Purpose:** concise current programme truth and the next bounded slice. This file is a living state pointer, not an acceptance ledger, read-order document, or historical changelog.
 
-**Last reconciled:** 2026-09-27
+**Last reconciled:** 2026-09-29
 **Canonical integration branch:** `design/aios-v2-complete-redesign`
 **Live integration head:** resolve from GitHub before dependent work; do not treat a SHA copied into this file as self-updating truth.
-**Current programme:** Phase 17 — Agent Security Assurance
-**Active implementation:** none; Phase 17A–17P session, debug, connector/source/registry/OpenBao pilot egress, prompt, native-skill integrity/origin eligibility, and provider/connector/worker/fallback-error boundaries are sealed through PR #229. Phase 16 itemized billing/vendor-cost attribution, Board USD allocation, a provable pre-call monetary ceiling, and Gemini output-cap verification remain open prerequisites rather than claimed capabilities.
-**Next scheduled slice:** Evidence-led inspection of remaining Phase 17 provenance, adversarial, and incident-response gaps. The native-skill fingerprint is not a signature or tool authority. The inspected execution paths still expose no agent `tool_id`/action dispatch seam consuming the governed runtime allowance; add an entitlement check only at a concrete executable seam with a current binding and denial proof. Exception cause chains, broader logs, and provider paths beyond the bounded fallback metadata remain outside these error-message slices; inspect any other outbound client against its own destination and authority contract.
+**Current programme:** Phase 18 — Enterprise Governance, Risk & Compliance, alongside unresolved Phase 16 monetary and Phase 17 security prerequisites.
+**Active implementation:** Phase 18C exact approval, exception and blocker-resolution lineage follows Phase 18A risk traceability and Phase 18B explicit risk-control references. Phase 17A–17P remain sealed through PR #229; their remaining provenance, adversarial, incident-response and agent-tool seams are open.
+**Next scheduled slice:** Phase 18D audit-ready evidence projection/export with source IDs, revision and tenant boundaries, while keeping evidence validity and authority separate. Phase 16 billed-cost attribution, Board USD allocation, a pre-call monetary ceiling and Gemini output-cap verification remain open. Phase 17's native-skill fingerprint is not a signature or tool authority, and no executable agent `tool_id` dispatch seam has been found consuming the governed runtime allowance.
 **Whole-product deployment:** NOT VERIFIED on a production VPS. CI named `V12 Production Proof` does not establish a live deployment. The cross-cutting target-host acceptance gate and currently observed deployment blockers are owned by `infrastructure/deployment/README.md`; no production-ready claim follows from Phase 17 seals.
 
 ## Current programme state
