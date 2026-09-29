@@ -8,7 +8,7 @@ from billiard.exceptions import SoftTimeLimitExceeded
 from sqlmodel import Session, select
 
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
-from app.models.runtime_economics import AgentRunProviderAttempt, ProviderCallAllocation, ProviderCallAttempt
+from app.models.runtime_economics import MonetaryAllocation, AgentRunProviderAttempt, ProviderCallAllocation, ProviderCallAttempt
 from app.schemas import ControlledAgentRunRequest
 from app.services.controlled_agents import run_controlled_agent
 from app.services.llm_client import (
@@ -72,6 +72,61 @@ def test_cost_evidence_separates_partial_estimates_from_unverified_billing(
     assert gemini["actual_billed_cost_usd"] is None
     assert report["monetary_budget"]["actual_spend_usd"] is None
     assert report["monetary_budget"]["enforceable"] is False
+
+
+
+def test_admin_records_monetary_allocation_without_inventing_spend_or_enforcement(
+    client, db_session: Session,
+) -> None:
+    endpoint = "/api/v1/runtime-economics/monetary-allocation"
+    payload = {
+        "authorized_usd": "250.00",
+        "authority_label": "Board resolution",
+        "authorization_reference": "BOARD-2026-09-29-01",
+        "reason": "Bounded provider evaluation allocation",
+    }
+    client.headers["X-GMAI-Role"] = "read_only"
+    assert client.put(endpoint, json=payload).status_code == 403
+    client.headers["X-GMAI-Role"] = "admin"
+    recorded = client.put(endpoint, json=payload)
+    assert recorded.status_code == 200
+    body = recorded.json()
+    assert body["authorized_usd"] == "250.00"
+    assert body["authorization_verified_by_system"] is False
+    assert body["actual_spend_usd"] is None
+    assert body["remaining_usd"] is None
+    assert body["enforceable"] is False
+
+    evidence = client.get("/api/v1/runtime-economics/cost-evidence").json()["monetary_budget"]
+    assert evidence["authorized_usd"] == "250.00"
+    assert evidence["authorization_reference"] == "BOARD-2026-09-29-01"
+    assert evidence["authorization_verified_by_system"] is False
+    assert evidence["actual_spend_usd"] is None
+    assert evidence["remaining_usd"] is None
+    assert evidence["enforceable"] is False
+    assert "board_monetary_allocation_not_independently_verified" in evidence["blockers"]
+
+    second = client.put(endpoint, json={
+        **payload,
+        "authorized_usd": "400.00",
+        "authorization_reference": "BOARD-2026-09-29-02",
+        "reason": "Superseding allocation",
+    })
+    assert second.status_code == 200
+    rows = db_session.exec(select(MonetaryAllocation).order_by(MonetaryAllocation.created_at)).all()
+    assert len(rows) == 2
+    assert rows[0].status == "superseded"
+    assert rows[1].status == "active"
+    assert rows[1].supersedes_allocation_id == rows[0].id
+    assert client.get("/api/v1/runtime-economics/cost-evidence").json()[
+        "monetary_budget"
+    ]["authorized_usd"] == "400.00"
+    logs = db_session.exec(
+        select(AuditLog).where(AuditLog.action == "monetary_allocation_recorded")
+    ).all()
+    assert len(logs) == 2
+    assert '"authorization_verified_by_system": false' in (logs[-1].after_state_json or "")
+    assert '"enforceable": false' in (logs[-1].after_state_json or "")
 
 
 def test_controlled_run_records_usage_even_when_output_is_malformed(

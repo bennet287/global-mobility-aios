@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from decimal import Decimal
+
 from pydantic import BaseModel, Field
 from sqlmodel import Session
 
 from app.core.db import get_session
-from app.models.runtime_economics import ProviderCallAllocation
+from app.models.runtime_economics import MonetaryAllocation, ProviderCallAllocation
 from app.services.runtime_economics import (
     PROVIDER_BREAKER_FAILURE_THRESHOLD,
     RuntimeEconomicsError,
     authorize_provider_calls,
+    record_monetary_allocation,
     reset_provider_circuit,
     summarize_cost_evidence,
 )
@@ -21,6 +24,13 @@ router = APIRouter(prefix="/api/v1/runtime-economics", tags=["runtime-economics"
 class ProviderCallCapacityRequest(BaseModel):
     authorized_calls: int = Field(ge=0, le=1_000_000)
     paused: bool = False
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class MonetaryAllocationRequest(BaseModel):
+    authorized_usd: Decimal = Field(gt=0, max_digits=18, decimal_places=2)
+    authority_label: str = Field(min_length=1, max_length=255)
+    authorization_reference: str = Field(min_length=1, max_length=1000)
     reason: str = Field(min_length=1, max_length=1000)
 
 
@@ -51,6 +61,38 @@ def _view(allocation: ProviderCallAllocation) -> dict:
         "reason": allocation.reason,
         "updated_at": allocation.updated_at,
         "cost_basis": "call_count_not_money",
+    }
+
+
+
+@router.put("/monetary-allocation")
+def set_monetary_allocation(
+    payload: MonetaryAllocationRequest, request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    actor = _admin_actor(request)
+    try:
+        allocation = record_monetary_allocation(
+            session, authorized_usd=payload.authorized_usd,
+            authority_label=payload.authority_label,
+            authorization_reference=payload.authorization_reference,
+            actor=actor, reason=payload.reason,
+        )
+    except RuntimeEconomicsError as exc:
+        session.rollback()
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {
+        "id": str(allocation.id),
+        "authorized_usd": str(allocation.authorized_usd),
+        "authority_label": allocation.authority_label,
+        "authorization_reference": allocation.authorization_reference,
+        "authorization_verified_by_system": False,
+        "actual_spend_usd": None,
+        "remaining_usd": None,
+        "enforceable": False,
+        "status": allocation.status,
+        "recorded_by": allocation.recorded_by,
+        "created_at": allocation.created_at,
     }
 
 

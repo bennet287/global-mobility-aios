@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 
 from app.core import db as db_module
 from app.models.domain import AgentRun, AgentRunStatus, AuditLog
-from app.models.runtime_economics import ProviderCallAllocation, ProviderCallAttempt
+from app.models.runtime_economics import MonetaryAllocation, ProviderCallAllocation, ProviderCallAttempt
 from app.services.audit_log import record_audit
 from app.services.llm_client import LLMProvider, LLMProviderTransportError, LLMResponse
 
@@ -167,6 +167,11 @@ def reconcile_stranded_provider_attempts(
 
 def summarize_cost_evidence(session: Session) -> dict:
     """Read existing attempts without converting estimates or unaudited values into spend."""
+    active_allocation = session.exec(
+        select(MonetaryAllocation)
+        .where(MonetaryAllocation.status == "active")
+        .order_by(MonetaryAllocation.created_at.desc())
+    ).first()
     rows = session.execute(
         select(
             ProviderCallAttempt.provider,
@@ -206,17 +211,75 @@ def summarize_cost_evidence(session: Session) -> dict:
         "paid_tool_cost_coverage": "unreconciled",
         "monetary_budget": {
             "enforceable": False,
-            "authorized_usd": None,
+            "authorized_usd": (
+                str(active_allocation.authorized_usd) if active_allocation is not None else None
+            ),
+            "authorization_reference": (
+                active_allocation.authorization_reference if active_allocation is not None else None
+            ),
+            "authority_label": (
+                active_allocation.authority_label if active_allocation is not None else None
+            ),
+            "authorization_verified_by_system": False,
             "actual_spend_usd": None,
             "remaining_usd": None,
             "blockers": [
                 "authoritative_per_call_billing_evidence_missing",
                 "paid_tool_cost_coverage_unreconciled",
-                "board_monetary_allocation_not_modeled",
+                "board_monetary_allocation_not_independently_verified",
                 "provable_pre_call_monetary_ceiling_missing",
             ],
         },
     }
+
+
+
+def record_monetary_allocation(
+    session: Session, *, authorized_usd: Decimal, authority_label: str,
+    authorization_reference: str, actor: str, reason: str,
+) -> MonetaryAllocation:
+    """Record externally authorized USD without claiming spend or enforcement."""
+    if authorized_usd <= 0 or authorized_usd > Decimal("1000000000.00"):
+        raise RuntimeEconomicsError("Authorized USD must be greater than zero and at most 1,000,000,000")
+    if not authority_label.strip() or not authorization_reference.strip() or not reason.strip():
+        raise RuntimeEconomicsError("Authority label, authorization reference and reason are required")
+    current = session.exec(
+        select(MonetaryAllocation)
+        .where(MonetaryAllocation.status == "active")
+        .order_by(MonetaryAllocation.created_at.desc())
+    ).first()
+    allocation = MonetaryAllocation(
+        authorized_usd=authorized_usd,
+        authority_label=authority_label.strip(),
+        authorization_reference=authorization_reference.strip(),
+        reason=reason.strip(),
+        supersedes_allocation_id=current.id if current else None,
+        recorded_by=actor,
+    )
+    if current is not None:
+        current.status = "superseded"
+        session.add(current)
+    session.add(allocation)
+    session.flush()
+    record_audit(
+        session, action="monetary_allocation_recorded", entity_type="monetary_allocation",
+        entity_id=str(allocation.id), actor=actor, reason=reason.strip(),
+        before_state={"active_allocation_id": str(current.id)} if current else None,
+        after_state={
+            "authorized_usd": str(authorized_usd),
+            "authority_label": allocation.authority_label,
+            "authorization_reference": allocation.authorization_reference,
+            "authorization_verified_by_system": False,
+            "actual_spend_usd": None,
+            "remaining_usd": None,
+            "enforceable": False,
+        },
+        source="phase_16_monetary_allocation_authority",
+    )
+    session.commit()
+    session.refresh(allocation)
+    return allocation
+
 
 
 def authorize_provider_calls(
