@@ -169,6 +169,7 @@ def main() -> int:
         for key in ("DEEPSEEK_API_KEY", "MOONSHOT_API_KEY", "GEMINI_API_KEY"):
             _require(compose, f"{key}_REF: ${{{key}_REF:-}}", PROD_COMPOSE)
             _require_absent(compose, f"  {key}:", PROD_COMPOSE)
+        _require(compose, "GEMINI_MAX_OUTPUT_TOKENS:", PROD_COMPOSE)
 
         _require(web_block, "target: production", PROD_COMPOSE)
         _require(web_block, "NEXT_PUBLIC_API_BASE_URL", PROD_COMPOSE)
@@ -215,6 +216,9 @@ def main() -> int:
         _require(env_example, "AIOS_SECRETS_DIR=/etc/global-mobility-aios/runtime-secrets", PROD_ENV_EXAMPLE)
         _require_absent(env_example, "LLM_SECRETS_DIR=", PROD_ENV_EXAMPLE)
         _require(env_example, "LLM_PROVIDER=\n", PROD_ENV_EXAMPLE)
+        _require(env_example, "GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta\n", PROD_ENV_EXAMPLE)
+        _require(env_example, "# GEMINI_MAX_OUTPUT_TOKENS=4096", PROD_ENV_EXAMPLE)
+        _require_absent(env_example, "GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai", PROD_ENV_EXAMPLE)
         for key, filename in (
             ("DEEPSEEK_API_KEY", "llm/deepseek_api_key"),
             ("MOONSHOT_API_KEY", "llm/moonshot_api_key"),
