@@ -200,14 +200,6 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
-      - name: Temporary lockfile regeneration proof
-        run: |
-          npm install next@16.3.8 --package-lock-only --save-exact --ignore-scripts
-          echo "AIOS_LOCKFILE_B64_BEGIN"
-          base64 -w 0 package-lock.json
-          echo
-          echo "AIOS_LOCKFILE_B64_END"
-
       - name: Install frontend dependencies
         run: npm ci
 
