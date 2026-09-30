@@ -480,7 +480,7 @@ Only observed completed-success runs attached to the exact candidate head are ac
 
 ### Web
 
-- Next.js 16.3.4
+- Next.js 16.3.8
 - React 19
 - TypeScript
 - App Router
