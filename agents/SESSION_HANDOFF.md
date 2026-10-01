@@ -2,7 +2,7 @@
 
 **Purpose:** minimal cold-start recovery pointer. This file must not duplicate project history, architecture, roadmap sequencing, or CI ledgers.
 
-**Last reconciled:** 2026-09-27
+**Last reconciled:** 2026-10-02
 
 ## Resume coordinates
 
@@ -10,41 +10,30 @@ Canonical integration branch:
 
 `design/aios-v2-complete-redesign`
 
-Do not trust a copied “current head” in prose. Resolve the branch SHA directly from GitHub before branching, reviewing, or merging.
+Resolve the live branch SHA directly from GitHub before branching, reviewing, or merging. The last reconciled GRSI checkpoint is PR #273 merge `62dbe9df094b93b89de88cea7005273ef6eb3156`; do not treat that copied SHA as self-updating truth.
 
 Current programme:
 
-`Phase 17 — Agent Security Assurance`
+`Governed Recursive Self-Improvement (GRSI)`
 
 Next bounded slice:
 
-`Inspect remaining Phase 17 provenance, adversarial, and incident-response boundaries for a concrete gap. Phase 17J pins official-source monitor egress and Phase 17K pins the fixed UN M49 importer to validated public addresses; fetched content truth and other outbound clients remain separate. Phase 17I bounds shared provider-adapter, Phase 17L connector-adapter, Phase 17M controlled-agent worker, and Phase 17N controlled-agent fallback error detail at their existing output surfaces; cause chains, broader logs, and provider paths beyond that fallback remain open. Phase 17H's native-skill fingerprint grants no tool authority. Phase 17O keeps imported/learned records out of registry applicability and position bindings until origin-specific provenance validation exists. Phase 17P bounds the non-production OpenBao path scope and bootstrap-token egress; production backend adoption and other outbound clients remain separate. The inspected agent runtimes still expose no tool_id/action dispatch API consuming the governed allowed_tools binding. Keep Phase 16 billing/vendor-cost attribution, Board USD allocation/pre-call monetary enforcement, and Gemini output-cap verification separate and open.`
+`GRSI.D — cross-team validation plus organization authorization review.`
 
-Last meaningful runtime implementation checkpoint:
+GRSI.A–GRSI.C are sealed. GRSI.C exact head `19cd57a6661d3d587c486e910c1a8fafa1a8dd1b` passed Repository Policy #1599, CodeQL #233 and V12 Production Proof #2229 before merge. Migration head is `0095_grsi_independent_evaluation` at this checkpoint.
 
-- PR #229 — OpenBao pilot scope and token egress, merged as `9cba9d699176a4262b28cf612aa012fc616ddc0e`. The optional non-production resolver now rejects path traversal before request normalization, requires remote HTTPS or loopback HTTP, and disables proxies/redirects for the bootstrap token. It does not promote a production backend or cover other clients. Skill origin eligibility was sealed by PR #227; controlled-agent fallback detail by PR #225; worker failures by PR #223; connector errors by PR #221; registry import egress by PR #219; source-monitor egress by PR #217; provider adapter errors by PR #215; native-skill integrity by PR #213.
-
-This is a recovery checkpoint, not a claim about the live integration head after later documentation or implementation merges.
+The candidate/evaluation path remains authority-neutral. Creating or evaluating a candidate does not approve, promote, activate, deploy, grant autonomy, tools, credentials, budget or external-action authority. GRSI.D must reuse canonical owners rather than create another approval stack: `organization-governance` already owns authority classification, risk escalation and Board/CEO decisions; Organization Records already owns governed human-action requests, decision outcomes, record references and the admin-only GRC capability authorization-review projection.
 
 ## Fresh-session procedure
 
-1. Start at `AGENTS.md` and follow its canonical chain.
-2. Read `agents/PROJECT_STATE.md` for the active Phase 17 boundary and the still-open Phase 16 monetary-evidence guardrails.
-3. Read the Phase 17 and immediate-order sections of `docs/ROADMAP.md`.
-4. Inspect the next actual provenance, adversarial, or incident-response boundary on the verified live base. Source-monitor and fixed-registry-import connection pinning, native-skill fingerprint, unsupported skill-origin registry eligibility, OpenBao pilot scope and token egress, and provider-adapter, connector transport, controlled-agent worker, and fallback error-message checks are sealed; `organization_agent_runtime.py` still derives a binding allowance without a current agent tool dispatch. Keep automation delivery's separate human-review/connector gates distinct. Do not infer authorization from diagnostic evidence alone.
-5. Resolve the live integration branch and any active PR from GitHub before changing code.
-6. Search for existing security, authority, permission, credential, tool, skill, provenance, incident and audit evidence before adding models or abstractions.
-
-## Runtime cost truth boundary
-
-`estimated_cost_usd` remains diagnostic evidence, not billing truth. The sealed ledger covers direct model calls through AgentRun or unique operation identity. The in-house consultant and business advisory now record explicit owner-completion evidence keyed by their existing request operation identities, allowing a still-`started` attempt to reconcile to `outcome_unknown` only after its real owner signal. Other request-local paths without an explicit real owner signal remain unreconciled by age alone. No owner-completion marker infers provider failure, refund, zero usage, completed external effect, or releases its call slot; no invented WorkItem or AgentRun owner is permitted.
-
-For enrolled providers, an admin-operated cumulative call count is reserved before each direct model call, including retries; it is no monetary grant. Independently, optional DeepSeek/Moonshot settings cap generated tokens per call; Gemini has no verified cap on its current compatibility path. The admin-only cost-evidence readout reports partial estimates, optional provider completion IDs, and unknown actual spend; neither an ID nor a populated billed-cost column has authoritative invoice provenance at this boundary. The roadmap inventories external-call paths, but paid-tool vendor charges remain to be reconciled. Keep authorized budget, observed actual provider/tool spend, and estimates/unattributed cost separate. A hard monetary budget requires source-linked cost evidence, Board authority, paid-tool coverage, and a provable pre-call ceiling. Cancellation does not imply refund or rollback of spend already incurred.
-
-Explicit AgentRun cancellation is already sealed by PR #176. Its non-terminating Celery revoke and no-rollback semantics remain intact while later security and budget controls are added.
-
-No Jev, Laya, or Google AX production dependency is approved by the current programme state.
+1. Start at `AGENTS.md` and follow its canonical read chain.
+2. Read `agents/PROJECT_STATE.md` for current programme truth and unresolved cross-cutting prerequisites.
+3. Read the GRSI section of `docs/ROADMAP.md`; keep its A–H ordering and invariants authoritative.
+4. Resolve the live integration head and active PRs from GitHub before changing code.
+5. For GRSI.D, inspect and extend the existing Organization Governance / Organization Records seams before adding any schema or service. Do not introduce a parallel GRSI approval, authority, risk, human-review or audit owner.
+6. Preserve structural reviewer independence and candidate-authorship separation without claiming technical metadata proves reasoning/provider independence.
+7. Keep Phase 16 billed-cost/monetary-enforcement gaps, Phase 17 security gaps, and whole-product target-host production acceptance separate from GRSI review evidence.
 
 ## Handoff discipline
 
-If the next session needs more than this pointer, follow `AGENTS.md` to the owning source. Do not expand this file into another `PROJECT_STATE`, roadmap, architecture document, or acceptance history.
+If a fresh session needs more detail, follow `AGENTS.md` to the owning source. Do not expand this file into another `PROJECT_STATE`, roadmap, architecture document, acceptance history or CI ledger.
