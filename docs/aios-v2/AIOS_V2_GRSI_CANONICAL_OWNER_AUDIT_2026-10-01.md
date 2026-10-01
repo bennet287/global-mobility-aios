@@ -1,10 +1,10 @@
 # AIOS V2 — GRSI.A Canonical-Owner Duplicate / Gap Audit
 
-**Programme:** Governed Recursive Self-Improvement (GRSI)  
-**Slice:** GRSI.A — Canonical-owner duplicate/gap audit and invariant contract  
-**Audit date:** 2026-10-01  
-**Exact audited integration head:** `1b83478dab4afc523ee5c6c044511122ad5899e2`  
-**Migration head at audit:** `0093_monetary_allocation`  
+**Programme:** Governed Recursive Self-Improvement (GRSI)
+**Slice:** GRSI.A — Canonical-owner duplicate/gap audit and invariant contract
+**Audit date:** 2026-10-01
+**Exact audited integration head:** `1b83478dab4afc523ee5c6c044511122ad5899e2`
+**Migration head at audit:** `0093_monetary_allocation`
 **Nature of this slice:** read-only architecture / ownership audit. No migration, no runtime mutation, no authority change.
 
 ---
