@@ -167,6 +167,11 @@ def register_models() -> None:
         OrganizationImprovementProposal,
     )
 
+    from app.models.organization_improvement_evaluation import (  # noqa: F401
+    OrganizationImprovementEvaluationCampaign,
+    OrganizationImprovementEvaluationReport,
+)
+
     _register_legacy_metadata_constraints()
 
 
