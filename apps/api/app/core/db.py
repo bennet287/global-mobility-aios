@@ -162,6 +162,10 @@ def register_models() -> None:
     from app.models.agent_lifecycle import OrganizationAgent  # noqa: F401
     from app.models.runtime_economics import ProviderCallAllocation, ProviderCallAttempt  # noqa: F401
     from app.models.organization_standards_mapping import OrganizationStandardsMapping  # noqa: F401
+    from app.models.organization_improvement_lineage import (  # noqa: F401
+        OrganizationImprovementCandidate,
+        OrganizationImprovementProposal,
+    )
 
     _register_legacy_metadata_constraints()
 
