@@ -198,9 +198,11 @@ def withdraw_candidate_endpoint(
     )
     return project_improvement_candidate(row)
 
-# GRSI.C and GRSI.D remain sub-capabilities of the canonical organization-improvements owner.
+# GRSI.C–E remain sub-capabilities of the canonical organization-improvements owner.
 from app.routers.organization_improvement_evaluations import router as evaluation_router
 from app.routers.organization_improvement_reviews import router as review_router
+from app.routers.organization_improvement_shadows import router as shadow_router
 
 router.include_router(evaluation_router)
 router.include_router(review_router)
+router.include_router(shadow_router)

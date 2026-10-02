@@ -1,0 +1,276 @@
+from __future__ import annotations
+
+import json
+import re
+from dataclasses import dataclass
+from typing import Any
+from uuid import UUID
+
+import httpx
+from sqlmodel import Session
+
+from app.models.domain import OrganizationalWorkItem
+from app.models.organization_improvement_lineage import (
+    OrganizationImprovementCandidate,
+    OrganizationImprovementProposal,
+)
+from app.schemas_organization_improvement_shadow import (
+    ImprovementCodeShadowCiProofRead,
+    ImprovementCodeShadowCiWorkflowRead,
+)
+from app.services.organization_command import (
+    InvalidReference,
+    InvalidTransition,
+    OrganizationCommandContext,
+    OrganizationCommandError,
+    require_human,
+    tenant_record,
+)
+from app.services.organization_improvement_lineage import _proposal_is_current
+from app.services.webhook_egress import WebhookEgressPolicyError, request_public_webhook
+
+
+GITHUB_REPOSITORY = "bennet287/global-mobility-aios"
+GITHUB_REPOSITORY_TARGET = f"github:{GITHUB_REPOSITORY}"
+GITHUB_API_BASE = "https://api.github.com"
+GITHUB_API_MAX_RESPONSE_BYTES = 1_000_000
+SHADOW_WORK_TYPE = "improvement_shadow_validation"
+CANDIDATE_SOURCE_TYPE = "organization_improvement_candidate"
+_COMMIT_REFERENCE = re.compile(r"^git:commit:([0-9a-f]{40})$")
+
+
+@dataclass(frozen=True)
+class RequiredWorkflow:
+    name: str
+    path: str
+
+
+REQUIRED_WORKFLOWS: tuple[RequiredWorkflow, ...] = (
+    RequiredWorkflow("Repository Policy Check", ".github/workflows/repo-policy-check.yml"),
+    RequiredWorkflow("CodeQL", ".github/workflows/codeql.yml"),
+    RequiredWorkflow("V12 Production Proof", ".github/workflows/v12-production-proof.yml"),
+)
+
+
+class ShadowCiProofUnavailable(OrganizationCommandError):
+    """The external CI owner could not provide trustworthy exact-head evidence."""
+
+
+def _candidate_and_proposal(
+    session: Session,
+    context: OrganizationCommandContext,
+    candidate_id: UUID,
+) -> tuple[OrganizationImprovementCandidate, OrganizationImprovementProposal]:
+    candidate = tenant_record(
+        session,
+        OrganizationImprovementCandidate,
+        candidate_id,
+        context.tenant_key,
+        label="improvement candidate",
+    )
+    if candidate.status != "prepared":
+        raise InvalidTransition("shadow CI proof requires a prepared improvement candidate")
+    proposal = tenant_record(
+        session,
+        OrganizationImprovementProposal,
+        candidate.proposal_id,
+        context.tenant_key,
+        label="improvement proposal",
+    )
+    if not _proposal_is_current(session, proposal):
+        raise InvalidTransition("shadow CI proof requires a current open improvement proposal")
+    if candidate.target_type != "code_configuration":
+        raise InvalidReference("shadow CI proof is currently supported only for code_configuration candidates")
+    if candidate.target_reference != GITHUB_REPOSITORY_TARGET:
+        raise InvalidReference("code_configuration candidate does not target the canonical repository")
+    return candidate, proposal
+
+
+def _artifact_commit_sha(candidate: OrganizationImprovementCandidate) -> str:
+    match = _COMMIT_REFERENCE.fullmatch(candidate.artifact_reference)
+    if match is None:
+        raise InvalidReference("code_configuration candidate artifact_reference must be git:commit:<40 lowercase hex sha>")
+    return match.group(1)
+
+
+def _shadow_work_item(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    work_item_id: UUID,
+    candidate: OrganizationImprovementCandidate,
+) -> OrganizationalWorkItem:
+    row = tenant_record(
+        session,
+        OrganizationalWorkItem,
+        work_item_id,
+        context.tenant_key,
+        label="GRSI.E shadow work item",
+    )
+    if row.work_type != SHADOW_WORK_TYPE or row.phase_key != "GRSI.E":
+        raise InvalidReference("shadow CI proof requires a GRSI.E improvement_shadow_validation WorkItem")
+    expected = (CANDIDATE_SOURCE_TYPE, str(candidate.id), candidate.candidate_fingerprint)
+    actual = (row.source_object_type, row.source_object_id, row.source_object_version)
+    if actual != expected:
+        raise InvalidReference("shadow WorkItem must reference the exact improvement candidate id and fingerprint")
+    return row
+
+
+def _github_actions_url(commit_sha: str) -> str:
+    return (
+        f"{GITHUB_API_BASE}/repos/{GITHUB_REPOSITORY}/actions/runs"
+        f"?head_sha={commit_sha}&event=pull_request&per_page=30"
+    )
+
+
+def _fetch_runs(commit_sha: str) -> list[dict[str, Any]]:
+    try:
+        response = request_public_webhook(
+            "GET",
+            _github_actions_url(commit_sha),
+            headers={
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "User-Agent": "global-mobility-aios-grsi-shadow-proof",
+            },
+            timeout=10,
+        )
+    except (WebhookEgressPolicyError, httpx.HTTPError) as exc:
+        raise ShadowCiProofUnavailable("GitHub Actions evidence could not be retrieved safely") from exc
+
+    if response.status_code != 200:
+        raise ShadowCiProofUnavailable(
+            f"GitHub Actions evidence returned unexpected HTTP status {response.status_code}"
+        )
+    if len(response.content) > GITHUB_API_MAX_RESPONSE_BYTES:
+        raise ShadowCiProofUnavailable("GitHub Actions evidence response exceeded the bounded size")
+    try:
+        payload = response.json()
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise ShadowCiProofUnavailable("GitHub Actions evidence response was not valid JSON") from exc
+    if not isinstance(payload, dict) or not isinstance(payload.get("workflow_runs"), list):
+        raise ShadowCiProofUnavailable("GitHub Actions evidence response did not contain workflow_runs")
+    runs = payload["workflow_runs"]
+    if len(runs) > 30:
+        raise ShadowCiProofUnavailable("GitHub Actions evidence response exceeded the requested run bound")
+    return [item for item in runs if isinstance(item, dict)]
+
+
+def _int_value(value: Any) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _run_order(run: dict[str, Any]) -> tuple[int, int, int]:
+    return (
+        _int_value(run.get("run_number")) or -1,
+        _int_value(run.get("run_attempt")) or -1,
+        _int_value(run.get("id")) or -1,
+    )
+
+
+def _run_evidence_status(run: dict[str, Any] | None) -> str:
+    if run is None:
+        return "absent"
+    status = run.get("status")
+    conclusion = run.get("conclusion")
+    if status != "completed":
+        return "pending" if isinstance(status, str) else "unknown"
+    if conclusion == "success":
+        return "satisfied"
+    if conclusion in {
+        "failure",
+        "cancelled",
+        "timed_out",
+        "action_required",
+        "startup_failure",
+        "stale",
+    }:
+        return "failed"
+    return "unknown"
+
+
+def _workflow_projection(
+    required: RequiredWorkflow,
+    runs: list[dict[str, Any]],
+    *,
+    commit_sha: str,
+) -> ImprovementCodeShadowCiWorkflowRead:
+    matching = [
+        run
+        for run in runs
+        if run.get("name") == required.name
+        and run.get("path") == required.path
+        and run.get("head_sha") == commit_sha
+        and run.get("event") == "pull_request"
+    ]
+    selected = max(matching, key=_run_order) if matching else None
+    return ImprovementCodeShadowCiWorkflowRead(
+        workflow_name=required.name,
+        workflow_path=required.path,
+        run_id=_int_value(selected.get("id")) if selected else None,
+        run_number=_int_value(selected.get("run_number")) if selected else None,
+        run_attempt=_int_value(selected.get("run_attempt")) if selected else None,
+        status=selected.get("status") if selected and isinstance(selected.get("status"), str) else None,
+        conclusion=(
+            selected.get("conclusion")
+            if selected and isinstance(selected.get("conclusion"), str)
+            else None
+        ),
+        evidence_status=_run_evidence_status(selected),
+        head_sha=selected.get("head_sha") if selected and isinstance(selected.get("head_sha"), str) else None,
+        event=selected.get("event") if selected and isinstance(selected.get("event"), str) else None,
+        html_url=selected.get("html_url") if selected and isinstance(selected.get("html_url"), str) else None,
+    )
+
+
+def _aggregate_status(workflows: tuple[ImprovementCodeShadowCiWorkflowRead, ...]) -> str:
+    statuses = [item.evidence_status for item in workflows]
+    if all(status == "satisfied" for status in statuses):
+        return "complete"
+    if "failed" in statuses:
+        return "failed"
+    if "pending" in statuses:
+        return "pending"
+    if "absent" in statuses:
+        return "partial"
+    return "unknown"
+
+
+def project_code_shadow_ci_proof(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    candidate_id: UUID,
+    work_item_id: UUID,
+) -> ImprovementCodeShadowCiProofRead:
+    """Verify exact-head repository CI without creating execution or authority truth."""
+
+    require_human(context, admin=True)
+    candidate, proposal = _candidate_and_proposal(session, context, candidate_id)
+    commit_sha = _artifact_commit_sha(candidate)
+    work_item = _shadow_work_item(
+        session,
+        context,
+        work_item_id=work_item_id,
+        candidate=candidate,
+    )
+    runs = _fetch_runs(commit_sha)
+    workflows = tuple(
+        _workflow_projection(required, runs, commit_sha=commit_sha)
+        for required in REQUIRED_WORKFLOWS
+    )
+    aggregate = _aggregate_status(workflows)
+    return ImprovementCodeShadowCiProofRead(
+        candidate_id=candidate.id,
+        proposal_id=proposal.id,
+        work_item_id=work_item.id,
+        candidate_version=candidate.candidate_version,
+        candidate_fingerprint=candidate.candidate_fingerprint,
+        artifact_commit_sha=commit_sha,
+        repository=GITHUB_REPOSITORY,
+        work_item_status=work_item.status,
+        ci_evidence_status=aggregate,
+        workflows=workflows,
+        shadow_execution_observed=any(item.run_id is not None for item in workflows),
+        shadow_ci_evidence_complete=aggregate == "complete",
+    )
