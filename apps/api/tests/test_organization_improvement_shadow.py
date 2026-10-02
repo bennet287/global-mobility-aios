@@ -13,12 +13,15 @@ from app.models.domain import (
     ExecutiveDecision,
     OfficialSource,
     OrganizationActorType,
+    OrganizationDecisionType,
     OrganizationHumanAction,
     OrganizationRecordReference,
     OrganizationReferenceRole,
     OrganizationReferenceTargetType,
     OrganizationalWorkItem,
 )
+from app.models.organization_improvement_evaluation import OrganizationImprovementEvaluationCampaign
+from app.models.organization_improvement_review import OrganizationImprovementReviewPackage
 from app.models.runtime_economics import MonetaryAllocation
 from app.services.organization_command import InvalidReference, OrganizationCommandContext
 from app.services.organization_improvement_lineage import (
@@ -28,6 +31,7 @@ from app.services.organization_improvement_lineage import (
 from app.services.organization_improvement_shadow import (
     GITHUB_REPOSITORY_TARGET,
     REQUIRED_WORKFLOWS,
+    ROADMAP_DEPENDENCY_GATE_STATUS,
     SHADOW_WORK_TYPE,
     ShadowCiProofUnavailable,
     project_code_shadow_ci_proof,
@@ -228,7 +232,17 @@ def test_code_shadow_ci_proof_verifies_exact_head_without_authority_side_effects
     assert proof.ci_evidence_status == "complete"
     assert proof.shadow_execution_observed is True
     assert proof.shadow_ci_evidence_complete is True
+    assert proof.cross_team_review_status == "absent"
+    assert proof.admission_decision_status == "absent"
+    assert proof.pre_dependency_admission_ready is False
+    assert proof.roadmap_dependency_gate_status == ROADMAP_DEPENDENCY_GATE_STATUS
+    assert proof.admission_blockers == (
+        "grsi_d_review:absent",
+        "shadow_work_decision:absent",
+        f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_STATUS}",
+    )
     assert proof.grsi_e_qualified is False
+    assert proof.grsi_e_admission_conclusion == "blocked_missing_required_evidence"
     assert proof.authority_conclusion == "none_granted"
     assert proof.active_version_changed is False
     assert proof.deployment_authorized is False
@@ -355,3 +369,158 @@ def test_code_shadow_ci_endpoint_is_no_store_and_authority_neutral(
     assert body["grsi_e_qualified"] is False
     assert body["authority_conclusion"] == "none_granted"
     assert body["deployment_authorized"] is False
+
+def _complete_review_package(
+    session: Session,
+    candidate,
+) -> OrganizationImprovementReviewPackage:
+    campaign = OrganizationImprovementEvaluationCampaign(
+        tenant_key=candidate.tenant_key,
+        campaign_key=f"grsi-e-eval-{uuid4()}",
+        campaign_version=1,
+        candidate_id=candidate.id,
+        proposal_id=candidate.proposal_id,
+        target_type=candidate.target_type,
+        target_reference=candidate.target_reference,
+        baseline_version=candidate.baseline_version,
+        baseline_fingerprint=candidate.baseline_fingerprint,
+        candidate_version=candidate.candidate_version,
+        candidate_fingerprint=candidate.candidate_fingerprint,
+        candidate_author_identities_json="[]",
+        candidate_author_evidence_reference_ids_json="[]",
+        evaluation_set_key="grsi-e-eval-set",
+        evaluation_set_version="v1",
+        evaluation_set_fingerprint="3" * 64,
+        evaluation_set_reference_ids_json="[]",
+        regression_constraints_json="[]",
+        required_structurally_separate_evaluators=1,
+        status="closed",
+        comparison_conclusion="constraints_met",
+        record_fingerprint="4" * 64,
+        created_by="pytest",
+    )
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+    package = OrganizationImprovementReviewPackage(
+        tenant_key=candidate.tenant_key,
+        package_key=f"grsi-e-review-{uuid4()}",
+        package_version=1,
+        candidate_id=candidate.id,
+        proposal_id=candidate.proposal_id,
+        evaluation_campaign_id=campaign.id,
+        candidate_fingerprint=candidate.candidate_fingerprint,
+        risk_class="high",
+        risk_basis_reference_ids_json="[]",
+        review_policy_key="pytest-review",
+        review_policy_version=1,
+        review_policy_fingerprint="5" * 64,
+        required_review_kinds_json="[]",
+        review_bindings_json="[]",
+        record_fingerprint="6" * 64,
+        created_by="pytest",
+    )
+    session.add(package)
+    session.commit()
+    session.refresh(package)
+    return package
+
+
+def _approved_shadow_decision(
+    session: Session,
+    candidate,
+    work: OrganizationalWorkItem,
+    *,
+    status: str = "approved",
+    supersedes_decision_id: UUID | None = None,
+) -> ExecutiveDecision:
+    row = ExecutiveDecision(
+        decision_key=f"grsi-e-admission-{uuid4()}",
+        tenant_key=candidate.tenant_key,
+        decision_type=OrganizationDecisionType.board_reserved,
+        work_item_id=work.id,
+        source_object_type="organization_improvement_candidate",
+        source_object_id=str(candidate.id),
+        source_object_version=candidate.candidate_fingerprint,
+        supersedes_decision_id=supersedes_decision_id,
+        authority_level=work.authority_level,
+        requested_by_position="cto",
+        decision_owner_position="board",
+        title="Admit bounded GRSI.E code shadow validation",
+        question="May the exact candidate be observed through non-active repository CI?",
+        recommendation="Admit only the bounded shadow-validation WorkItem.",
+        status=status,
+        decided_by="pytest-board" if status in {"approved", "rejected"} else None,
+        decision_reason="Pytest governed admission." if status in {"approved", "rejected"} else None,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def test_code_shadow_admission_surfaces_review_and_decision_but_keeps_dependency_gate_closed(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, work = _candidate_and_shadow_work(db_session)
+    package = _complete_review_package(db_session, candidate)
+    decision = _approved_shadow_decision(db_session, candidate, work)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.request_public_webhook",
+        lambda *args, **kwargs: _response(_runs()),
+    )
+
+    proof = project_code_shadow_ci_proof(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        work_item_id=work.id,
+    )
+
+    assert proof.review_package_id == package.id
+    assert proof.candidate_risk_class == "high"
+    assert proof.cross_team_review_status == "complete"
+    assert proof.admission_decision_id == decision.id
+    assert proof.admission_decision_status == "approved"
+    assert proof.pre_dependency_admission_ready is True
+    assert proof.admission_blockers == (
+        f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_STATUS}",
+    )
+    assert proof.grsi_e_qualified is False
+    assert proof.grsi_e_admission_conclusion == "blocked_unverified_phase_dependencies"
+    assert proof.authority_conclusion == "none_granted"
+    assert proof.deployment_authorized is False
+
+
+def test_code_shadow_admission_uses_current_superseding_decision_fail_closed(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, work = _candidate_and_shadow_work(db_session)
+    _complete_review_package(db_session, candidate)
+    approved = _approved_shadow_decision(db_session, candidate, work)
+    rejected = _approved_shadow_decision(
+        db_session,
+        candidate,
+        work,
+        status="rejected",
+        supersedes_decision_id=approved.id,
+    )
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.request_public_webhook",
+        lambda *args, **kwargs: _response(_runs()),
+    )
+
+    proof = project_code_shadow_ci_proof(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        work_item_id=work.id,
+    )
+
+    assert proof.admission_decision_id == rejected.id
+    assert proof.admission_decision_status == "denied"
+    assert proof.pre_dependency_admission_ready is False
+    assert "shadow_work_decision:denied" in proof.admission_blockers
+    assert proof.grsi_e_qualified is False

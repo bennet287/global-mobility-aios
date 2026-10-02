@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict
 
 ShadowCiEvidenceStatus = Literal["absent", "pending", "satisfied", "failed", "unknown"]
 ShadowCiAggregateStatus = Literal["complete", "partial", "pending", "failed", "unknown"]
+ShadowReviewStatus = Literal["absent", "incomplete", "complete", "failed", "unknown"]
+ShadowAdmissionDecisionStatus = Literal["absent", "pending", "approved", "denied", "unknown"]
 
 
 class ImprovementCodeShadowCiWorkflowRead(BaseModel):
@@ -41,9 +43,17 @@ class ImprovementCodeShadowCiProofRead(BaseModel):
     workflows: tuple[ImprovementCodeShadowCiWorkflowRead, ...]
     shadow_execution_observed: bool
     shadow_ci_evidence_complete: bool
+    review_package_id: UUID | None
+    candidate_risk_class: str | None
+    cross_team_review_status: ShadowReviewStatus
+    admission_decision_id: UUID | None
+    admission_decision_status: ShadowAdmissionDecisionStatus
+    pre_dependency_admission_ready: bool
+    roadmap_dependency_gate_status: str
+    admission_blockers: tuple[str, ...]
     grsi_e_qualified: bool = False
-    grsi_e_admission_conclusion: str = "not_assessed_existing_authority_and_dependency_gates_required"
-    cross_team_review_conclusion: str = "not_assessed_use_grsi_d"
+    grsi_e_admission_conclusion: str
+    cross_team_review_conclusion: str
     authority_conclusion: str = "none_granted"
     promotion_conclusion: str = "not_assessed"
     active_version_changed: bool = False
