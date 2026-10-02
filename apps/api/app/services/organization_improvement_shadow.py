@@ -7,13 +7,14 @@ from typing import Any
 from uuid import UUID
 
 import httpx
-from sqlmodel import Session
+from sqlmodel import Session, select
 
-from app.models.domain import OrganizationalWorkItem
+from app.models.domain import ExecutiveDecision, OrganizationalWorkItem
 from app.models.organization_improvement_lineage import (
     OrganizationImprovementCandidate,
     OrganizationImprovementProposal,
 )
+from app.models.organization_improvement_review import OrganizationImprovementReviewPackage
 from app.schemas_organization_improvement_shadow import (
     ImprovementCodeShadowCiProofRead,
     ImprovementCodeShadowCiWorkflowRead,
@@ -27,6 +28,7 @@ from app.services.organization_command import (
     tenant_record,
 )
 from app.services.organization_improvement_lineage import _proposal_is_current
+from app.services.organization_improvement_review import project_review_package
 from app.services.webhook_egress import WebhookEgressPolicyError, request_public_webhook
 
 
@@ -36,6 +38,7 @@ GITHUB_API_BASE = "https://api.github.com"
 GITHUB_API_MAX_RESPONSE_BYTES = 1_000_000
 SHADOW_WORK_TYPE = "improvement_shadow_validation"
 CANDIDATE_SOURCE_TYPE = "organization_improvement_candidate"
+ROADMAP_DEPENDENCY_GATE_STATUS = "unresolved_no_canonical_risk_class_mapping"
 _COMMIT_REFERENCE = re.compile(r"^git:commit:([0-9a-f]{40})$")
 
 
@@ -236,6 +239,106 @@ def _aggregate_status(workflows: tuple[ImprovementCodeShadowCiWorkflowRead, ...]
     return "unknown"
 
 
+def _current_review_summary(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    candidate: OrganizationImprovementCandidate,
+) -> tuple[UUID | None, str | None, str]:
+    rows = session.exec(
+        select(OrganizationImprovementReviewPackage)
+        .where(
+            OrganizationImprovementReviewPackage.tenant_key == context.tenant_key,
+            OrganizationImprovementReviewPackage.candidate_id == candidate.id,
+        )
+        .order_by(OrganizationImprovementReviewPackage.package_version.desc())
+    ).all()
+    if not rows:
+        return None, None, "absent"
+
+    superseded_ids = {
+        row.supersedes_package_id
+        for row in rows
+        if row.supersedes_package_id is not None
+    }
+    current = [row for row in rows if row.id not in superseded_ids]
+    if len(current) != 1:
+        return None, None, "unknown"
+
+    row = current[0]
+    projection = project_review_package(session, context, row)
+    if projection.promotion_evidence_complete_for_decision:
+        return row.id, row.risk_class, "complete"
+
+    requirement_statuses = [item.status for item in projection.review_requirements]
+    if projection.evaluation_status == "failed" or "failed" in requirement_statuses:
+        status = "failed"
+    elif projection.evaluation_status == "pending" or any(
+        value in {"absent", "pending"} for value in requirement_statuses
+    ):
+        status = "incomplete"
+    else:
+        status = "unknown"
+    return row.id, row.risk_class, status
+
+
+def _current_admission_decision(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    candidate: OrganizationImprovementCandidate,
+    work_item: OrganizationalWorkItem,
+) -> tuple[UUID | None, str]:
+    rows = session.exec(
+        select(ExecutiveDecision).where(
+            ExecutiveDecision.tenant_key == context.tenant_key,
+            ExecutiveDecision.work_item_id == work_item.id,
+            ExecutiveDecision.source_object_type == CANDIDATE_SOURCE_TYPE,
+            ExecutiveDecision.source_object_id == str(candidate.id),
+            ExecutiveDecision.source_object_version == candidate.candidate_fingerprint,
+        )
+    ).all()
+    if not rows:
+        return None, "absent"
+
+    superseded_ids = {
+        row.supersedes_decision_id
+        for row in rows
+        if row.supersedes_decision_id is not None
+    }
+    current = [row for row in rows if row.id not in superseded_ids]
+    if len(current) != 1:
+        return None, "unknown"
+
+    row = current[0]
+    if row.authority_level != work_item.authority_level:
+        return row.id, "unknown"
+    if row.status == "approved":
+        return row.id, "approved"
+    if row.status in {"rejected", "returned", "expired", "superseded"}:
+        return row.id, "denied"
+    if row.status in {"pending_ceo", "coordinating_ceo", "pending_board"}:
+        return row.id, "pending"
+    return row.id, "unknown"
+
+
+def _admission_blockers(
+    *,
+    ci_status: str,
+    review_status: str,
+    decision_status: str,
+) -> tuple[str, ...]:
+    blockers: list[str] = []
+    if ci_status != "complete":
+        blockers.append(f"shadow_ci:{ci_status}")
+    if review_status != "complete":
+        blockers.append(f"grsi_d_review:{review_status}")
+    if decision_status != "approved":
+        blockers.append(f"shadow_work_decision:{decision_status}")
+    blockers.append(f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_STATUS}")
+    return tuple(blockers)
+
+
 def project_code_shadow_ci_proof(
     session: Session,
     context: OrganizationCommandContext,
@@ -260,6 +363,32 @@ def project_code_shadow_ci_proof(
         for required in REQUIRED_WORKFLOWS
     )
     aggregate = _aggregate_status(workflows)
+    review_package_id, risk_class, review_status = _current_review_summary(
+        session,
+        context,
+        candidate=candidate,
+    )
+    decision_id, decision_status = _current_admission_decision(
+        session,
+        context,
+        candidate=candidate,
+        work_item=work_item,
+    )
+    pre_dependency_ready = (
+        aggregate == "complete"
+        and review_status == "complete"
+        and decision_status == "approved"
+    )
+    blockers = _admission_blockers(
+        ci_status=aggregate,
+        review_status=review_status,
+        decision_status=decision_status,
+    )
+    admission_conclusion = (
+        "blocked_unverified_phase_dependencies"
+        if pre_dependency_ready
+        else "blocked_missing_required_evidence"
+    )
     return ImprovementCodeShadowCiProofRead(
         candidate_id=candidate.id,
         proposal_id=proposal.id,
@@ -273,4 +402,15 @@ def project_code_shadow_ci_proof(
         workflows=workflows,
         shadow_execution_observed=any(item.run_id is not None for item in workflows),
         shadow_ci_evidence_complete=aggregate == "complete",
+        review_package_id=review_package_id,
+        candidate_risk_class=risk_class,
+        cross_team_review_status=review_status,
+        admission_decision_id=decision_id,
+        admission_decision_status=decision_status,
+        pre_dependency_admission_ready=pre_dependency_ready,
+        roadmap_dependency_gate_status=ROADMAP_DEPENDENCY_GATE_STATUS,
+        admission_blockers=blockers,
+        grsi_e_qualified=False,
+        grsi_e_admission_conclusion=admission_conclusion,
+        cross_team_review_conclusion=review_status,
     )
