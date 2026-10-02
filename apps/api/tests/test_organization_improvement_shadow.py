@@ -24,6 +24,11 @@ from app.models.organization_improvement_evaluation import OrganizationImproveme
 from app.models.organization_improvement_review import OrganizationImprovementReviewPackage
 from app.models.runtime_economics import MonetaryAllocation
 from app.services.organization_command import InvalidReference, OrganizationCommandContext
+from app.services.organization_improvement_admission_policy import (
+    PHASE16_HARD_MONETARY_CEILING_CONTRACT,
+    PHASE17_CODEQL_EXACT_HEAD_CONTRACT,
+    establish_improvement_admission_dependency_policy,
+)
 from app.services.organization_improvement_lineage import (
     create_improvement_candidate,
     create_improvement_proposal,
@@ -31,9 +36,12 @@ from app.services.organization_improvement_lineage import (
 from app.services.organization_improvement_shadow import (
     GITHUB_REPOSITORY_TARGET,
     REQUIRED_WORKFLOWS,
-    ROADMAP_DEPENDENCY_GATE_STATUS,
+    ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT,
+    ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE,
+    ROADMAP_DEPENDENCY_GATE_SATISFIED,
     SHADOW_WORK_TYPE,
     ShadowCiProofUnavailable,
+    _dependency_contract_projection,
     project_code_shadow_ci_proof,
 )
 
@@ -235,11 +243,14 @@ def test_code_shadow_ci_proof_verifies_exact_head_without_authority_side_effects
     assert proof.cross_team_review_status == "absent"
     assert proof.admission_decision_status == "absent"
     assert proof.pre_dependency_admission_ready is False
-    assert proof.roadmap_dependency_gate_status == ROADMAP_DEPENDENCY_GATE_STATUS
+    assert proof.admission_policy_id is None
+    assert proof.admission_policy_version is None
+    assert proof.dependency_phases == ()
+    assert proof.roadmap_dependency_gate_status == ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE
     assert proof.admission_blockers == (
         "grsi_d_review:absent",
         "shadow_work_decision:absent",
-        f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_STATUS}",
+        f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE}",
     )
     assert proof.grsi_e_qualified is False
     assert proof.grsi_e_admission_conclusion == "blocked_missing_required_evidence"
@@ -459,6 +470,57 @@ def _approved_shadow_decision(
     return row
 
 
+def _admission_policy(
+    session: Session,
+    *,
+    require_phase16: bool = False,
+):
+    requirements = [
+        {
+            "phase_key": "phase16",
+            "disposition": "required" if require_phase16 else "not_required",
+            "dependency_contract_keys": (
+                [PHASE16_HARD_MONETARY_CEILING_CONTRACT]
+                if require_phase16
+                else []
+            ),
+            "rationale": (
+                "Require a provable monetary ceiling for paid shadow behavior."
+                if require_phase16
+                else "This repository-only shadow does not cross a paid-provider boundary."
+            ),
+        },
+        {
+            "phase_key": "phase17",
+            "disposition": "required",
+            "dependency_contract_keys": [PHASE17_CODEQL_EXACT_HEAD_CONTRACT],
+            "rationale": "Exact-head CodeQL must pass for code/configuration shadow evidence.",
+        },
+        {
+            "phase_key": "phase19",
+            "disposition": "not_required",
+            "dependency_contract_keys": [],
+            "rationale": "This bounded repository shadow does not claim learned procedure evidence.",
+        },
+        {
+            "phase_key": "phase20",
+            "disposition": "not_required",
+            "dependency_contract_keys": [],
+            "rationale": "This bounded repository shadow does not expand autonomy or resources.",
+        },
+    ]
+    return establish_improvement_admission_dependency_policy(
+        session,
+        _admin_context(),
+        target_type="code_configuration",
+        execution_mode="shadow",
+        candidate_risk_class="high",
+        phase_requirements=requirements,
+        policy_reason="Pytest bounded GRSI.E code shadow dependency policy.",
+        idempotency_key=f"grsi-e-shadow-policy-{uuid4()}",
+    )
+
+
 def test_code_shadow_admission_surfaces_review_and_decision_but_keeps_dependency_gate_closed(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
@@ -484,8 +546,11 @@ def test_code_shadow_admission_surfaces_review_and_decision_but_keeps_dependency
     assert proof.admission_decision_id == decision.id
     assert proof.admission_decision_status == "approved"
     assert proof.pre_dependency_admission_ready is True
+    assert proof.admission_policy_id is None
+    assert proof.dependency_phases == ()
+    assert proof.roadmap_dependency_gate_status == ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT
     assert proof.admission_blockers == (
-        f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_STATUS}",
+        f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT}",
     )
     assert proof.grsi_e_qualified is False
     assert proof.grsi_e_admission_conclusion == "blocked_unverified_phase_dependencies"
@@ -524,3 +589,99 @@ def test_code_shadow_admission_uses_current_superseding_decision_fail_closed(
     assert proof.pre_dependency_admission_ready is False
     assert "shadow_work_decision:denied" in proof.admission_blockers
     assert proof.grsi_e_qualified is False
+
+def test_code_shadow_admission_qualifies_only_when_current_dependency_policy_is_satisfied(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, work = _candidate_and_shadow_work(db_session)
+    _complete_review_package(db_session, candidate)
+    _approved_shadow_decision(db_session, candidate, work)
+    policy = _admission_policy(db_session)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.request_public_webhook",
+        lambda *args, **kwargs: _response(_runs()),
+    )
+
+    proof = project_code_shadow_ci_proof(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        work_item_id=work.id,
+    )
+
+    assert proof.pre_dependency_admission_ready is True
+    assert proof.admission_policy_id == policy.id
+    assert proof.admission_policy_version == 1
+    assert proof.roadmap_dependency_gate_status == ROADMAP_DEPENDENCY_GATE_SATISFIED
+    assert [item.evidence_status for item in proof.dependency_phases] == [
+        "not_required",
+        "satisfied",
+        "not_required",
+        "not_required",
+    ]
+    phase17 = next(item for item in proof.dependency_phases if item.phase_key == "phase17")
+    assert phase17.contracts[0].contract_key == PHASE17_CODEQL_EXACT_HEAD_CONTRACT
+    assert phase17.contracts[0].evidence_status == "satisfied"
+    assert proof.admission_blockers == ()
+    assert proof.grsi_e_qualified is True
+    assert proof.grsi_e_admission_conclusion == "qualified_for_bounded_code_shadow"
+    assert proof.authority_conclusion == "none_granted"
+    assert proof.deployment_authorized is False
+    assert proof.external_action_authorized is False
+
+
+def test_code_shadow_admission_keeps_phase16_hard_monetary_ceiling_fail_closed(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, work = _candidate_and_shadow_work(db_session)
+    _complete_review_package(db_session, candidate)
+    _approved_shadow_decision(db_session, candidate, work)
+    _admission_policy(db_session, require_phase16=True)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.request_public_webhook",
+        lambda *args, **kwargs: _response(_runs()),
+    )
+
+    proof = project_code_shadow_ci_proof(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        work_item_id=work.id,
+    )
+
+    phase16 = next(item for item in proof.dependency_phases if item.phase_key == "phase16")
+    assert phase16.evidence_status == "unsatisfied"
+    assert phase16.contracts[0].contract_key == PHASE16_HARD_MONETARY_CEILING_CONTRACT
+    assert phase16.contracts[0].evidence_status == "unsatisfied"
+    assert "provable_pre_call_monetary_ceiling_missing" in phase16.contracts[0].reasons
+    assert (
+        f"roadmap_dependency:{PHASE16_HARD_MONETARY_CEILING_CONTRACT}:unsatisfied"
+        in proof.admission_blockers
+    )
+    assert proof.grsi_e_qualified is False
+    assert proof.grsi_e_admission_conclusion == "blocked_unverified_phase_dependencies"
+
+def test_phase16_dependency_does_not_reuse_global_economics_for_other_tenant(
+    db_session: Session,
+) -> None:
+    context = OrganizationCommandContext(
+        tenant_key="other-tenant",
+        actor_id="other-board",
+        actor_type=OrganizationActorType.human,
+        authenticated_user_id="other-board",
+        role="admin",
+        department="executive",
+        position_key="board",
+        authority_level="L4",
+    )
+    evidence = _dependency_contract_projection(
+        db_session,
+        context,
+        contract_key=PHASE16_HARD_MONETARY_CEILING_CONTRACT,
+        workflows=(),
+    )
+
+    assert evidence.evidence_status == "unknown"
+    assert evidence.reasons == ("phase16_runtime_economics_not_tenant_scoped",)

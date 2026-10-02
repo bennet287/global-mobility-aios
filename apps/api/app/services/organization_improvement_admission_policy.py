@@ -40,9 +40,11 @@ SUPPORTED_TARGET_TYPE = "code_configuration"
 SUPPORTED_EXECUTION_MODE = "shadow"
 PHASE_ORDER = ("phase16", "phase17", "phase19", "phase20")
 RISK_CLASSES = frozenset({"low", "medium", "high", "critical"})
+PHASE16_HARD_MONETARY_CEILING_CONTRACT = "phase16.runtime_economics.hard_monetary_ceiling.v1"
+PHASE17_CODEQL_EXACT_HEAD_CONTRACT = "phase17.repository.codeql_exact_head.v1"
 SUPPORTED_DEPENDENCY_CONTRACT_PHASE: dict[str, str] = {
-    "phase16.runtime_economics.hard_monetary_ceiling.v1": "phase16",
-    "phase17.repository.codeql_exact_head.v1": "phase17",
+    PHASE16_HARD_MONETARY_CEILING_CONTRACT: "phase16",
+    PHASE17_CODEQL_EXACT_HEAD_CONTRACT: "phase17",
 }
 
 
@@ -420,14 +422,14 @@ def project_improvement_admission_dependency_policy(
     )
 
 
-def current_improvement_admission_dependency_policy(
+def maybe_current_improvement_admission_dependency_policy(
     session: Session,
     context: OrganizationCommandContext,
     *,
     target_type: str,
     execution_mode: str,
     candidate_risk_class: str,
-) -> ImprovementAdmissionDependencyPolicyRead:
+) -> ImprovementAdmissionDependencyPolicyRead | None:
     require_human(context, admin=True)
     target_type, execution_mode, candidate_risk_class = _normalize_scope(
         target_type=target_type,
@@ -442,13 +444,33 @@ def current_improvement_admission_dependency_policy(
         candidate_risk_class=candidate_risk_class,
     )
     if not rows:
-        raise InvalidReference("current GRSI admission dependency policy was not found")
+        return None
     row = rows[-1]
     return _project_row(
         row,
         requirements=_stored_phase_requirements(row),
         lifecycle_status="CURRENT",
     )
+
+
+def current_improvement_admission_dependency_policy(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    target_type: str,
+    execution_mode: str,
+    candidate_risk_class: str,
+) -> ImprovementAdmissionDependencyPolicyRead:
+    current = maybe_current_improvement_admission_dependency_policy(
+        session,
+        context,
+        target_type=target_type,
+        execution_mode=execution_mode,
+        candidate_risk_class=candidate_risk_class,
+    )
+    if current is None:
+        raise InvalidReference("current GRSI admission dependency policy was not found")
+    return current
 
 
 def establish_improvement_admission_dependency_policy(

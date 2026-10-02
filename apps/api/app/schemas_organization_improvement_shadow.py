@@ -10,6 +10,33 @@ ShadowCiEvidenceStatus = Literal["absent", "pending", "satisfied", "failed", "un
 ShadowCiAggregateStatus = Literal["complete", "partial", "pending", "failed", "unknown"]
 ShadowReviewStatus = Literal["absent", "incomplete", "complete", "failed", "unknown"]
 ShadowAdmissionDecisionStatus = Literal["absent", "pending", "approved", "denied", "unknown"]
+ShadowDependencyEvidenceStatus = Literal[
+    "not_required",
+    "satisfied",
+    "unsatisfied",
+    "pending",
+    "absent",
+    "failed",
+    "unknown",
+]
+
+
+class ImprovementCodeShadowDependencyContractRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    contract_key: str
+    evidence_status: ShadowDependencyEvidenceStatus
+    reasons: tuple[str, ...] = ()
+
+
+class ImprovementCodeShadowDependencyPhaseRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    phase_key: str
+    disposition: str
+    evidence_status: ShadowDependencyEvidenceStatus
+    rationale: str
+    contracts: tuple[ImprovementCodeShadowDependencyContractRead, ...] = ()
 
 
 class ImprovementCodeShadowCiWorkflowRead(BaseModel):
@@ -49,6 +76,9 @@ class ImprovementCodeShadowCiProofRead(BaseModel):
     admission_decision_id: UUID | None
     admission_decision_status: ShadowAdmissionDecisionStatus
     pre_dependency_admission_ready: bool
+    admission_policy_id: UUID | None
+    admission_policy_version: int | None
+    dependency_phases: tuple[ImprovementCodeShadowDependencyPhaseRead, ...]
     roadmap_dependency_gate_status: str
     admission_blockers: tuple[str, ...]
     grsi_e_qualified: bool = False
@@ -64,8 +94,8 @@ class ImprovementCodeShadowCiProofRead(BaseModel):
     external_action_authorized: bool = False
     canary_conclusion: str = "not_assessed_target_host_acceptance_required"
     limitations: tuple[str, ...] = (
-        "This projection verifies repository CI evidence for the exact non-active code/configuration candidate commit; it does not authorize or admit GRSI.E execution.",
-        "A linked WorkItem proves bounded experiment identity only. Existing Decision/HumanAction and roadmap risk-class dependency gates remain separate authority prerequisites.",
+        "This projection can qualify exact non-active code/configuration shadow evidence only when current review, Decision, CI and Board-authored dependency policy requirements are all satisfied.",
+        "GRSI.E shadow qualification is evidence readiness for this bounded candidate/work scope; it is not canary, promotion, activation, deployment, tool, credential, budget or external-action authority.",
         "Repository CI is shadow-style engineering evidence, not production activation, production outcome evidence, live-host canary evidence, or deployment acceptance.",
         "The GitHub Actions owner remains authoritative for workflow execution state; this projection stores no duplicate CI execution truth.",
     )

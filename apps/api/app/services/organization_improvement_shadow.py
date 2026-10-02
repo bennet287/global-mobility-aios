@@ -18,6 +18,8 @@ from app.models.organization_improvement_review import OrganizationImprovementRe
 from app.schemas_organization_improvement_shadow import (
     ImprovementCodeShadowCiProofRead,
     ImprovementCodeShadowCiWorkflowRead,
+    ImprovementCodeShadowDependencyContractRead,
+    ImprovementCodeShadowDependencyPhaseRead,
 )
 from app.services.organization_command import (
     InvalidReference,
@@ -27,8 +29,14 @@ from app.services.organization_command import (
     require_human,
     tenant_record,
 )
+from app.services.organization_improvement_admission_policy import (
+    PHASE16_HARD_MONETARY_CEILING_CONTRACT,
+    PHASE17_CODEQL_EXACT_HEAD_CONTRACT,
+    maybe_current_improvement_admission_dependency_policy,
+)
 from app.services.organization_improvement_lineage import _proposal_is_current
 from app.services.organization_improvement_review import project_review_package
+from app.services.runtime_economics import summarize_cost_evidence
 from app.services.webhook_egress import WebhookEgressPolicyError, request_public_webhook
 
 
@@ -38,7 +46,10 @@ GITHUB_API_BASE = "https://api.github.com"
 GITHUB_API_MAX_RESPONSE_BYTES = 1_000_000
 SHADOW_WORK_TYPE = "improvement_shadow_validation"
 CANDIDATE_SOURCE_TYPE = "organization_improvement_candidate"
-ROADMAP_DEPENDENCY_GATE_STATUS = "unresolved_no_canonical_risk_class_mapping"
+ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE = "candidate_risk_class_unavailable"
+ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT = "policy_absent"
+ROADMAP_DEPENDENCY_GATE_BLOCKED = "blocked"
+ROADMAP_DEPENDENCY_GATE_SATISFIED = "satisfied"
 _COMMIT_REFERENCE = re.compile(r"^git:commit:([0-9a-f]{40})$")
 
 
@@ -322,11 +333,183 @@ def _current_admission_decision(
     return row.id, "unknown"
 
 
+def _dependency_contract_projection(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    contract_key: str,
+    workflows: tuple[ImprovementCodeShadowCiWorkflowRead, ...],
+) -> ImprovementCodeShadowDependencyContractRead:
+    if contract_key == PHASE17_CODEQL_EXACT_HEAD_CONTRACT:
+        workflow = next(
+            (
+                item
+                for item in workflows
+                if item.workflow_name == "CodeQL"
+                and item.workflow_path == ".github/workflows/codeql.yml"
+            ),
+            None,
+        )
+        if workflow is None:
+            return ImprovementCodeShadowDependencyContractRead(
+                contract_key=contract_key,
+                evidence_status="absent",
+                reasons=("exact_head_codeql_workflow_not_projected",),
+            )
+        return ImprovementCodeShadowDependencyContractRead(
+            contract_key=contract_key,
+            evidence_status=workflow.evidence_status,
+            reasons=(
+                ()
+                if workflow.evidence_status == "satisfied"
+                else (f"exact_head_codeql:{workflow.evidence_status}",)
+            ),
+        )
+
+    if contract_key == PHASE16_HARD_MONETARY_CEILING_CONTRACT:
+        if context.tenant_key != "default":
+            return ImprovementCodeShadowDependencyContractRead(
+                contract_key=contract_key,
+                evidence_status="unknown",
+                reasons=("phase16_runtime_economics_not_tenant_scoped",),
+            )
+        summary = summarize_cost_evidence(session)
+        budget = summary.get("monetary_budget")
+        if not isinstance(budget, dict):
+            return ImprovementCodeShadowDependencyContractRead(
+                contract_key=contract_key,
+                evidence_status="unknown",
+                reasons=("phase16_monetary_budget_projection_invalid",),
+            )
+        enforceable = budget.get("enforceable") is True
+        raw_blockers = budget.get("blockers")
+        reasons = (
+            tuple(str(item) for item in raw_blockers)
+            if isinstance(raw_blockers, list)
+            else ()
+        )
+        return ImprovementCodeShadowDependencyContractRead(
+            contract_key=contract_key,
+            evidence_status="satisfied" if enforceable else "unsatisfied",
+            reasons=() if enforceable else (reasons or ("hard_monetary_ceiling_not_proven",)),
+        )
+
+    return ImprovementCodeShadowDependencyContractRead(
+        contract_key=contract_key,
+        evidence_status="unknown",
+        reasons=("dependency_contract_resolver_not_implemented",),
+    )
+
+
+def _phase_dependency_status(
+    contracts: tuple[ImprovementCodeShadowDependencyContractRead, ...],
+) -> str:
+    statuses = [item.evidence_status for item in contracts]
+    if statuses and all(status == "satisfied" for status in statuses):
+        return "satisfied"
+    if "failed" in statuses:
+        return "failed"
+    if "unsatisfied" in statuses:
+        return "unsatisfied"
+    if "pending" in statuses:
+        return "pending"
+    if "absent" in statuses:
+        return "absent"
+    return "unknown"
+
+
+def _dependency_projection(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    risk_class: str | None,
+    workflows: tuple[ImprovementCodeShadowCiWorkflowRead, ...],
+) -> tuple[
+    UUID | None,
+    int | None,
+    tuple[ImprovementCodeShadowDependencyPhaseRead, ...],
+    str,
+    tuple[str, ...],
+]:
+    if risk_class is None:
+        return (
+            None,
+            None,
+            (),
+            ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE,
+            (f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE}",),
+        )
+
+    policy = maybe_current_improvement_admission_dependency_policy(
+        session,
+        context,
+        target_type="code_configuration",
+        execution_mode="shadow",
+        candidate_risk_class=risk_class,
+    )
+    if policy is None:
+        return (
+            None,
+            None,
+            (),
+            ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT,
+            (f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT}",),
+        )
+
+    phases: list[ImprovementCodeShadowDependencyPhaseRead] = []
+    blockers: list[str] = []
+    for requirement in policy.phase_requirements:
+        if requirement.disposition == "not_required":
+            phases.append(
+                ImprovementCodeShadowDependencyPhaseRead(
+                    phase_key=requirement.phase_key,
+                    disposition=requirement.disposition,
+                    evidence_status="not_required",
+                    rationale=requirement.rationale,
+                    contracts=(),
+                )
+            )
+            continue
+
+        contracts = tuple(
+            _dependency_contract_projection(
+                session,
+                context,
+                contract_key=contract_key,
+                workflows=workflows,
+            )
+            for contract_key in requirement.dependency_contract_keys
+        )
+        phase_status = _phase_dependency_status(contracts)
+        phases.append(
+            ImprovementCodeShadowDependencyPhaseRead(
+                phase_key=requirement.phase_key,
+                disposition=requirement.disposition,
+                evidence_status=phase_status,
+                rationale=requirement.rationale,
+                contracts=contracts,
+            )
+        )
+        for contract in contracts:
+            if contract.evidence_status != "satisfied":
+                blockers.append(
+                    f"roadmap_dependency:{contract.contract_key}:{contract.evidence_status}"
+                )
+
+    gate_status = (
+        ROADMAP_DEPENDENCY_GATE_SATISFIED
+        if not blockers
+        else ROADMAP_DEPENDENCY_GATE_BLOCKED
+    )
+    return policy.id, policy.policy_version, tuple(phases), gate_status, tuple(blockers)
+
+
 def _admission_blockers(
     *,
     ci_status: str,
     review_status: str,
     decision_status: str,
+    dependency_blockers: tuple[str, ...],
 ) -> tuple[str, ...]:
     blockers: list[str] = []
     if ci_status != "complete":
@@ -335,7 +518,7 @@ def _admission_blockers(
         blockers.append(f"grsi_d_review:{review_status}")
     if decision_status != "approved":
         blockers.append(f"shadow_work_decision:{decision_status}")
-    blockers.append(f"roadmap_dependencies:{ROADMAP_DEPENDENCY_GATE_STATUS}")
+    blockers.extend(dependency_blockers)
     return tuple(blockers)
 
 
@@ -379,15 +562,36 @@ def project_code_shadow_ci_proof(
         and review_status == "complete"
         and decision_status == "approved"
     )
+    (
+        admission_policy_id,
+        admission_policy_version,
+        dependency_phases,
+        dependency_gate_status,
+        dependency_blockers,
+    ) = _dependency_projection(
+        session,
+        context,
+        risk_class=risk_class,
+        workflows=workflows,
+    )
     blockers = _admission_blockers(
         ci_status=aggregate,
         review_status=review_status,
         decision_status=decision_status,
+        dependency_blockers=dependency_blockers,
+    )
+    qualified = (
+        pre_dependency_ready
+        and dependency_gate_status == ROADMAP_DEPENDENCY_GATE_SATISFIED
     )
     admission_conclusion = (
-        "blocked_unverified_phase_dependencies"
-        if pre_dependency_ready
-        else "blocked_missing_required_evidence"
+        "qualified_for_bounded_code_shadow"
+        if qualified
+        else (
+            "blocked_unverified_phase_dependencies"
+            if pre_dependency_ready
+            else "blocked_missing_required_evidence"
+        )
     )
     return ImprovementCodeShadowCiProofRead(
         candidate_id=candidate.id,
@@ -408,9 +612,12 @@ def project_code_shadow_ci_proof(
         admission_decision_id=decision_id,
         admission_decision_status=decision_status,
         pre_dependency_admission_ready=pre_dependency_ready,
-        roadmap_dependency_gate_status=ROADMAP_DEPENDENCY_GATE_STATUS,
+        admission_policy_id=admission_policy_id,
+        admission_policy_version=admission_policy_version,
+        dependency_phases=dependency_phases,
+        roadmap_dependency_gate_status=dependency_gate_status,
         admission_blockers=blockers,
-        grsi_e_qualified=False,
+        grsi_e_qualified=qualified,
         grsi_e_admission_conclusion=admission_conclusion,
         cross_team_review_conclusion=review_status,
     )
