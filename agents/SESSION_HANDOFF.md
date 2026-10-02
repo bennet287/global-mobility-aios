@@ -10,7 +10,7 @@ Canonical integration branch:
 
 `design/aios-v2-complete-redesign`
 
-Resolve the live branch SHA directly from GitHub before branching, reviewing, or merging. The last reconciled GRSI checkpoint is PR #273 merge `62dbe9df094b93b89de88cea7005273ef6eb3156`; do not treat that copied SHA as self-updating truth.
+Resolve the live branch SHA directly from GitHub before branching, reviewing, or merging. The last reconciled GRSI checkpoint is PR #275 merge `6f39e53a4354b02328a292440aca6a69762861b9`; do not treat that copied SHA as self-updating truth.
 
 Current programme:
 
@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`GRSI.D — cross-team validation plus organization authorization review.`
+`GRSI.E — Shadow and Canary Evidence.`
 
-GRSI.A–GRSI.C are sealed. GRSI.C exact head `19cd57a6661d3d587c486e910c1a8fafa1a8dd1b` passed Repository Policy #1599, CodeQL #233 and V12 Production Proof #2229 before merge. Migration head is `0095_grsi_independent_evaluation` at this checkpoint.
+GRSI.A–GRSI.D are sealed. GRSI.D exact head `578a1c93d26b5e41ec1499fa87f84fe3ca15fae8` passed Repository Policy #1603, CodeQL #239 and V12 Production Proof #2233 before merge. Migration head is `0096_grsi_cross_team_review` at this checkpoint.
 
-The candidate/evaluation path remains authority-neutral. Creating or evaluating a candidate does not approve, promote, activate, deploy, grant autonomy, tools, credentials, budget or external-action authority. GRSI.D must reuse canonical owners rather than create another approval stack: `organization-governance` already owns authority classification, risk escalation and Board/CEO decisions; Organization Records already owns governed human-action requests, decision outcomes, record references and the admin-only GRC capability authorization-review projection.
+The proposal/candidate/evaluation/review path remains authority-neutral. GRSI.D records candidate risk class and candidate-bound review requirements, then projects canonical Security/Red Team, QA, domain, Platform/SRE and governance evidence without creating a second review, approval or authority store. Review-evidence completeness is only readiness for a later authorized decision; it does not approve, promote, activate, deploy, grant autonomy, tools, credentials, budget or external-action authority. GRSI.E must reuse real execution owners, keep shadow output non-canonical/non-external, and preserve the roadmap's risk-class prerequisites before any shadow/canary admission.
 
 ## Fresh-session procedure
 
@@ -30,9 +30,9 @@ The candidate/evaluation path remains authority-neutral. Creating or evaluating 
 2. Read `agents/PROJECT_STATE.md` for current programme truth and unresolved cross-cutting prerequisites.
 3. Read the GRSI section of `docs/ROADMAP.md`; keep its A–H ordering and invariants authoritative.
 4. Resolve the live integration head and active PRs from GitHub before changing code.
-5. For GRSI.D, inspect and extend the existing Organization Governance / Organization Records seams before adding any schema or service. Do not introduce a parallel GRSI approval, authority, risk, human-review or audit owner.
-6. Preserve structural reviewer independence and candidate-authorship separation without claiming technical metadata proves reasoning/provider independence.
-7. Keep Phase 16 billed-cost/monetary-enforcement gaps, Phase 17 security gaps, and whole-product target-host production acceptance separate from GRSI review evidence.
+5. For GRSI.E, identify the real execution owner for the candidate target before adding any shadow/canary state. Do not build a universal executor or generic active-version owner.
+6. Keep shadow output non-canonical/non-external; any canary must remain inside the candidate's already-authorized authority, tool, credential and resource envelope.
+7. Verify the roadmap's Phase 16/17/19/20 dependencies for the candidate risk class before admitting it to GRSI.E/F, and keep whole-product target-host production acceptance separate.
 
 ## Handoff discipline
 
