@@ -202,7 +202,9 @@ def withdraw_candidate_endpoint(
 from app.routers.organization_improvement_evaluations import router as evaluation_router
 from app.routers.organization_improvement_reviews import router as review_router
 from app.routers.organization_improvement_shadows import router as shadow_router
+from app.routers.organization_improvement_admission_policies import router as admission_policy_router
 
 router.include_router(evaluation_router)
 router.include_router(review_router)
 router.include_router(shadow_router)
+router.include_router(admission_policy_router)

@@ -174,6 +174,9 @@ def register_models() -> None:
     from app.models.organization_improvement_review import (  # noqa: F401
         OrganizationImprovementReviewPackage,
     )
+    from app.models.organization_improvement_admission_policy import (  # noqa: F401
+        OrganizationImprovementAdmissionDependencyPolicy,
+    )
 
     _register_legacy_metadata_constraints()
 
