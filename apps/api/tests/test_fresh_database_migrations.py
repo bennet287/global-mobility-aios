@@ -118,6 +118,8 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         "organization_record_references",
         "organization_improvement_review_packages",
         "organization_improvement_admission_dependency_policies",
+        "production_deployment_acceptance_runs",
+        "production_deployment_acceptance_check_receipts",
     }
     assert durable_tables <= set(inspector.get_table_names())
     for table_name in durable_tables:
@@ -177,7 +179,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0097_grsi_admission_dependency_policy"
+            "0098_production_deployment_acceptance"
         )
         position_inspector = inspect(connection)
         position_indexes = {

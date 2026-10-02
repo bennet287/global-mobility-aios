@@ -177,6 +177,10 @@ def register_models() -> None:
     from app.models.organization_improvement_admission_policy import (  # noqa: F401
         OrganizationImprovementAdmissionDependencyPolicy,
     )
+    from app.models.production_deployment_acceptance import (  # noqa: F401
+        ProductionDeploymentAcceptanceCheckReceipt,
+        ProductionDeploymentAcceptanceRun,
+    )
 
     _register_legacy_metadata_constraints()
 
