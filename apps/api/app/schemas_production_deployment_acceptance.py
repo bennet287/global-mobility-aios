@@ -24,6 +24,16 @@ DeploymentAcceptanceGateStatus = Literal[
 ]
 
 
+class ProductionDeploymentNetworkingContract(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    web_hostname: str = Field(min_length=1, max_length=253)
+    api_hostname: str = Field(min_length=1, max_length=253)
+    expected_public_ipv4: str = Field(min_length=7, max_length=15)
+    allowed_public_tcp_ports: list[int] = Field(min_length=2, max_length=3)
+    external_verifier_public_key_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
 class ProductionDeploymentAcceptanceRunCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -34,6 +44,7 @@ class ProductionDeploymentAcceptanceRunCreate(BaseModel):
     release_configuration_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     rollback_release_commit_sha: str = Field(pattern=r"^[0-9a-f]{40}$")
     rollback_configuration_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    networking_contract: ProductionDeploymentNetworkingContract
     work_item_id: UUID
     admission_decision_id: UUID
     reason: str = Field(min_length=1, max_length=4000)
@@ -71,6 +82,10 @@ class ProductionDeploymentAcceptanceRunRead(BaseModel):
     acceptance_contract_key: str
     acceptance_contract_version: int
     acceptance_contract_fingerprint: str
+    networking_contract_key: str | None
+    networking_contract_version: int | None
+    networking_contract_fingerprint: str | None
+    networking_contract: ProductionDeploymentNetworkingContract | None
     work_item_id: UUID
     admission_decision_id: UUID
     reason: str
