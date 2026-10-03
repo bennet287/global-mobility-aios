@@ -2,7 +2,7 @@
 
 **Purpose:** minimal cold-start recovery pointer. This file must not duplicate project history, architecture, roadmap sequencing, or CI ledgers.
 
-**Last reconciled:** 2026-10-02
+**Last reconciled:** 2026-10-03
 
 ## Resume coordinates
 
@@ -10,7 +10,7 @@ Canonical integration branch:
 
 `design/aios-v2-complete-redesign`
 
-Resolve the live branch SHA directly from GitHub before branching, reviewing, or merging. The last reconciled GRSI checkpoint is PR #275 merge `6f39e53a4354b02328a292440aca6a69762861b9`; do not treat that copied SHA as self-updating truth.
+Resolve the live branch SHA directly from GitHub before branching, reviewing, or merging. The latest reconciled implementation checkpoint is PR #287 merge `4c5ab9787500d1de56bf3f9a346e0e0622e4cd21`; do not treat that copied SHA as self-updating truth.
 
 Current programme:
 
@@ -18,11 +18,11 @@ Current programme:
 
 Next bounded slice:
 
-`GRSI.E — Shadow and Canary Evidence.`
+`Phase 22 target-host acceptance executor / receipt writer for GRSI.E canary.`
 
-GRSI.A–GRSI.D are sealed. GRSI.D exact head `578a1c93d26b5e41ec1499fa87f84fe3ca15fae8` passed Repository Policy #1603, CodeQL #239 and V12 Production Proof #2233 before merge. Migration head is `0096_grsi_cross_team_review` at this checkpoint.
+GRSI.A–GRSI.D are sealed. GRSI.E code-shadow qualification, code-canary evidence binding, shadow/canary dependency policy and Phase 22 release identity are implemented, but GRSI.E is not sealed because no canonical service currently writes the six target-host `ProductionDeploymentAcceptanceCheckReceipt` records. Migration head is `0099_grsi_canary_dependency_policy` at this checkpoint.
 
-The proposal/candidate/evaluation/review path remains authority-neutral. GRSI.D records candidate risk class and candidate-bound review requirements, then projects canonical Security/Red Team, QA, domain, Platform/SRE and governance evidence without creating a second review, approval or authority store. Review-evidence completeness is only readiness for a later authorized decision; it does not approve, promote, activate, deploy, grant autonomy, tools, credentials, budget or external-action authority. GRSI.E must reuse real execution owners, keep shadow output non-canonical/non-external, and preserve the roadmap's risk-class prerequisites before any shadow/canary admission.
+The candidate/evaluation/review/shadow/canary path remains authority-neutral. A code canary may become qualified only after qualified shadow evidence, a current exact canary Decision, a satisfied canary-scoped Board dependency policy, and six satisfied Phase 22 target-host receipts whose observed environment/release identities match the prepared run. Phase 22 owns deployment/acceptance truth; GRSI only binds that evidence. No live canary or production readiness is currently proven.
 
 ## Fresh-session procedure
 
@@ -30,9 +30,9 @@ The proposal/candidate/evaluation/review path remains authority-neutral. GRSI.D 
 2. Read `agents/PROJECT_STATE.md` for current programme truth and unresolved cross-cutting prerequisites.
 3. Read the GRSI section of `docs/ROADMAP.md`; keep its A–H ordering and invariants authoritative.
 4. Resolve the live integration head and active PRs from GitHub before changing code.
-5. For GRSI.E, identify the real execution owner for the candidate target before adding any shadow/canary state. Do not build a universal executor or generic active-version owner.
-6. Keep shadow output non-canonical/non-external; any canary must remain inside the candidate's already-authorized authority, tool, credential and resource envelope.
-7. Verify the roadmap's Phase 16/17/19/20 dependencies for the candidate risk class before admitting it to GRSI.E/F, and keep whole-product target-host production acceptance separate.
+5. For the next Phase 22 slice, reuse the existing deployment-acceptance run/receipt models and six gate keys. Do not create a second deployment/canary evidence owner.
+6. The executor must independently observe the target environment and running release identity; caller-supplied success booleans, placeholder release IDs or CI status are not target-host acceptance evidence.
+7. Keep the canary synthetic-data-only and inside existing authority/resource ceilings. Do not start GRSI.F until the Phase 22 receipt writer is proven and GRSI.E canary qualification can be satisfied from real canonical receipts.
 
 ## Handoff discipline
 
