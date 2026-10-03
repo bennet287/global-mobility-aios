@@ -5,6 +5,11 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas_production_deployment_acceptance import (
+    DeploymentAcceptanceEvidenceStatus,
+    ProductionDeploymentAcceptanceGateRead,
+)
+
 
 ShadowCiEvidenceStatus = Literal["absent", "pending", "satisfied", "failed", "unknown"]
 ShadowCiAggregateStatus = Literal["complete", "partial", "pending", "failed", "unknown"]
@@ -98,4 +103,54 @@ class ImprovementCodeShadowCiProofRead(BaseModel):
         "GRSI.E shadow qualification is evidence readiness for this bounded candidate/work scope; it is not canary, promotion, activation, deployment, tool, credential, budget or external-action authority.",
         "Repository CI is shadow-style engineering evidence, not production activation, production outcome evidence, live-host canary evidence, or deployment acceptance.",
         "The GitHub Actions owner remains authoritative for workflow execution state; this projection stores no duplicate CI execution truth.",
+    )
+
+class ImprovementCodeCanaryEvidenceRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    candidate_id: UUID
+    proposal_id: UUID
+    shadow_work_item_id: UUID
+    canary_work_item_id: UUID
+    deployment_run_id: UUID
+    artifact_commit_sha: str
+    release_commit_sha: str
+    release_configuration_fingerprint: str
+    target_environment_fingerprint: str
+    rollback_release_commit_sha: str
+    rollback_configuration_fingerprint: str
+    acceptance_contract_key: str
+    acceptance_contract_version: int
+    acceptance_contract_fingerprint: str
+    gates: tuple[ProductionDeploymentAcceptanceGateRead, ...]
+    shadow_qualified: bool
+    shadow_admission_conclusion: str
+    canary_decision_id: UUID | None
+    canary_decision_status: ShadowAdmissionDecisionStatus
+    deployment_observed: bool
+    checks_complete: bool
+    canary_evidence_status: DeploymentAcceptanceEvidenceStatus
+    phase22_canary_evidence_satisfied: bool
+    pre_policy_canary_ready: bool
+    canary_dependency_policy_status: str
+    admission_blockers: tuple[str, ...]
+    grsi_e_canary_qualified: bool = False
+    grsi_e_canary_conclusion: str
+    authority_conclusion: str = "none_granted"
+    promotion_conclusion: str = "not_assessed"
+    production_ready: bool = False
+    active_version_changed: bool = False
+    autonomy_changed: bool = False
+    permission_or_tool_access_changed: bool = False
+    monetary_authority_changed: bool = False
+    deployment_authorized: bool = False
+    external_action_authorized: bool = False
+    real_client_data_admitted: bool = False
+    consequential_external_actions_enabled: bool = False
+    paid_autonomous_execution_enabled: bool = False
+    limitations: tuple[str, ...] = (
+        "This projection binds GRSI code/configuration canary evidence to the canonical Phase 22 deployment-acceptance owner; it does not create or duplicate deployment receipts.",
+        "A satisfied six-gate Phase 22 receipt set is evidence only and does not grant promotion, production readiness, deployment authority, real-client-data admission, autonomy, tools, credentials, budget or external-action authority.",
+        "The exact Phase 22 run Decision must still be the current approved Decision for the exact candidate-bound canary WorkItem.",
+        "Final GRSI.E canary qualification remains fail-closed until a canary-scoped Board-authored dependency policy and its resolvers are implemented.",
     )

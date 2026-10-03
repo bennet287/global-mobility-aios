@@ -15,7 +15,9 @@ from app.models.organization_improvement_lineage import (
     OrganizationImprovementProposal,
 )
 from app.models.organization_improvement_review import OrganizationImprovementReviewPackage
+from app.models.production_deployment_acceptance import ProductionDeploymentAcceptanceRun
 from app.schemas_organization_improvement_shadow import (
+    ImprovementCodeCanaryEvidenceRead,
     ImprovementCodeShadowCiProofRead,
     ImprovementCodeShadowCiWorkflowRead,
     ImprovementCodeShadowDependencyContractRead,
@@ -36,6 +38,7 @@ from app.services.organization_improvement_admission_policy import (
 )
 from app.services.organization_improvement_lineage import _proposal_is_current
 from app.services.organization_improvement_review import project_review_package
+from app.services.production_deployment_acceptance import project_deployment_acceptance_run
 from app.services.runtime_economics import summarize_cost_evidence
 from app.services.webhook_egress import WebhookEgressPolicyError, request_public_webhook
 
@@ -45,6 +48,9 @@ GITHUB_REPOSITORY_TARGET = f"github:{GITHUB_REPOSITORY}"
 GITHUB_API_BASE = "https://api.github.com"
 GITHUB_API_MAX_RESPONSE_BYTES = 1_000_000
 SHADOW_WORK_TYPE = "improvement_shadow_validation"
+CANARY_WORK_TYPE = "production_deployment_acceptance"
+CANARY_PHASE_KEY = "22"
+CANARY_DEPENDENCY_POLICY_STATUS = "unsupported_not_implemented"
 CANDIDATE_SOURCE_TYPE = "organization_improvement_candidate"
 ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE = "candidate_risk_class_unavailable"
 ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT = "policy_absent"
@@ -620,4 +626,148 @@ def project_code_shadow_ci_proof(
         grsi_e_qualified=qualified,
         grsi_e_admission_conclusion=admission_conclusion,
         cross_team_review_conclusion=review_status,
+    )
+
+def _canary_work_item(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    run: ProductionDeploymentAcceptanceRun,
+    candidate: OrganizationImprovementCandidate,
+) -> OrganizationalWorkItem:
+    row = tenant_record(
+        session,
+        OrganizationalWorkItem,
+        run.work_item_id,
+        context.tenant_key,
+        label="GRSI.E canary deployment work item",
+    )
+    if row.work_type != CANARY_WORK_TYPE or row.phase_key != CANARY_PHASE_KEY:
+        raise InvalidReference(
+            "GRSI.E canary evidence requires a Phase 22 production_deployment_acceptance WorkItem"
+        )
+    expected = (CANDIDATE_SOURCE_TYPE, str(candidate.id), candidate.candidate_fingerprint)
+    actual = (row.source_object_type, row.source_object_id, row.source_object_version)
+    if actual != expected:
+        raise InvalidReference(
+            "canary deployment WorkItem must reference the exact improvement candidate id and fingerprint"
+        )
+    return row
+
+
+def _canary_blockers(
+    *,
+    shadow_qualified: bool,
+    shadow_conclusion: str,
+    run_decision_current: bool,
+    decision_status: str,
+    canary_evidence_status: str,
+) -> tuple[str, ...]:
+    blockers: list[str] = []
+    if not shadow_qualified:
+        blockers.append(f"shadow_prerequisite:{shadow_conclusion}")
+    if not run_decision_current:
+        blockers.append(f"canary_work_decision:{decision_status}")
+    if canary_evidence_status != "satisfied":
+        blockers.append(f"phase22_canary:{canary_evidence_status}")
+    blockers.append(f"canary_dependency_policy:{CANARY_DEPENDENCY_POLICY_STATUS}")
+    return tuple(blockers)
+
+
+def project_code_canary_evidence(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    candidate_id: UUID,
+    shadow_work_item_id: UUID,
+    deployment_run_id: UUID,
+) -> ImprovementCodeCanaryEvidenceRead:
+    """Bind exact candidate canary evidence to Phase 22 without owning deployment truth."""
+
+    require_human(context, admin=True)
+    candidate, proposal = _candidate_and_proposal(session, context, candidate_id)
+    artifact_commit_sha = _artifact_commit_sha(candidate)
+
+    run = tenant_record(
+        session,
+        ProductionDeploymentAcceptanceRun,
+        deployment_run_id,
+        context.tenant_key,
+        label="Phase 22 deployment acceptance run",
+    )
+    canary_work = _canary_work_item(
+        session,
+        context,
+        run=run,
+        candidate=candidate,
+    )
+    if run.release_commit_sha != artifact_commit_sha:
+        raise InvalidReference(
+            "Phase 22 release commit does not match the exact improvement candidate artifact"
+        )
+
+    phase22 = project_deployment_acceptance_run(session, context, run)
+    shadow = project_code_shadow_ci_proof(
+        session,
+        context,
+        candidate_id=candidate.id,
+        work_item_id=shadow_work_item_id,
+    )
+    current_decision_id, current_decision_status = _current_admission_decision(
+        session,
+        context,
+        candidate=candidate,
+        work_item=canary_work,
+    )
+    run_decision_current = (
+        current_decision_status == "approved"
+        and current_decision_id == run.admission_decision_id
+    )
+    pre_policy_ready = (
+        shadow.grsi_e_qualified
+        and run_decision_current
+        and phase22.canary_evidence_satisfied
+    )
+    blockers = _canary_blockers(
+        shadow_qualified=shadow.grsi_e_qualified,
+        shadow_conclusion=shadow.grsi_e_admission_conclusion,
+        run_decision_current=run_decision_current,
+        decision_status=current_decision_status,
+        canary_evidence_status=phase22.canary_evidence_status,
+    )
+    conclusion = (
+        "blocked_canary_dependency_policy_not_implemented"
+        if pre_policy_ready
+        else "blocked_missing_required_canary_evidence"
+    )
+
+    return ImprovementCodeCanaryEvidenceRead(
+        candidate_id=candidate.id,
+        proposal_id=proposal.id,
+        shadow_work_item_id=shadow_work_item_id,
+        canary_work_item_id=canary_work.id,
+        deployment_run_id=run.id,
+        artifact_commit_sha=artifact_commit_sha,
+        release_commit_sha=phase22.release_commit_sha,
+        release_configuration_fingerprint=phase22.release_configuration_fingerprint,
+        target_environment_fingerprint=phase22.target_environment_fingerprint,
+        rollback_release_commit_sha=phase22.rollback_release_commit_sha,
+        rollback_configuration_fingerprint=phase22.rollback_configuration_fingerprint,
+        acceptance_contract_key=phase22.acceptance_contract_key,
+        acceptance_contract_version=phase22.acceptance_contract_version,
+        acceptance_contract_fingerprint=phase22.acceptance_contract_fingerprint,
+        gates=phase22.gates,
+        shadow_qualified=shadow.grsi_e_qualified,
+        shadow_admission_conclusion=shadow.grsi_e_admission_conclusion,
+        canary_decision_id=current_decision_id,
+        canary_decision_status=current_decision_status,
+        deployment_observed=phase22.deployment_observed,
+        checks_complete=phase22.checks_complete,
+        canary_evidence_status=phase22.canary_evidence_status,
+        phase22_canary_evidence_satisfied=phase22.canary_evidence_satisfied,
+        pre_policy_canary_ready=pre_policy_ready,
+        canary_dependency_policy_status=CANARY_DEPENDENCY_POLICY_STATUS,
+        admission_blockers=blockers,
+        grsi_e_canary_qualified=False,
+        grsi_e_canary_conclusion=conclusion,
     )

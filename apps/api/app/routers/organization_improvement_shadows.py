@@ -8,7 +8,10 @@ from sqlmodel import Session
 
 from app.core.db import get_session
 from app.routers.organization_records import organization_command_context
-from app.schemas_organization_improvement_shadow import ImprovementCodeShadowCiProofRead
+from app.schemas_organization_improvement_shadow import (
+    ImprovementCodeCanaryEvidenceRead,
+    ImprovementCodeShadowCiProofRead,
+)
 from app.services.organization_command import (
     AuthorityDenied,
     InvalidHumanActor,
@@ -21,6 +24,7 @@ from app.services.organization_command import (
 )
 from app.services.organization_improvement_shadow import (
     ShadowCiProofUnavailable,
+    project_code_canary_evidence,
     project_code_shadow_ci_proof,
 )
 
@@ -78,5 +82,28 @@ def get_code_shadow_ci_proof_endpoint(
             context,
             candidate_id=candidate_id,
             work_item_id=work_item_id,
+        )
+    )
+
+@router.get(
+    "/code-canary/candidates/{candidate_id}",
+    response_model=ImprovementCodeCanaryEvidenceRead,
+)
+def get_code_canary_evidence_endpoint(
+    candidate_id: UUID,
+    response: Response,
+    shadow_work_item_id: UUID = Query(...),
+    deployment_run_id: UUID = Query(...),
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> ImprovementCodeCanaryEvidenceRead:
+    _no_store(response)
+    return _command(
+        lambda: project_code_canary_evidence(
+            session,
+            context,
+            candidate_id=candidate_id,
+            shadow_work_item_id=shadow_work_item_id,
+            deployment_run_id=deployment_run_id,
         )
     )
