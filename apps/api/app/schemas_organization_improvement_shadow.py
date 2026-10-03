@@ -132,6 +132,9 @@ class ImprovementCodeCanaryEvidenceRead(BaseModel):
     canary_evidence_status: DeploymentAcceptanceEvidenceStatus
     phase22_canary_evidence_satisfied: bool
     pre_policy_canary_ready: bool
+    canary_admission_policy_id: UUID | None
+    canary_admission_policy_version: int | None
+    canary_dependency_phases: tuple[ImprovementCodeShadowDependencyPhaseRead, ...]
     canary_dependency_policy_status: str
     admission_blockers: tuple[str, ...]
     grsi_e_canary_qualified: bool = False
@@ -152,5 +155,5 @@ class ImprovementCodeCanaryEvidenceRead(BaseModel):
         "This projection binds GRSI code/configuration canary evidence to the canonical Phase 22 deployment-acceptance owner; it does not create or duplicate deployment receipts.",
         "A satisfied six-gate Phase 22 receipt set is evidence only and does not grant promotion, production readiness, deployment authority, real-client-data admission, autonomy, tools, credentials, budget or external-action authority.",
         "The exact Phase 22 run Decision must still be the current approved Decision for the exact candidate-bound canary WorkItem.",
-        "Final GRSI.E canary qualification remains fail-closed until a canary-scoped Board-authored dependency policy and its resolvers are implemented.",
+        "Final GRSI.E canary qualification requires the current canary-scoped Board dependency policy and every required resolver to be satisfied in addition to qualified shadow evidence, current canary Decision and Phase 22 acceptance.",
     )

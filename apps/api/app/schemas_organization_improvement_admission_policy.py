@@ -11,7 +11,7 @@ ImprovementAdmissionPhaseKey = Literal["phase16", "phase17", "phase19", "phase20
 ImprovementAdmissionDisposition = Literal["required", "not_required"]
 ImprovementAdmissionRiskClass = Literal["low", "medium", "high", "critical"]
 ImprovementAdmissionTargetType = Literal["code_configuration"]
-ImprovementAdmissionExecutionMode = Literal["shadow"]
+ImprovementAdmissionExecutionMode = Literal["shadow", "canary"]
 
 
 class ImprovementAdmissionPhaseRequirementCreate(BaseModel):

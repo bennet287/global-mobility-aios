@@ -42,7 +42,7 @@ class OrganizationImprovementAdmissionDependencyPolicy(SQLModel, table=True):
             name="ck_org_improv_adm_policy_target",
         ),
         CheckConstraint(
-            "execution_mode = 'shadow'",
+            "execution_mode IN ('shadow','canary')",
             name="ck_org_improv_adm_policy_mode",
         ),
         CheckConstraint(

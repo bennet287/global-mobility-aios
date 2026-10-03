@@ -50,7 +50,6 @@ GITHUB_API_MAX_RESPONSE_BYTES = 1_000_000
 SHADOW_WORK_TYPE = "improvement_shadow_validation"
 CANARY_WORK_TYPE = "production_deployment_acceptance"
 CANARY_PHASE_KEY = "22"
-CANARY_DEPENDENCY_POLICY_STATUS = "unsupported_not_implemented"
 CANDIDATE_SOURCE_TYPE = "organization_improvement_candidate"
 ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE = "candidate_risk_class_unavailable"
 ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT = "policy_absent"
@@ -430,6 +429,7 @@ def _dependency_projection(
     *,
     risk_class: str | None,
     workflows: tuple[ImprovementCodeShadowCiWorkflowRead, ...],
+    execution_mode: str,
 ) -> tuple[
     UUID | None,
     int | None,
@@ -450,7 +450,7 @@ def _dependency_projection(
         session,
         context,
         target_type="code_configuration",
-        execution_mode="shadow",
+        execution_mode=execution_mode,
         candidate_risk_class=risk_class,
     )
     if policy is None:
@@ -579,6 +579,7 @@ def project_code_shadow_ci_proof(
         context,
         risk_class=risk_class,
         workflows=workflows,
+        execution_mode="shadow",
     )
     blockers = _admission_blockers(
         ci_status=aggregate,
@@ -662,6 +663,7 @@ def _canary_blockers(
     run_decision_current: bool,
     decision_status: str,
     canary_evidence_status: str,
+    dependency_blockers: tuple[str, ...],
 ) -> tuple[str, ...]:
     blockers: list[str] = []
     if not shadow_qualified:
@@ -670,7 +672,7 @@ def _canary_blockers(
         blockers.append(f"canary_work_decision:{decision_status}")
     if canary_evidence_status != "satisfied":
         blockers.append(f"phase22_canary:{canary_evidence_status}")
-    blockers.append(f"canary_dependency_policy:{CANARY_DEPENDENCY_POLICY_STATUS}")
+    blockers.extend(dependency_blockers)
     return tuple(blockers)
 
 
@@ -728,17 +730,39 @@ def project_code_canary_evidence(
         and run_decision_current
         and phase22.canary_evidence_satisfied
     )
+    (
+        canary_policy_id,
+        canary_policy_version,
+        canary_dependency_phases,
+        canary_dependency_gate_status,
+        canary_dependency_blockers,
+    ) = _dependency_projection(
+        session,
+        context,
+        risk_class=shadow.candidate_risk_class,
+        workflows=shadow.workflows,
+        execution_mode="canary",
+    )
     blockers = _canary_blockers(
         shadow_qualified=shadow.grsi_e_qualified,
         shadow_conclusion=shadow.grsi_e_admission_conclusion,
         run_decision_current=run_decision_current,
         decision_status=current_decision_status,
         canary_evidence_status=phase22.canary_evidence_status,
+        dependency_blockers=canary_dependency_blockers,
+    )
+    qualified = (
+        pre_policy_ready
+        and canary_dependency_gate_status == ROADMAP_DEPENDENCY_GATE_SATISFIED
     )
     conclusion = (
-        "blocked_canary_dependency_policy_not_implemented"
-        if pre_policy_ready
-        else "blocked_missing_required_canary_evidence"
+        "qualified_for_bounded_code_canary"
+        if qualified
+        else (
+            "blocked_unverified_canary_phase_dependencies"
+            if pre_policy_ready
+            else "blocked_missing_required_canary_evidence"
+        )
     )
 
     return ImprovementCodeCanaryEvidenceRead(
@@ -766,8 +790,11 @@ def project_code_canary_evidence(
         canary_evidence_status=phase22.canary_evidence_status,
         phase22_canary_evidence_satisfied=phase22.canary_evidence_satisfied,
         pre_policy_canary_ready=pre_policy_ready,
-        canary_dependency_policy_status=CANARY_DEPENDENCY_POLICY_STATUS,
+        canary_admission_policy_id=canary_policy_id,
+        canary_admission_policy_version=canary_policy_version,
+        canary_dependency_phases=canary_dependency_phases,
+        canary_dependency_policy_status=canary_dependency_gate_status,
         admission_blockers=blockers,
-        grsi_e_canary_qualified=False,
+        grsi_e_canary_qualified=qualified,
         grsi_e_canary_conclusion=conclusion,
     )
