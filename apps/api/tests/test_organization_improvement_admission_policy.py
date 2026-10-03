@@ -115,15 +115,16 @@ def _policy(
     requirements: list[dict] | None = None,
     expected_policy_version: int | None = None,
     reason: str | None = None,
+    execution_mode: str = "shadow",
 ):
     return establish_improvement_admission_dependency_policy(
         session,
         _board_context(),
         target_type="code_configuration",
-        execution_mode="shadow",
+        execution_mode=execution_mode,
         candidate_risk_class="high",
         phase_requirements=requirements or _requirements(),
-        policy_reason=reason or f"Board GRSI.E admission policy {key}",
+        policy_reason=reason or f"Board GRSI.E {execution_mode} admission policy {key}",
         idempotency_key=f"grsi-admission-policy-{key}",
         expected_policy_version=expected_policy_version,
     )
@@ -373,3 +374,36 @@ def test_grsi_admission_policy_api_is_board_admin_no_store_and_does_not_qualify(
         json=payload,
     )
     assert denied.status_code == 403
+
+def test_grsi_admission_policy_canary_scope_is_separate_from_shadow(
+    db_session: Session,
+) -> None:
+    shadow = _policy(db_session, key="shadow-scope")
+    canary = _policy(
+        db_session,
+        key="canary-scope",
+        execution_mode="canary",
+        requirements=_requirements(
+            phase16_disposition="not_required",
+            phase16_keys=[],
+            phase17_disposition="not_required",
+            phase17_keys=[],
+        ),
+    )
+
+    assert shadow.execution_mode == "shadow"
+    assert shadow.policy_version == 1
+    assert canary.execution_mode == "canary"
+    assert canary.policy_version == 1
+    assert canary.supersedes_policy_id is None
+
+    current = current_improvement_admission_dependency_policy(
+        db_session,
+        _board_context(),
+        target_type="code_configuration",
+        execution_mode="canary",
+        candidate_risk_class="high",
+    )
+    assert current.id == canary.id
+    assert current.lifecycle_status == "CURRENT"
+    assert all(item.disposition == "not_required" for item in current.phase_requirements)

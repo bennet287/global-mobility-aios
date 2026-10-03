@@ -47,7 +47,6 @@ from app.services.organization_improvement_shadow import (
     ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT,
     ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE,
     ROADMAP_DEPENDENCY_GATE_SATISFIED,
-    CANARY_DEPENDENCY_POLICY_STATUS,
     CANARY_PHASE_KEY,
     CANARY_WORK_TYPE,
     SHADOW_WORK_TYPE,
@@ -770,6 +769,44 @@ def _canary_work_and_run(
     return work, decision, run
 
 
+def _canary_policy(session: Session) -> None:
+    establish_improvement_admission_dependency_policy(
+        session,
+        _admin_context(),
+        target_type="code_configuration",
+        execution_mode="canary",
+        candidate_risk_class="high",
+        phase_requirements=[
+            {
+                "phase_key": "phase16",
+                "disposition": "not_required",
+                "dependency_contract_keys": [],
+                "rationale": "Synthetic-only canary prohibits paid autonomous execution.",
+            },
+            {
+                "phase_key": "phase17",
+                "disposition": "not_required",
+                "dependency_contract_keys": [],
+                "rationale": "Exact-head CodeQL and V12 remain mandatory shadow prerequisites.",
+            },
+            {
+                "phase_key": "phase19",
+                "disposition": "not_required",
+                "dependency_contract_keys": [],
+                "rationale": "Bounded canary does not claim production outcome attribution.",
+            },
+            {
+                "phase_key": "phase20",
+                "disposition": "not_required",
+                "dependency_contract_keys": [],
+                "rationale": "Canary grants no autonomy, resource or authority expansion.",
+            },
+        ],
+        policy_reason="Board permits bounded synthetic-only code canary after qualified shadow and Phase 22 acceptance.",
+        idempotency_key=f"grsi-canary-policy-{uuid4()}",
+    )
+
+
 def _add_canary_receipts(session: Session, run) -> None:
     for gate in DEPLOYMENT_ACCEPTANCE_GATES:
         details = {"synthetic_test": True, "secret_values_recorded": False}
@@ -814,18 +851,21 @@ def _add_canary_receipts(session: Session, run) -> None:
     session.commit()
 
 
-def test_code_canary_binds_exact_candidate_to_phase22_and_stays_policy_blocked(
+def test_code_canary_qualifies_only_with_current_canary_policy(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     context, candidate, shadow_work = _candidate_and_shadow_work(db_session)
     canary_work, decision, run = _canary_work_and_run(db_session, candidate=candidate)
     _add_canary_receipts(db_session, run)
+    _canary_policy(db_session)
     monkeypatch.setattr(
         "app.services.organization_improvement_shadow.project_code_shadow_ci_proof",
         lambda *args, **kwargs: SimpleNamespace(
             grsi_e_qualified=True,
             grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+            candidate_risk_class="high",
+            workflows=(),
         ),
     )
 
@@ -847,12 +887,13 @@ def test_code_canary_binds_exact_candidate_to_phase22_and_stays_policy_blocked(
     assert proof.canary_decision_status == "approved"
     assert proof.phase22_canary_evidence_satisfied is True
     assert proof.pre_policy_canary_ready is True
-    assert proof.canary_dependency_policy_status == CANARY_DEPENDENCY_POLICY_STATUS
-    assert proof.admission_blockers == (
-        f"canary_dependency_policy:{CANARY_DEPENDENCY_POLICY_STATUS}",
-    )
-    assert proof.grsi_e_canary_qualified is False
-    assert proof.grsi_e_canary_conclusion == "blocked_canary_dependency_policy_not_implemented"
+    assert proof.canary_admission_policy_id is not None
+    assert proof.canary_admission_policy_version == 1
+    assert len(proof.canary_dependency_phases) == 4
+    assert proof.canary_dependency_policy_status == ROADMAP_DEPENDENCY_GATE_SATISFIED
+    assert proof.admission_blockers == ()
+    assert proof.grsi_e_canary_qualified is True
+    assert proof.grsi_e_canary_conclusion == "qualified_for_bounded_code_canary"
     assert proof.production_ready is False
     assert proof.promotion_conclusion == "not_assessed"
     assert proof.authority_conclusion == "none_granted"
@@ -869,6 +910,8 @@ def test_code_canary_rejects_unrelated_candidate_work_or_release(
         lambda *args, **kwargs: SimpleNamespace(
             grsi_e_qualified=True,
             grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+            candidate_risk_class="high",
+            workflows=(),
         ),
     )
 
@@ -933,6 +976,8 @@ def test_code_canary_current_decision_supersession_blocks_readiness(
         lambda *args, **kwargs: SimpleNamespace(
             grsi_e_qualified=True,
             grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+            candidate_risk_class="high",
+            workflows=(),
         ),
     )
 
@@ -963,6 +1008,8 @@ def test_code_canary_incomplete_phase22_receipts_remain_fail_closed(
         lambda *args, **kwargs: SimpleNamespace(
             grsi_e_qualified=True,
             grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+            candidate_risk_class="high",
+            workflows=(),
         ),
     )
 
@@ -994,6 +1041,8 @@ def test_code_canary_endpoint_is_no_store_and_authority_neutral(
         lambda *args, **kwargs: SimpleNamespace(
             grsi_e_qualified=True,
             grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+            candidate_risk_class="high",
+            workflows=(),
         ),
     )
 
@@ -1012,5 +1061,6 @@ def test_code_canary_endpoint_is_no_store_and_authority_neutral(
     assert body["phase22_canary_evidence_satisfied"] is True
     assert body["pre_policy_canary_ready"] is True
     assert body["grsi_e_canary_qualified"] is False
+    assert body["canary_dependency_policy_status"] == ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT
     assert body["production_ready"] is False
     assert body["deployment_authorized"] is False

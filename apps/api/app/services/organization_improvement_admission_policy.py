@@ -37,7 +37,7 @@ POLICY_ACTIVITY_TYPE = "organization.improvement_admission_dependency_policy.est
 POLICY_SOURCE_TYPE = "organization_improvement_admission_dependency_policy"
 POLICY_GOVERNANCE_SOURCE = "human_board"
 SUPPORTED_TARGET_TYPE = "code_configuration"
-SUPPORTED_EXECUTION_MODE = "shadow"
+SUPPORTED_EXECUTION_MODES = frozenset({"shadow", "canary"})
 PHASE_ORDER = ("phase16", "phase17", "phase19", "phase20")
 RISK_CLASSES = frozenset({"low", "medium", "high", "critical"})
 PHASE16_HARD_MONETARY_CEILING_CONTRACT = "phase16.runtime_economics.hard_monetary_ceiling.v1"
@@ -215,8 +215,8 @@ def _normalize_scope(
     candidate_risk_class = _required(candidate_risk_class, field="candidate_risk_class")
     if target_type != SUPPORTED_TARGET_TYPE:
         raise InvalidReference("GRSI admission dependency policy currently supports code_configuration only")
-    if execution_mode != SUPPORTED_EXECUTION_MODE:
-        raise InvalidReference("GRSI admission dependency policy currently supports shadow mode only")
+    if execution_mode not in SUPPORTED_EXECUTION_MODES:
+        raise InvalidReference("GRSI admission dependency policy supports shadow and canary modes only")
     if candidate_risk_class not in RISK_CLASSES:
         raise InvalidReference("unsupported GRSI candidate risk class")
     return target_type, execution_mode, candidate_risk_class
