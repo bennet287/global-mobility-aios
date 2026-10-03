@@ -762,6 +762,13 @@ def _canary_work_and_run(
         release_configuration_fingerprint="8" * 64,
         rollback_release_commit_sha="b" * 40,
         rollback_configuration_fingerprint="9" * 64,
+        networking_contract={
+            "web_hostname": "app.globalmobility.example.eu",
+            "api_hostname": "api.globalmobility.example.eu",
+            "expected_public_ipv4": "8.8.8.8",
+            "allowed_public_tcp_ports": [80, 443],
+            "external_verifier_public_key_fingerprint": "f" * 64,
+        },
         work_item_id=work.id,
         admission_decision_id=decision.id,
         reason="Prepare exact candidate-bound Phase 22 canary acceptance identity.",

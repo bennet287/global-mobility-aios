@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
 from dataclasses import dataclass
@@ -23,6 +24,7 @@ from app.models.production_deployment_acceptance import (
 from app.schemas_production_deployment_acceptance import (
     ProductionDeploymentAcceptanceGateRead,
     ProductionDeploymentAcceptanceRunRead,
+    ProductionDeploymentNetworkingContract,
 )
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import (
@@ -61,6 +63,30 @@ TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR = "phase22-target-host-foundation"
 TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_KEY = "phase22.target-host-foundation.v1"
 TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_VERSION = 1
 TARGET_HOST_FOUNDATION_STATUSES = frozenset({"blocked", "failed", "unknown"})
+NETWORKING_CONTRACT_KEY = "phase22.single_vps.public_networking"
+NETWORKING_CONTRACT_VERSION = 1
+_NETWORKING_CONTRACT_FIELDS = frozenset(
+    {
+        "web_hostname",
+        "api_hostname",
+        "expected_public_ipv4",
+        "allowed_public_tcp_ports",
+        "external_verifier_public_key_fingerprint",
+    }
+)
+_HOST_LABEL = r"(?!-)[a-z0-9-]{1,63}(?<!-)"
+_PUBLIC_HOSTNAME = re.compile(rf"^(?:{_HOST_LABEL}\.)+{_HOST_LABEL}$")
+_RESERVED_HOST_SUFFIXES = (
+    ".localhost",
+    ".local",
+    ".test",
+    ".invalid",
+    ".example",
+    ".example.com",
+    ".example.net",
+    ".example.org",
+)
+_RESERVED_HOST_EXACT = frozenset({"localhost", "example.com", "example.net", "example.org"})
 _HEX40 = re.compile(r"^[0-9a-f]{40}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -110,6 +136,120 @@ def _hex(value: str, *, field: str, length: int) -> str:
     return normalized
 
 
+def _public_hostname(value: str, *, field: str) -> str:
+    normalized = _required(value, field=field).lower()
+    if len(normalized) > 253 or _PUBLIC_HOSTNAME.fullmatch(normalized) is None:
+        raise InvalidReference(f"{field} must be a public DNS hostname without scheme, port or path")
+    if normalized in _RESERVED_HOST_EXACT or any(
+        normalized.endswith(suffix) for suffix in _RESERVED_HOST_SUFFIXES
+    ):
+        raise InvalidReference(f"{field} must not use a reserved/local hostname")
+    try:
+        ipaddress.ip_address(normalized)
+    except ValueError:
+        pass
+    else:
+        raise InvalidReference(f"{field} must be a DNS hostname, not an IP literal")
+    return normalized
+
+
+def _normalize_networking_contract(
+    value: ProductionDeploymentNetworkingContract | dict[str, Any],
+) -> dict[str, Any]:
+    raw = value.model_dump() if isinstance(value, ProductionDeploymentNetworkingContract) else dict(value)
+    if set(raw) != _NETWORKING_CONTRACT_FIELDS:
+        raise InvalidReference("networking contract fields do not match the v1 contract")
+    web_hostname = _public_hostname(str(raw["web_hostname"]), field="web_hostname")
+    api_hostname = _public_hostname(str(raw["api_hostname"]), field="api_hostname")
+    if web_hostname == api_hostname:
+        raise InvalidReference("web_hostname and api_hostname must be distinct")
+
+    address_text = _required(str(raw["expected_public_ipv4"]), field="expected_public_ipv4")
+    try:
+        address = ipaddress.ip_address(address_text)
+    except ValueError as exc:
+        raise InvalidReference("expected_public_ipv4 must be a valid IPv4 address") from exc
+    if not isinstance(address, ipaddress.IPv4Address) or not address.is_global:
+        raise InvalidReference("expected_public_ipv4 must be one globally routable IPv4 address")
+
+    raw_ports = raw["allowed_public_tcp_ports"]
+    if not isinstance(raw_ports, (list, tuple)):
+        raise InvalidReference("allowed_public_tcp_ports must be a list")
+    if any(isinstance(port, bool) or not isinstance(port, int) for port in raw_ports):
+        raise InvalidReference("allowed_public_tcp_ports must contain integer TCP ports")
+    ports = tuple(sorted(raw_ports))
+    if len(set(ports)) != len(ports):
+        raise InvalidReference("allowed_public_tcp_ports must be unique")
+    if set(ports) not in ({80, 443}, {22, 80, 443}):
+        raise InvalidReference("allowed_public_tcp_ports must be exactly 80/443 with optional SSH 22")
+
+    verifier_fingerprint = _hex(
+        str(raw["external_verifier_public_key_fingerprint"]),
+        field="external_verifier_public_key_fingerprint",
+        length=64,
+    )
+    normalized = {
+        "web_hostname": web_hostname,
+        "api_hostname": api_hostname,
+        "expected_public_ipv4": str(address),
+        "allowed_public_tcp_ports": list(ports),
+        "external_verifier_public_key_fingerprint": verifier_fingerprint,
+    }
+    if len(canonical_json(normalized).encode("utf-8")) > 4096:
+        raise InvalidReference("networking contract exceeds the bounded v1 size")
+    return normalized
+
+
+def networking_contract_fingerprint(contract: dict[str, Any]) -> str:
+    return canonical_fingerprint(
+        {
+            "contract_key": NETWORKING_CONTRACT_KEY,
+            "contract_version": NETWORKING_CONTRACT_VERSION,
+            "contract": contract,
+        }
+    )
+
+
+def _stored_networking_contract(
+    run: ProductionDeploymentAcceptanceRun,
+) -> dict[str, Any] | None:
+    values = (
+        run.networking_contract_key,
+        run.networking_contract_version,
+        run.networking_contract_fingerprint,
+        run.networking_contract_json,
+    )
+    if all(value is None for value in values):
+        return None
+    if any(value is None for value in values):
+        raise DeploymentAcceptanceIntegrityError(
+            "deployment networking contract is only partially populated"
+        )
+    if (
+        run.networking_contract_key != NETWORKING_CONTRACT_KEY
+        or run.networking_contract_version != NETWORKING_CONTRACT_VERSION
+    ):
+        raise DeploymentAcceptanceIntegrityError("deployment networking contract identity drifted")
+    try:
+        parsed = json.loads(run.networking_contract_json or "")
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise DeploymentAcceptanceIntegrityError("deployment networking contract JSON is invalid") from exc
+    if not isinstance(parsed, dict):
+        raise DeploymentAcceptanceIntegrityError("deployment networking contract must be a JSON object")
+    try:
+        normalized = _normalize_networking_contract(parsed)
+    except InvalidReference as exc:
+        raise DeploymentAcceptanceIntegrityError(
+            "stored deployment networking contract no longer satisfies v1"
+        ) from exc
+    if run.networking_contract_json != canonical_json(normalized):
+        raise DeploymentAcceptanceIntegrityError("deployment networking contract JSON is not canonical")
+    expected = networking_contract_fingerprint(normalized)
+    if run.networking_contract_fingerprint != expected:
+        raise DeploymentAcceptanceIntegrityError("deployment networking contract fingerprint drifted")
+    return normalized
+
+
 def _gate_contract_payload() -> dict[str, Any]:
     return {
         "contract_key": DEPLOYMENT_ACCEPTANCE_CONTRACT_KEY,
@@ -148,26 +288,36 @@ def _run_fingerprint(
     work_item_id: UUID,
     admission_decision_id: UUID,
     reason: str,
+    networking_contract_key: str | None = None,
+    networking_contract_version: int | None = None,
+    networking_contract_fingerprint_value: str | None = None,
+    networking_contract: dict[str, Any] | None = None,
 ) -> str:
-    return canonical_fingerprint(
-        {
-            "tenant_key": tenant_key,
-            "deployment_run_key": deployment_run_key,
-            "execution_mode": EXECUTION_MODE,
-            "environment_key": environment_key,
-            "environment_class": ENVIRONMENT_CLASS,
-            "target_environment_fingerprint": target_environment_fingerprint,
-            "environment_constraints": CANARY_ENVIRONMENT_CONSTRAINTS,
-            "release_commit_sha": release_commit_sha,
-            "release_configuration_fingerprint": release_configuration_fingerprint,
-            "rollback_release_commit_sha": rollback_release_commit_sha,
-            "rollback_configuration_fingerprint": rollback_configuration_fingerprint,
-            "acceptance_contract": _gate_contract_payload(),
-            "work_item_id": str(work_item_id),
-            "admission_decision_id": str(admission_decision_id),
-            "reason": reason,
+    payload: dict[str, Any] = {
+        "tenant_key": tenant_key,
+        "deployment_run_key": deployment_run_key,
+        "execution_mode": EXECUTION_MODE,
+        "environment_key": environment_key,
+        "environment_class": ENVIRONMENT_CLASS,
+        "target_environment_fingerprint": target_environment_fingerprint,
+        "environment_constraints": CANARY_ENVIRONMENT_CONSTRAINTS,
+        "release_commit_sha": release_commit_sha,
+        "release_configuration_fingerprint": release_configuration_fingerprint,
+        "rollback_release_commit_sha": rollback_release_commit_sha,
+        "rollback_configuration_fingerprint": rollback_configuration_fingerprint,
+        "acceptance_contract": _gate_contract_payload(),
+        "work_item_id": str(work_item_id),
+        "admission_decision_id": str(admission_decision_id),
+        "reason": reason,
+    }
+    if networking_contract is not None:
+        payload["networking_contract"] = {
+            "contract_key": networking_contract_key,
+            "contract_version": networking_contract_version,
+            "contract_fingerprint": networking_contract_fingerprint_value,
+            "contract": networking_contract,
         }
-    )
+    return canonical_fingerprint(payload)
 
 
 def deployment_acceptance_receipt_fingerprint(
@@ -225,8 +375,12 @@ def _prepared_activity_payload(
     admission_decision_id: UUID,
     reason: str,
     record_fingerprint: str,
+    networking_contract_key: str | None = None,
+    networking_contract_version: int | None = None,
+    networking_contract_fingerprint_value: str | None = None,
+    networking_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    payload: dict[str, Any] = {
         "deployment_run_id": str(run_id),
         "deployment_run_key": deployment_run_key,
         "execution_mode": EXECUTION_MODE,
@@ -252,6 +406,14 @@ def _prepared_activity_payload(
         "promotion_authorized": False,
         "production_ready": False,
     }
+    if networking_contract is not None:
+        payload["networking_contract"] = {
+            "contract_key": networking_contract_key,
+            "contract_version": networking_contract_version,
+            "contract_fingerprint": networking_contract_fingerprint_value,
+            "contract": networking_contract,
+        }
+    return payload
 
 
 def _validate_authority_lineage(
@@ -351,6 +513,7 @@ def _validate_run_integrity(
     if _json_list(run.required_gate_keys_json, field="required gate keys") != list(_required_gate_keys()):
         raise DeploymentAcceptanceIntegrityError("deployment acceptance gate set drifted")
 
+    networking_contract = _stored_networking_contract(run)
     expected_record = _run_fingerprint(
         tenant_key=run.tenant_key,
         deployment_run_key=run.deployment_run_key,
@@ -363,6 +526,10 @@ def _validate_run_integrity(
         work_item_id=run.work_item_id,
         admission_decision_id=run.admission_decision_id,
         reason=run.reason,
+        networking_contract_key=run.networking_contract_key,
+        networking_contract_version=run.networking_contract_version,
+        networking_contract_fingerprint_value=run.networking_contract_fingerprint,
+        networking_contract=networking_contract,
     )
     if run.record_fingerprint != expected_record:
         raise DeploymentAcceptanceIntegrityError("deployment acceptance run fingerprint drifted")
@@ -403,6 +570,10 @@ def _validate_run_integrity(
         admission_decision_id=run.admission_decision_id,
         reason=run.reason,
         record_fingerprint=run.record_fingerprint,
+        networking_contract_key=run.networking_contract_key,
+        networking_contract_version=run.networking_contract_version,
+        networking_contract_fingerprint_value=run.networking_contract_fingerprint,
+        networking_contract=networking_contract,
     )
     if payload != expected_payload:
         raise DeploymentAcceptanceIntegrityError("deployment preparation Activity payload drifted")
@@ -485,6 +656,7 @@ def project_deployment_acceptance_run(
 ) -> ProductionDeploymentAcceptanceRunRead:
     require_human(context)
     _validate_run_integrity(session, context, run)
+    networking_contract = _stored_networking_contract(run)
     receipts = _receipt_map(session, run)
     gate_reads: list[ProductionDeploymentAcceptanceGateRead] = []
     statuses: list[str] = []
@@ -539,6 +711,10 @@ def project_deployment_acceptance_run(
         acceptance_contract_key=run.acceptance_contract_key,
         acceptance_contract_version=run.acceptance_contract_version,
         acceptance_contract_fingerprint=run.acceptance_contract_fingerprint,
+        networking_contract_key=run.networking_contract_key,
+        networking_contract_version=run.networking_contract_version,
+        networking_contract_fingerprint=run.networking_contract_fingerprint,
+        networking_contract=networking_contract,
         work_item_id=run.work_item_id,
         admission_decision_id=run.admission_decision_id,
         reason=run.reason,
@@ -835,6 +1011,7 @@ def prepare_deployment_acceptance_run(
     release_configuration_fingerprint: str,
     rollback_release_commit_sha: str,
     rollback_configuration_fingerprint: str,
+    networking_contract: ProductionDeploymentNetworkingContract | dict[str, Any],
     work_item_id: UUID,
     admission_decision_id: UUID,
     reason: str,
@@ -864,6 +1041,8 @@ def prepare_deployment_acceptance_run(
         field="rollback_configuration_fingerprint",
         length=64,
     )
+    networking_contract = _normalize_networking_contract(networking_contract)
+    networking_fingerprint = networking_contract_fingerprint(networking_contract)
     reason = _required(reason, field="reason")
     if release_commit_sha == rollback_release_commit_sha:
         raise InvalidReference("rollback release must differ from the candidate release")
@@ -886,6 +1065,10 @@ def prepare_deployment_acceptance_run(
         work_item_id=work.id,
         admission_decision_id=decision.id,
         reason=reason,
+        networking_contract_key=NETWORKING_CONTRACT_KEY,
+        networking_contract_version=NETWORKING_CONTRACT_VERSION,
+        networking_contract_fingerprint_value=networking_fingerprint,
+        networking_contract=networking_contract,
     )
     existing = session.exec(
         select(ProductionDeploymentAcceptanceRun).where(
@@ -931,6 +1114,10 @@ def prepare_deployment_acceptance_run(
             admission_decision_id=decision.id,
             reason=reason,
             record_fingerprint=fingerprint,
+            networking_contract_key=NETWORKING_CONTRACT_KEY,
+            networking_contract_version=NETWORKING_CONTRACT_VERSION,
+            networking_contract_fingerprint_value=networking_fingerprint,
+            networking_contract=networking_contract,
         ),
     )
     run = ProductionDeploymentAcceptanceRun(
@@ -950,6 +1137,10 @@ def prepare_deployment_acceptance_run(
         acceptance_contract_version=DEPLOYMENT_ACCEPTANCE_CONTRACT_VERSION,
         acceptance_contract_fingerprint=deployment_acceptance_contract_fingerprint(),
         required_gate_keys_json=canonical_json(list(_required_gate_keys())),
+        networking_contract_key=NETWORKING_CONTRACT_KEY,
+        networking_contract_version=NETWORKING_CONTRACT_VERSION,
+        networking_contract_fingerprint=networking_fingerprint,
+        networking_contract_json=canonical_json(networking_contract),
         work_item_id=work.id,
         admission_decision_id=decision.id,
         reason=reason,

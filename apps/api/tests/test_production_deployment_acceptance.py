@@ -12,6 +12,7 @@ from app.models.domain import (
     OrganizationActorType,
     OrganizationDecisionType,
     OrganizationalWorkItem,
+    now_utc,
 )
 from app.models.production_deployment_acceptance import (
     ProductionDeploymentAcceptanceCheckReceipt,
@@ -30,12 +31,19 @@ from app.services.production_deployment_acceptance import (
     DEPLOYMENT_ACCEPTANCE_ACTIVITY_TYPE,
     DEPLOYMENT_ACCEPTANCE_GATES,
     DEPLOYMENT_ACCEPTANCE_SOURCE_TYPE,
+    NETWORKING_CONTRACT_KEY,
+    NETWORKING_CONTRACT_VERSION,
     TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR,
+    _prepared_activity_payload,
+    _run_fingerprint,
     deployment_acceptance_receipt_fingerprint,
+    networking_contract_fingerprint,
     prepare_deployment_acceptance_run,
     project_deployment_acceptance_run,
     record_target_host_foundation_receipt,
 )
+from app.services.organization_activity import stage_activity
+
 
 
 BASE = "/api/v1/production-operations/deployment-acceptance"
@@ -44,6 +52,14 @@ ROLLBACK_SHA = "b" * 40
 RELEASE_CONFIG_FP = "c" * 64
 ROLLBACK_CONFIG_FP = "d" * 64
 ENVIRONMENT_FP = "e" * 64
+VERIFIER_KEY_FP = "f" * 64
+NETWORKING_CONTRACT = {
+    "web_hostname": "app.globalmobility.example.eu",
+    "api_hostname": "api.globalmobility.example.eu",
+    "expected_public_ipv4": "8.8.8.8",
+    "allowed_public_tcp_ports": [80, 443],
+    "external_verifier_public_key_fingerprint": VERIFIER_KEY_FP,
+}
 
 
 def _context(
@@ -137,6 +153,7 @@ def _prepare(
         release_configuration_fingerprint=RELEASE_CONFIG_FP,
         rollback_release_commit_sha=ROLLBACK_SHA,
         rollback_configuration_fingerprint=ROLLBACK_CONFIG_FP,
+        networking_contract=NETWORKING_CONTRACT,
         work_item_id=work.id,
         admission_decision_id=decision.id,
         reason=reason or "Prepare exact canary identity for synthetic-only target-host acceptance.",
@@ -221,6 +238,11 @@ def test_deployment_acceptance_prepare_is_identity_only_and_authority_neutral(
     assert read.environment_constraints == CANARY_ENVIRONMENT_CONSTRAINTS
     assert read.release_commit_sha == RELEASE_SHA
     assert read.rollback_release_commit_sha == ROLLBACK_SHA
+    assert read.networking_contract_key == NETWORKING_CONTRACT_KEY
+    assert read.networking_contract_version == NETWORKING_CONTRACT_VERSION
+    assert read.networking_contract_fingerprint == networking_contract_fingerprint(NETWORKING_CONTRACT)
+    assert read.networking_contract is not None
+    assert read.networking_contract.model_dump() == NETWORKING_CONTRACT
     assert [item.gate_key for item in read.gates] == [
         "release_networking",
         "identity_boundaries",
@@ -249,6 +271,10 @@ def test_deployment_acceptance_prepare_is_identity_only_and_authority_neutral(
     assert activity.source_object_id == str(run.id)
     assert activity.source_object_version == RELEASE_SHA
     assert activity.work_item_id == work.id
+    activity_payload = __import__("json").loads(activity.payload_json)
+    assert activity_payload["networking_contract"]["contract_key"] == NETWORKING_CONTRACT_KEY
+    assert activity_payload["networking_contract"]["contract_version"] == NETWORKING_CONTRACT_VERSION
+    assert activity_payload["networking_contract"]["contract"] == NETWORKING_CONTRACT
 
 
 def test_deployment_acceptance_requires_current_approved_matching_decision(
@@ -390,6 +416,7 @@ def test_deployment_acceptance_api_is_no_store_and_has_no_receipt_write_route(
         "release_configuration_fingerprint": RELEASE_CONFIG_FP,
         "rollback_release_commit_sha": ROLLBACK_SHA,
         "rollback_configuration_fingerprint": ROLLBACK_CONFIG_FP,
+        "networking_contract": NETWORKING_CONTRACT,
         "work_item_id": str(work.id),
         "admission_decision_id": str(decision.id),
         "reason": "Prepare only; no deployment evidence is asserted.",
@@ -412,6 +439,159 @@ def test_deployment_acceptance_api_is_no_store_and_has_no_receipt_write_route(
         json={"status": "satisfied"},
     )
     assert forbidden_receipt_write.status_code == 404
+
+def test_deployment_acceptance_networking_contract_fails_closed(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    base = dict(NETWORKING_CONTRACT)
+
+    invalid_contracts = (
+        {**base, "expected_public_ipv4": "2001:4860:4860::8888"},
+        {**base, "expected_public_ipv4": "127.0.0.1"},
+        {**base, "web_hostname": "localhost"},
+        {**base, "api_hostname": "api.example.com"},
+        {**base, "api_hostname": "8.8.8.8"},
+        {**base, "api_hostname": base["web_hostname"]},
+        {**base, "allowed_public_tcp_ports": [443]},
+        {**base, "allowed_public_tcp_ports": [22, 80, 443, 8443]},
+        {**base, "allowed_public_tcp_ports": [80, 80, 443]},
+    )
+    for index, networking_contract in enumerate(invalid_contracts):
+        with pytest.raises(InvalidReference):
+            prepare_deployment_acceptance_run(
+                db_session,
+                context,
+                deployment_run_key=f"phase22-network-invalid-{index}-{uuid4()}",
+                environment_key="canary-single-vps",
+                target_environment_fingerprint=ENVIRONMENT_FP,
+                release_commit_sha=RELEASE_SHA,
+                release_configuration_fingerprint=RELEASE_CONFIG_FP,
+                rollback_release_commit_sha=ROLLBACK_SHA,
+                rollback_configuration_fingerprint=ROLLBACK_CONFIG_FP,
+                networking_contract=networking_contract,
+                work_item_id=work.id,
+                admission_decision_id=decision.id,
+                reason="Invalid networking contract must fail closed.",
+            )
+
+
+def test_deployment_acceptance_legacy_pre_0100_run_remains_readable(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run_id = uuid4()
+    run_key = f"phase22-legacy-run-{uuid4()}"
+    reason = "Legacy pre-0100 prepared run."
+    fingerprint = _run_fingerprint(
+        tenant_key=context.tenant_key,
+        deployment_run_key=run_key,
+        environment_key="canary-single-vps",
+        target_environment_fingerprint=ENVIRONMENT_FP,
+        release_commit_sha=RELEASE_SHA,
+        release_configuration_fingerprint=RELEASE_CONFIG_FP,
+        rollback_release_commit_sha=ROLLBACK_SHA,
+        rollback_configuration_fingerprint=ROLLBACK_CONFIG_FP,
+        work_item_id=work.id,
+        admission_decision_id=decision.id,
+        reason=reason,
+    )
+    occurred_at = now_utc()
+    activity = stage_activity(
+        db_session,
+        context,
+        activity_key=f"production-deployment-acceptance:{run_id}:prepared",
+        stream_key="production-deployment-acceptance:canary-single-vps",
+        activity_class="operational",
+        activity_type=DEPLOYMENT_ACCEPTANCE_ACTIVITY_TYPE,
+        title="Deployment acceptance run prepared",
+        summary=(
+            "Prepared an exact canary release/environment/rollback identity and acceptance contract; "
+            "no deployment or target-host acceptance is asserted."
+        ),
+        source_object_type=DEPLOYMENT_ACCEPTANCE_SOURCE_TYPE,
+        source_object_id=str(run_id),
+        source_object_version=RELEASE_SHA,
+        work_item_id=work.id,
+        occurred_at=occurred_at,
+        payload=_prepared_activity_payload(
+            run_id=run_id,
+            deployment_run_key=run_key,
+            environment_key="canary-single-vps",
+            target_environment_fingerprint=ENVIRONMENT_FP,
+            release_commit_sha=RELEASE_SHA,
+            release_configuration_fingerprint=RELEASE_CONFIG_FP,
+            rollback_release_commit_sha=ROLLBACK_SHA,
+            rollback_configuration_fingerprint=ROLLBACK_CONFIG_FP,
+            work_item_id=work.id,
+            admission_decision_id=decision.id,
+            reason=reason,
+            record_fingerprint=fingerprint,
+        ),
+    )
+    run = ProductionDeploymentAcceptanceRun(
+        id=run_id,
+        tenant_key=context.tenant_key,
+        deployment_run_key=run_key,
+        execution_mode="canary",
+        environment_key="canary-single-vps",
+        environment_class="canary",
+        target_environment_fingerprint=ENVIRONMENT_FP,
+        environment_constraints_json=canonical_json(CANARY_ENVIRONMENT_CONSTRAINTS),
+        release_commit_sha=RELEASE_SHA,
+        release_configuration_fingerprint=RELEASE_CONFIG_FP,
+        rollback_release_commit_sha=ROLLBACK_SHA,
+        rollback_configuration_fingerprint=ROLLBACK_CONFIG_FP,
+        acceptance_contract_key="phase22.single_vps_compose.canary_acceptance",
+        acceptance_contract_version=1,
+        acceptance_contract_fingerprint=__import__(
+            "app.services.production_deployment_acceptance",
+            fromlist=["deployment_acceptance_contract_fingerprint"],
+        ).deployment_acceptance_contract_fingerprint(),
+        required_gate_keys_json=canonical_json(
+            [gate.gate_key for gate in DEPLOYMENT_ACCEPTANCE_GATES]
+        ),
+        work_item_id=work.id,
+        admission_decision_id=decision.id,
+        reason=reason,
+        record_fingerprint=fingerprint,
+        prepared_activity_id=activity.id,
+        prepared_activity_fingerprint=activity.record_fingerprint,
+        created_by=context.actor_id,
+        created_at=occurred_at,
+    )
+    db_session.add(run)
+    db_session.commit()
+    db_session.refresh(run)
+
+    read = project_deployment_acceptance_run(db_session, context, run)
+    assert read.networking_contract_key is None
+    assert read.networking_contract_version is None
+    assert read.networking_contract_fingerprint is None
+    assert read.networking_contract is None
+    assert read.canary_evidence_status == "absent"
+
+
+def test_deployment_acceptance_partial_networking_contract_drift_fails_closed(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-network-drift-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    run.networking_contract_json = None
+    with db_session.no_autoflush:
+        with pytest.raises(InvalidTransition, match="partially populated"):
+            project_deployment_acceptance_run(db_session, context, run)
+    db_session.rollback()
+
 
 def _executor_context() -> OrganizationCommandContext:
     return OrganizationCommandContext(

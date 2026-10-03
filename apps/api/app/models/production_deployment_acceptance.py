@@ -68,6 +68,25 @@ class ProductionDeploymentAcceptanceRun(SQLModel, table=True):
             "length(prepared_activity_fingerprint) = 64",
             name="ck_prod_deploy_accept_run_activity_fp",
         ),
+        CheckConstraint(
+            "(networking_contract_key IS NULL AND networking_contract_version IS NULL "
+            "AND networking_contract_fingerprint IS NULL AND networking_contract_json IS NULL) "
+            "OR (networking_contract_key IS NOT NULL AND networking_contract_version IS NOT NULL "
+            "AND networking_contract_fingerprint IS NOT NULL AND networking_contract_json IS NOT NULL)",
+            name="ck_prod_deploy_accept_run_networking_all_or_none",
+        ),
+        CheckConstraint(
+            "networking_contract_key IS NULL OR networking_contract_key = 'phase22.single_vps.public_networking'",
+            name="ck_prod_deploy_accept_run_networking_key",
+        ),
+        CheckConstraint(
+            "networking_contract_version IS NULL OR networking_contract_version = 1",
+            name="ck_prod_deploy_accept_run_networking_version",
+        ),
+        CheckConstraint(
+            "networking_contract_fingerprint IS NULL OR length(networking_contract_fingerprint) = 64",
+            name="ck_prod_deploy_accept_run_networking_fp",
+        ),
         ForeignKeyConstraint(
             ["tenant_key", "work_item_id"],
             ["organizational_work_items.tenant_key", "organizational_work_items.id"],
@@ -117,6 +136,10 @@ class ProductionDeploymentAcceptanceRun(SQLModel, table=True):
     acceptance_contract_version: int
     acceptance_contract_fingerprint: str = Field(max_length=64)
     required_gate_keys_json: str
+    networking_contract_key: str | None = None
+    networking_contract_version: int | None = None
+    networking_contract_fingerprint: str | None = Field(default=None, max_length=64)
+    networking_contract_json: str | None = None
     work_item_id: UUID
     admission_decision_id: UUID
     reason: str
