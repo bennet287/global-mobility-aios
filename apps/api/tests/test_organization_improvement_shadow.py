@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import httpx
@@ -22,8 +23,15 @@ from app.models.domain import (
 )
 from app.models.organization_improvement_evaluation import OrganizationImprovementEvaluationCampaign
 from app.models.organization_improvement_review import OrganizationImprovementReviewPackage
+from app.models.production_deployment_acceptance import (
+    ProductionDeploymentAcceptanceCheckReceipt,
+)
 from app.models.runtime_economics import MonetaryAllocation
-from app.services.organization_command import InvalidReference, OrganizationCommandContext
+from app.services.organization_command import (
+    InvalidReference,
+    OrganizationCommandContext,
+    canonical_json,
+)
 from app.services.organization_improvement_admission_policy import (
     PHASE16_HARD_MONETARY_CEILING_CONTRACT,
     PHASE17_CODEQL_EXACT_HEAD_CONTRACT,
@@ -39,10 +47,19 @@ from app.services.organization_improvement_shadow import (
     ROADMAP_DEPENDENCY_GATE_POLICY_ABSENT,
     ROADMAP_DEPENDENCY_GATE_RISK_UNAVAILABLE,
     ROADMAP_DEPENDENCY_GATE_SATISFIED,
+    CANARY_DEPENDENCY_POLICY_STATUS,
+    CANARY_PHASE_KEY,
+    CANARY_WORK_TYPE,
     SHADOW_WORK_TYPE,
     ShadowCiProofUnavailable,
     _dependency_contract_projection,
+    project_code_canary_evidence,
     project_code_shadow_ci_proof,
+)
+from app.services.production_deployment_acceptance import (
+    DEPLOYMENT_ACCEPTANCE_GATES,
+    deployment_acceptance_receipt_fingerprint,
+    prepare_deployment_acceptance_run,
 )
 
 
@@ -685,3 +702,315 @@ def test_phase16_dependency_does_not_reuse_global_economics_for_other_tenant(
 
     assert evidence.evidence_status == "unknown"
     assert evidence.reasons == ("phase16_runtime_economics_not_tenant_scoped",)
+
+def _canary_work_and_run(
+    session: Session,
+    *,
+    candidate,
+    decision_status: str = "approved",
+):
+    context = _admin_context()
+    suffix = str(uuid4())
+    work = OrganizationalWorkItem(
+        idempotency_key=f"grsi-e-canary-{suffix}",
+        tenant_key="default",
+        work_type=CANARY_WORK_TYPE,
+        objective_key=f"grsi-e-canary-objective-{suffix}",
+        phase_key=CANARY_PHASE_KEY,
+        title="Run bounded candidate canary acceptance",
+        objective="Bind exact code candidate to Phase 22 synthetic-only canary acceptance.",
+        department="Technology",
+        authority_level="L4",
+        assigned_position_key="board",
+        risk_level="high",
+        source_object_type="organization_improvement_candidate",
+        source_object_id=str(candidate.id),
+        source_object_version=candidate.candidate_fingerprint,
+    )
+    session.add(work)
+    session.commit()
+    session.refresh(work)
+
+    decision = ExecutiveDecision(
+        decision_key=f"grsi-e-canary-decision-{suffix}",
+        tenant_key="default",
+        decision_type=OrganizationDecisionType.board_reserved,
+        work_item_id=work.id,
+        source_object_type=work.source_object_type,
+        source_object_id=work.source_object_id,
+        source_object_version=work.source_object_version,
+        authority_level=work.authority_level,
+        requested_by_position="cto",
+        decision_owner_position="board",
+        title="Admit bounded GRSI.E canary acceptance",
+        question="May the exact candidate enter synthetic-only Phase 22 canary acceptance?",
+        recommendation="Allow only the bounded candidate-bound canary acceptance run.",
+        status=decision_status,
+        decided_by="pytest-board" if decision_status == "approved" else None,
+        decision_reason="Pytest governed candidate canary admission." if decision_status == "approved" else None,
+    )
+    session.add(decision)
+    session.commit()
+    session.refresh(decision)
+
+    run = prepare_deployment_acceptance_run(
+        session,
+        context,
+        deployment_run_key=f"grsi-e-canary-run-{suffix}",
+        environment_key="canary-single-vps",
+        target_environment_fingerprint="7" * 64,
+        release_commit_sha=COMMIT_SHA,
+        release_configuration_fingerprint="8" * 64,
+        rollback_release_commit_sha="b" * 40,
+        rollback_configuration_fingerprint="9" * 64,
+        work_item_id=work.id,
+        admission_decision_id=decision.id,
+        reason="Prepare exact candidate-bound Phase 22 canary acceptance identity.",
+    )
+    return work, decision, run
+
+
+def _add_canary_receipts(session: Session, run) -> None:
+    for gate in DEPLOYMENT_ACCEPTANCE_GATES:
+        details = {"synthetic_test": True, "secret_values_recorded": False}
+        receipt = ProductionDeploymentAcceptanceCheckReceipt(
+            tenant_key=run.tenant_key,
+            deployment_run_id=run.id,
+            gate_key=gate.gate_key,
+            gate_version=gate.gate_version,
+            status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            executor_contract_key="pytest-target-host-executor",
+            executor_contract_version=1,
+            executor_identity_fingerprint="c" * 64,
+            evidence_digest="d" * 64,
+            evidence_reference=f"pytest://grsi-canary/{run.id}/{gate.gate_key}",
+            redacted_details_json=canonical_json(details),
+            observed_at=run.created_at,
+            record_fingerprint="0" * 64,
+            created_by="pytest-target-host-executor",
+        )
+        receipt.record_fingerprint = deployment_acceptance_receipt_fingerprint(
+            tenant_key=receipt.tenant_key,
+            deployment_run_id=receipt.deployment_run_id,
+            gate_key=receipt.gate_key,
+            gate_version=receipt.gate_version,
+            status=receipt.status,
+            observed_target_environment_fingerprint=receipt.observed_target_environment_fingerprint,
+            observed_release_commit_sha=receipt.observed_release_commit_sha,
+            observed_release_configuration_fingerprint=receipt.observed_release_configuration_fingerprint,
+            executor_contract_key=receipt.executor_contract_key,
+            executor_contract_version=receipt.executor_contract_version,
+            executor_identity_fingerprint=receipt.executor_identity_fingerprint,
+            evidence_digest=receipt.evidence_digest,
+            evidence_reference=receipt.evidence_reference,
+            redacted_details=details,
+            observed_at=receipt.observed_at,
+            created_by=receipt.created_by,
+        )
+        session.add(receipt)
+    session.commit()
+
+
+def test_code_canary_binds_exact_candidate_to_phase22_and_stays_policy_blocked(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, shadow_work = _candidate_and_shadow_work(db_session)
+    canary_work, decision, run = _canary_work_and_run(db_session, candidate=candidate)
+    _add_canary_receipts(db_session, run)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.project_code_shadow_ci_proof",
+        lambda *args, **kwargs: SimpleNamespace(
+            grsi_e_qualified=True,
+            grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+        ),
+    )
+
+    proof = project_code_canary_evidence(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        shadow_work_item_id=shadow_work.id,
+        deployment_run_id=run.id,
+    )
+
+    assert proof.candidate_id == candidate.id
+    assert proof.canary_work_item_id == canary_work.id
+    assert proof.deployment_run_id == run.id
+    assert proof.artifact_commit_sha == COMMIT_SHA
+    assert proof.release_commit_sha == COMMIT_SHA
+    assert proof.shadow_qualified is True
+    assert proof.canary_decision_id == decision.id
+    assert proof.canary_decision_status == "approved"
+    assert proof.phase22_canary_evidence_satisfied is True
+    assert proof.pre_policy_canary_ready is True
+    assert proof.canary_dependency_policy_status == CANARY_DEPENDENCY_POLICY_STATUS
+    assert proof.admission_blockers == (
+        f"canary_dependency_policy:{CANARY_DEPENDENCY_POLICY_STATUS}",
+    )
+    assert proof.grsi_e_canary_qualified is False
+    assert proof.grsi_e_canary_conclusion == "blocked_canary_dependency_policy_not_implemented"
+    assert proof.production_ready is False
+    assert proof.promotion_conclusion == "not_assessed"
+    assert proof.authority_conclusion == "none_granted"
+
+
+def test_code_canary_rejects_unrelated_candidate_work_or_release(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, shadow_work = _candidate_and_shadow_work(db_session)
+    canary_work, _decision, run = _canary_work_and_run(db_session, candidate=candidate)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.project_code_shadow_ci_proof",
+        lambda *args, **kwargs: SimpleNamespace(
+            grsi_e_qualified=True,
+            grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+        ),
+    )
+
+    canary_work.source_object_version = "3" * 64
+    db_session.add(canary_work)
+    db_session.commit()
+    with pytest.raises(InvalidReference, match="exact improvement candidate"):
+        project_code_canary_evidence(
+            db_session,
+            context,
+            candidate_id=candidate.id,
+            shadow_work_item_id=shadow_work.id,
+            deployment_run_id=run.id,
+        )
+
+    canary_work.source_object_version = candidate.candidate_fingerprint
+    db_session.add(canary_work)
+    db_session.commit()
+    run.release_commit_sha = "e" * 40
+    db_session.add(run)
+    db_session.commit()
+    with pytest.raises(InvalidReference, match="release commit"):
+        project_code_canary_evidence(
+            db_session,
+            context,
+            candidate_id=candidate.id,
+            shadow_work_item_id=shadow_work.id,
+            deployment_run_id=run.id,
+        )
+
+
+def test_code_canary_current_decision_supersession_blocks_readiness(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, shadow_work = _candidate_and_shadow_work(db_session)
+    canary_work, decision, run = _canary_work_and_run(db_session, candidate=candidate)
+    _add_canary_receipts(db_session, run)
+    superseding = ExecutiveDecision(
+        decision_key=f"grsi-e-canary-superseding-{uuid4()}",
+        tenant_key="default",
+        decision_type=OrganizationDecisionType.board_reserved,
+        work_item_id=canary_work.id,
+        source_object_type=canary_work.source_object_type,
+        source_object_id=canary_work.source_object_id,
+        source_object_version=canary_work.source_object_version,
+        supersedes_decision_id=decision.id,
+        authority_level=canary_work.authority_level,
+        requested_by_position="cto",
+        decision_owner_position="board",
+        title="Withdraw candidate canary admission",
+        question="Should the prior canary admission be superseded?",
+        recommendation="Do not use the prior canary Decision.",
+        status="rejected",
+        decided_by="pytest-board",
+        decision_reason="Superseded for test.",
+    )
+    db_session.add(superseding)
+    db_session.commit()
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.project_code_shadow_ci_proof",
+        lambda *args, **kwargs: SimpleNamespace(
+            grsi_e_qualified=True,
+            grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+        ),
+    )
+
+    proof = project_code_canary_evidence(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        shadow_work_item_id=shadow_work.id,
+        deployment_run_id=run.id,
+    )
+
+    assert proof.canary_decision_id == superseding.id
+    assert proof.canary_decision_status == "denied"
+    assert proof.phase22_canary_evidence_satisfied is True
+    assert proof.pre_policy_canary_ready is False
+    assert "canary_work_decision:denied" in proof.admission_blockers
+    assert proof.grsi_e_canary_qualified is False
+
+
+def test_code_canary_incomplete_phase22_receipts_remain_fail_closed(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    context, candidate, shadow_work = _candidate_and_shadow_work(db_session)
+    _canary_work, _decision, run = _canary_work_and_run(db_session, candidate=candidate)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.project_code_shadow_ci_proof",
+        lambda *args, **kwargs: SimpleNamespace(
+            grsi_e_qualified=True,
+            grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+        ),
+    )
+
+    proof = project_code_canary_evidence(
+        db_session,
+        context,
+        candidate_id=candidate.id,
+        shadow_work_item_id=shadow_work.id,
+        deployment_run_id=run.id,
+    )
+
+    assert proof.deployment_observed is False
+    assert proof.canary_evidence_status == "absent"
+    assert proof.phase22_canary_evidence_satisfied is False
+    assert proof.pre_policy_canary_ready is False
+    assert "phase22_canary:absent" in proof.admission_blockers
+
+
+def test_code_canary_endpoint_is_no_store_and_authority_neutral(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _context, candidate, shadow_work = _candidate_and_shadow_work(db_session)
+    _canary_work, _decision, run = _canary_work_and_run(db_session, candidate=candidate)
+    _add_canary_receipts(db_session, run)
+    monkeypatch.setattr(
+        "app.services.organization_improvement_shadow.project_code_shadow_ci_proof",
+        lambda *args, **kwargs: SimpleNamespace(
+            grsi_e_qualified=True,
+            grsi_e_admission_conclusion="qualified_for_bounded_code_shadow",
+        ),
+    )
+
+    response = client.get(
+        f"/api/v1/organization/improvements/shadow/code-canary/candidates/{candidate.id}",
+        params={
+            "shadow_work_item_id": str(shadow_work.id),
+            "deployment_run_id": str(run.id),
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.headers["cache-control"] == "no-store"
+    body = response.json()
+    assert body["candidate_id"] == str(candidate.id)
+    assert body["phase22_canary_evidence_satisfied"] is True
+    assert body["pre_policy_canary_ready"] is True
+    assert body["grsi_e_canary_qualified"] is False
+    assert body["production_ready"] is False
+    assert body["deployment_authorized"] is False
