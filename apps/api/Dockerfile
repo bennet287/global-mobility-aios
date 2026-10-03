@@ -1,5 +1,11 @@
 FROM python:3.12-slim
 
+ARG AIOS_RELEASE_COMMIT_SHA=unbound
+ARG AIOS_RELEASE_CONFIGURATION_FINGERPRINT=unbound
+LABEL org.opencontainers.image.revision="${AIOS_RELEASE_COMMIT_SHA}" \
+      com.global-mobility-aios.release-configuration-fingerprint="${AIOS_RELEASE_CONFIGURATION_FINGERPRINT}" \
+      com.global-mobility-aios.release-identity-contract="phase22.release-identity.v1"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 

@@ -26,6 +26,12 @@ RUN npm run build
 
 FROM node:20-alpine AS production
 
+ARG AIOS_RELEASE_COMMIT_SHA=unbound
+ARG AIOS_RELEASE_CONFIGURATION_FINGERPRINT=unbound
+LABEL org.opencontainers.image.revision="${AIOS_RELEASE_COMMIT_SHA}" \
+      com.global-mobility-aios.release-configuration-fingerprint="${AIOS_RELEASE_CONFIGURATION_FINGERPRINT}" \
+      com.global-mobility-aios.release-identity-contract="phase22.release-identity.v1"
+
 WORKDIR /app
 
 ENV NODE_ENV=production
