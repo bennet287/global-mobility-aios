@@ -17,6 +17,7 @@ WEB_DOCKERIGNORE = ROOT / "apps" / "web" / ".dockerignore"
 WEB_NEXT_CONFIG = ROOT / "apps" / "web" / "next.config.js"
 BACKUP_RESTORE_SCRIPT = ROOT / "scripts" / "postgres_backup_restore.py"
 BACKUP_RESTORE_DOC = ROOT / "docs" / "POSTGRES_BACKUP_RESTORE_V1.md"
+RELEASE_IDENTITY_SCRIPT = ROOT / "scripts" / "production_release_identity.py"
 
 
 def _require_file(path: Path) -> str:
@@ -66,6 +67,7 @@ def main() -> int:
         web_next_config = _require_file(WEB_NEXT_CONFIG)
         backup_restore_script = _require_file(BACKUP_RESTORE_SCRIPT)
         backup_restore_doc = _require_file(BACKUP_RESTORE_DOC)
+        release_identity_script = _require_file(RELEASE_IDENTITY_SCRIPT)
 
         for service in ("postgres", "api-migrate", "redis", "api", "web", "ingress", "worker", "beat"):
             _service_block(compose, service, PROD_COMPOSE)
@@ -78,6 +80,29 @@ def main() -> int:
         web_block = _service_block(compose, "web", PROD_COMPOSE)
         ingress_block = _service_block(compose, "ingress", PROD_COMPOSE)
         dev_web_block = _service_block(dev_compose, "web", DEV_COMPOSE)
+
+        _require(compose, "x-release-build-args: &release_build_args", PROD_COMPOSE)
+        _require(compose, "AIOS_RELEASE_COMMIT_SHA: ${AIOS_RELEASE_COMMIT_SHA:?", PROD_COMPOSE)
+        _require(
+            compose,
+            "AIOS_RELEASE_CONFIGURATION_FINGERPRINT: ${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?",
+            PROD_COMPOSE,
+        )
+        for block in (migration_block, api_block, worker_block, beat_block):
+            _require(block, "args: *release_build_args", PROD_COMPOSE)
+            _require(block, "image: global-mobility-aios-api:${AIOS_RELEASE_COMMIT_SHA:?", PROD_COMPOSE)
+            _require(
+                block,
+                "-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?",
+                PROD_COMPOSE,
+            )
+        _require(web_block, "<<: *release_build_args", PROD_COMPOSE)
+        _require(web_block, "image: global-mobility-aios-web:${AIOS_RELEASE_COMMIT_SHA:?", PROD_COMPOSE)
+        _require(
+            web_block,
+            "-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?",
+            PROD_COMPOSE,
+        )
 
         _require(compose, "condition: service_healthy", PROD_COMPOSE)
         _require(compose, "condition: service_completed_successfully", PROD_COMPOSE)
@@ -198,6 +223,12 @@ def main() -> int:
         _require(compose, "ingress_data:", PROD_COMPOSE)
         _require(dev_web_block, "target: development", DEV_COMPOSE)
 
+        _require(env_example, "AIOS_RELEASE_COMMIT_SHA=0000000000000000000000000000000000000000", PROD_ENV_EXAMPLE)
+        _require(
+            env_example,
+            "AIOS_RELEASE_CONFIGURATION_FINGERPRINT=0000000000000000000000000000000000000000000000000000000000000000",
+            PROD_ENV_EXAMPLE,
+        )
         _require(env_example, "APP_ENV=production", PROD_ENV_EXAMPLE)
         _require(env_example, "AUTH_ALLOW_HEADER_ROLE=false", PROD_ENV_EXAMPLE)
         _require(env_example, "DATABASE_AUTO_CREATE_TABLES=false", PROD_ENV_EXAMPLE)
@@ -230,6 +261,34 @@ def main() -> int:
                 PROD_ENV_EXAMPLE,
             )
             _require_absent(env_example, f"\n{key}=", PROD_ENV_EXAMPLE)
+
+        for dockerfile, source in ((api_dockerfile, API_DOCKERFILE), (web_dockerfile, WEB_DOCKERFILE)):
+            _require(dockerfile, "ARG AIOS_RELEASE_COMMIT_SHA=unbound", source)
+            _require(dockerfile, "ARG AIOS_RELEASE_CONFIGURATION_FINGERPRINT=unbound", source)
+            _require(dockerfile, 'org.opencontainers.image.revision="${AIOS_RELEASE_COMMIT_SHA}"', source)
+            _require(
+                dockerfile,
+                'com.global-mobility-aios.release-configuration-fingerprint="${AIOS_RELEASE_CONFIGURATION_FINGERPRINT}"',
+                source,
+            )
+            _require(
+                dockerfile,
+                'com.global-mobility-aios.release-identity-contract="phase22.release-identity.v1"',
+                source,
+            )
+
+        for needle in (
+            "RELEASE_IDENTITY_CONTRACT",
+            "RELEASE_CONFIGURATION_PATHS",
+            '("status", "--porcelain", "--untracked-files=all")',
+            '("rev-parse", "HEAD")',
+            "AIOS_RELEASE_COMMIT_SHA",
+            "AIOS_RELEASE_CONFIGURATION_FINGERPRINT",
+            '"docker",',
+            '"compose",',
+            '"build",',
+        ):
+            _require(release_identity_script, needle, RELEASE_IDENTITY_SCRIPT)
 
         _require(api_dockerfile, "HEALTHCHECK", API_DOCKERFILE)
         _require(api_dockerignore, "gmai.db", API_DOCKERIGNORE)

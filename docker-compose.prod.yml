@@ -62,6 +62,10 @@ x-application-runtime-env: &application_runtime_env
   LLM_TIMEOUT_SECONDS:
   LLM_FALLBACK_TO_TEMPLATE:
 
+x-release-build-args: &release_build_args
+  AIOS_RELEASE_COMMIT_SHA: ${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}
+  AIOS_RELEASE_CONFIGURATION_FINGERPRINT: ${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
+
 x-runtime-secret-volume: &runtime_secret_volume
   type: bind
   source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}
@@ -89,8 +93,10 @@ services:
     restart: unless-stopped
 
   api-migrate:
+    image: global-mobility-aios-api:${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
     build:
       context: ./apps/api
+      args: *release_build_args
     container_name: gmai-api-migrate-prod
     environment:
       APP_ENV: production
@@ -116,8 +122,10 @@ services:
     restart: unless-stopped
 
   api:
+    image: global-mobility-aios-api:${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
     build:
       context: ./apps/api
+      args: *release_build_args
     container_name: gmai-api-prod
     environment:
       <<: *application_runtime_env
@@ -157,10 +165,12 @@ services:
     restart: unless-stopped
 
   web:
+    image: global-mobility-aios-web:${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
     build:
       context: ./apps/web
       target: production
       args:
+        <<: *release_build_args
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?Set NEXT_PUBLIC_API_BASE_URL to the browser-reachable API origin}
         NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "false"
     container_name: gmai-web-prod
@@ -201,8 +211,10 @@ services:
     restart: unless-stopped
 
   worker:
+    image: global-mobility-aios-api:${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
     build:
       context: ./apps/api
+      args: *release_build_args
     container_name: gmai-worker-prod
     environment:
       <<: *application_runtime_env
@@ -226,8 +238,10 @@ services:
     restart: unless-stopped
 
   beat:
+    image: global-mobility-aios-api:${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}-${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
     build:
       context: ./apps/api
+      args: *release_build_args
     container_name: gmai-beat-prod
     environment:
       APP_ENV: production

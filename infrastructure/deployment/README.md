@@ -7,6 +7,19 @@ Initial deployment target:
 - Daily PostgreSQL backups with isolated restore verification
 - Manual human approval for sensitive workflows
 
+## Exact release identity before target-host acceptance
+
+Production application images must be built from a clean Git checkout through the canonical helper:
+
+```bash
+python scripts/production_release_identity.py show --json
+python scripts/production_release_identity.py build --env-file .env.production
+```
+
+The helper derives the exact 40-character Git commit and a deterministic SHA-256 fingerprint over the tracked production build/deployment inputs, then injects both into the API and web-derived images as OCI/custom image labels. Production Compose also tags those application images with the full commit plus configuration fingerprint, so a previously accepted release remains addressable as a concrete rollback image instead of being represented only by a mutable service tag. The all-zero values in `.env.production.example` exist only so static Compose validation can resolve the example file; they are not valid deployment evidence.
+
+This release identity is necessary but not sufficient for canary or production acceptance. A target-host acceptance executor must still inspect the **running** container/image labels and compare them with the prepared deployment-acceptance run, observe migration/health/networking behavior, and record immutable receipts. A successful image build or matching label alone is not a deployment, rollback or production-readiness claim.
+
 ## Whole-product production acceptance
 
 **Status: NOT YET VERIFIED ON A PRODUCTION HOST.** The workflow named `V12 Production Proof` is repository CI evidence: it checks code, isolated database contracts, builds and browser journeys, some of which use fixture API responses. It does not deploy the complete product to a VPS. A passing workflow must never be described as proof that AIOS is operating in production.
