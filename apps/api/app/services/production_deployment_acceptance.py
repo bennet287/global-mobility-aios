@@ -57,6 +57,10 @@ ALLOWED_PREPARER_POSITIONS = frozenset(
     }
 )
 TERMINAL_WORK_STATUSES = frozenset({"completed", "cancelled", "failed"})
+TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR = "phase22-target-host-foundation"
+TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_KEY = "phase22.target-host-foundation.v1"
+TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_VERSION = 1
+TARGET_HOST_FOUNDATION_STATUSES = frozenset({"blocked", "failed", "unknown"})
 _HEX40 = re.compile(r"^[0-9a-f]{40}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -549,6 +553,275 @@ def project_deployment_acceptance_run(
         canary_evidence_status=aggregate,
         canary_evidence_satisfied=aggregate == "satisfied",
     )
+
+
+def target_host_foundation_executor_identity_fingerprint(
+    release_commit_sha: str,
+) -> str:
+    release_commit_sha = _hex(
+        release_commit_sha,
+        field="release_commit_sha",
+        length=40,
+    )
+    return canonical_fingerprint(
+        {
+            "executor_contract_key": TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_KEY,
+            "executor_contract_version": TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_VERSION,
+            "release_commit_sha": release_commit_sha,
+        }
+    )
+
+
+def _require_target_host_foundation_executor(
+    context: OrganizationCommandContext,
+) -> None:
+    if (
+        context.actor_type is not OrganizationActorType.system
+        or context.actor_id != TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR
+        or context.authenticated_user_id != "system"
+        or context.role != "operator"
+    ):
+        raise AuthorityDenied(
+            "deployment acceptance receipt writes are reserved for the canonical target-host executor"
+        )
+
+
+def _target_host_foundation_receipt_semantics(
+    *,
+    run: ProductionDeploymentAcceptanceRun,
+    gate: DeploymentAcceptanceGateSpec,
+    status: str,
+    observed_target_environment_fingerprint: str,
+    observed_release_commit_sha: str,
+    observed_release_configuration_fingerprint: str,
+    redacted_details: dict[str, Any],
+) -> dict[str, Any]:
+    base = {
+        "deployment_run_id": str(run.id),
+        "gate_key": gate.gate_key,
+        "gate_version": gate.gate_version,
+        "status": status,
+        "observed_target_environment_fingerprint": observed_target_environment_fingerprint,
+        "observed_release_commit_sha": observed_release_commit_sha,
+        "observed_release_configuration_fingerprint": observed_release_configuration_fingerprint,
+        "executor_contract_key": TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_KEY,
+        "executor_contract_version": TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_VERSION,
+        "executor_identity_fingerprint": target_host_foundation_executor_identity_fingerprint(
+            run.release_commit_sha
+        ),
+        "redacted_details": redacted_details,
+    }
+    return {
+        **base,
+        "evidence_digest": canonical_fingerprint(
+            {
+                **base,
+                "evidence_contract": "phase22.target-host-foundation.evidence.v1",
+            }
+        ),
+        "evidence_reference": (
+            f"phase22-target-host-foundation://{run.id}/{gate.gate_key}"
+        ),
+        "created_by": TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR,
+    }
+
+
+def _receipt_matches_foundation_semantics(
+    receipt: ProductionDeploymentAcceptanceCheckReceipt,
+    *,
+    semantics: dict[str, Any],
+) -> bool:
+    try:
+        stored_details = json.loads(receipt.redacted_details_json or "{}")
+    except (TypeError, json.JSONDecodeError):
+        return False
+    return (
+        receipt.gate_key == semantics["gate_key"]
+        and receipt.gate_version == semantics["gate_version"]
+        and receipt.status == semantics["status"]
+        and receipt.observed_target_environment_fingerprint
+        == semantics["observed_target_environment_fingerprint"]
+        and receipt.observed_release_commit_sha
+        == semantics["observed_release_commit_sha"]
+        and receipt.observed_release_configuration_fingerprint
+        == semantics["observed_release_configuration_fingerprint"]
+        and receipt.executor_contract_key == semantics["executor_contract_key"]
+        and receipt.executor_contract_version == semantics["executor_contract_version"]
+        and receipt.executor_identity_fingerprint == semantics["executor_identity_fingerprint"]
+        and receipt.evidence_digest == semantics["evidence_digest"]
+        and receipt.evidence_reference == semantics["evidence_reference"]
+        and receipt.created_by == semantics["created_by"]
+        and stored_details == semantics["redacted_details"]
+    )
+
+
+def record_target_host_foundation_receipt(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    deployment_run_id: UUID,
+    gate_key: str,
+    status: str,
+    observed_target_environment_fingerprint: str,
+    observed_release_commit_sha: str,
+    observed_release_configuration_fingerprint: str,
+    redacted_details: dict[str, Any],
+) -> ProductionDeploymentAcceptanceCheckReceipt:
+    """Persist fail-closed target-host evidence without any path to a satisfied gate."""
+
+    _require_target_host_foundation_executor(context)
+    run = tenant_record(
+        session,
+        ProductionDeploymentAcceptanceRun,
+        deployment_run_id,
+        context.tenant_key,
+        label="deployment acceptance run",
+    )
+    _validate_run_integrity(session, context, run)
+
+    supported = {gate.gate_key: gate for gate in DEPLOYMENT_ACCEPTANCE_GATES}
+    gate = supported.get(gate_key)
+    if gate is None:
+        raise InvalidReference("target-host receipt references an unsupported gate")
+    if status not in TARGET_HOST_FOUNDATION_STATUSES:
+        raise InvalidReference(
+            "target-host foundation executor cannot record a satisfied acceptance gate"
+        )
+    if not isinstance(redacted_details, dict):
+        raise InvalidReference("target-host receipt details must be a JSON object")
+    details_json = canonical_json(redacted_details)
+    if len(details_json.encode("utf-8")) > 16_384:
+        raise InvalidReference("target-host receipt details exceed the bounded evidence size")
+
+    observed_target_environment_fingerprint = _hex(
+        observed_target_environment_fingerprint,
+        field="observed_target_environment_fingerprint",
+        length=64,
+    )
+    observed_release_commit_sha = _hex(
+        observed_release_commit_sha,
+        field="observed_release_commit_sha",
+        length=40,
+    )
+    observed_release_configuration_fingerprint = _hex(
+        observed_release_configuration_fingerprint,
+        field="observed_release_configuration_fingerprint",
+        length=64,
+    )
+    if (
+        observed_target_environment_fingerprint != run.target_environment_fingerprint
+        or observed_release_commit_sha != run.release_commit_sha
+        or observed_release_configuration_fingerprint
+        != run.release_configuration_fingerprint
+    ):
+        raise InvalidReference(
+            "target-host foundation executor observed an identity that does not match the prepared run"
+        )
+
+    semantics = _target_host_foundation_receipt_semantics(
+        run=run,
+        gate=gate,
+        status=status,
+        observed_target_environment_fingerprint=observed_target_environment_fingerprint,
+        observed_release_commit_sha=observed_release_commit_sha,
+        observed_release_configuration_fingerprint=observed_release_configuration_fingerprint,
+        redacted_details=redacted_details,
+    )
+    existing = session.exec(
+        select(ProductionDeploymentAcceptanceCheckReceipt).where(
+            ProductionDeploymentAcceptanceCheckReceipt.tenant_key == context.tenant_key,
+            ProductionDeploymentAcceptanceCheckReceipt.deployment_run_id == run.id,
+            ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
+        )
+    ).first()
+    if existing is not None:
+        if not _receipt_matches_foundation_semantics(existing, semantics=semantics):
+            raise IdempotencyConflict(
+                "deployment acceptance gate already has immutable evidence with different semantics"
+            )
+        _receipt_map(session, run)
+        return existing
+
+    # The persisted DateTime contract is timezone-naive across the supported
+    # SQLite/PostgreSQL schemas. Normalize the UTC instant before fingerprinting so
+    # the immutable receipt fingerprint survives a database round-trip.
+    observed_at = now_utc().replace(tzinfo=None)
+    receipt = ProductionDeploymentAcceptanceCheckReceipt(
+        tenant_key=context.tenant_key,
+        deployment_run_id=run.id,
+        gate_key=gate.gate_key,
+        gate_version=gate.gate_version,
+        status=status,
+        observed_target_environment_fingerprint=observed_target_environment_fingerprint,
+        observed_release_commit_sha=observed_release_commit_sha,
+        observed_release_configuration_fingerprint=observed_release_configuration_fingerprint,
+        executor_contract_key=TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_KEY,
+        executor_contract_version=TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_VERSION,
+        executor_identity_fingerprint=semantics["executor_identity_fingerprint"],
+        evidence_digest=semantics["evidence_digest"],
+        evidence_reference=semantics["evidence_reference"],
+        redacted_details_json=details_json,
+        observed_at=observed_at,
+        record_fingerprint="0" * 64,
+        created_by=TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR,
+        created_at=observed_at,
+    )
+    receipt.record_fingerprint = deployment_acceptance_receipt_fingerprint(
+        tenant_key=receipt.tenant_key,
+        deployment_run_id=receipt.deployment_run_id,
+        gate_key=receipt.gate_key,
+        gate_version=receipt.gate_version,
+        status=receipt.status,
+        observed_target_environment_fingerprint=receipt.observed_target_environment_fingerprint,
+        observed_release_commit_sha=receipt.observed_release_commit_sha,
+        observed_release_configuration_fingerprint=receipt.observed_release_configuration_fingerprint,
+        executor_contract_key=receipt.executor_contract_key,
+        executor_contract_version=receipt.executor_contract_version,
+        executor_identity_fingerprint=receipt.executor_identity_fingerprint,
+        evidence_digest=receipt.evidence_digest,
+        evidence_reference=receipt.evidence_reference,
+        redacted_details=redacted_details,
+        observed_at=receipt.observed_at,
+        created_by=receipt.created_by,
+    )
+    session.add(receipt)
+    try:
+        commit_mutations(
+            session,
+            mutations=(
+                AuditMutation(
+                    action="production.deployment_acceptance.receipt.foundation",
+                    entity_type="production_deployment_acceptance_check_receipt",
+                    entity_id=receipt.id,
+                    after_state=receipt,
+                    reason=(
+                        "Recorded fail-closed Phase 22 target-host evidence. "
+                        "Foundation v1 cannot satisfy any acceptance gate."
+                    ),
+                ),
+            ),
+            context=context,
+            refresh=(receipt,),
+        )
+    except IntegrityError as exc:
+        session.rollback()
+        concurrent = session.exec(
+            select(ProductionDeploymentAcceptanceCheckReceipt).where(
+                ProductionDeploymentAcceptanceCheckReceipt.tenant_key == context.tenant_key,
+                ProductionDeploymentAcceptanceCheckReceipt.deployment_run_id == run.id,
+                ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
+            )
+        ).first()
+        if concurrent is not None and _receipt_matches_foundation_semantics(
+            concurrent,
+            semantics=semantics,
+        ):
+            _receipt_map(session, run)
+            return concurrent
+        raise DependencyConflict(
+            "deployment acceptance receipt changed concurrently"
+        ) from exc
+    return receipt
 
 
 def prepare_deployment_acceptance_run(

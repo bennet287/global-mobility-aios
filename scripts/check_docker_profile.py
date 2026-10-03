@@ -18,6 +18,7 @@ WEB_NEXT_CONFIG = ROOT / "apps" / "web" / "next.config.js"
 BACKUP_RESTORE_SCRIPT = ROOT / "scripts" / "postgres_backup_restore.py"
 BACKUP_RESTORE_DOC = ROOT / "docs" / "POSTGRES_BACKUP_RESTORE_V1.md"
 RELEASE_IDENTITY_SCRIPT = ROOT / "scripts" / "production_release_identity.py"
+TARGET_HOST_ACCEPTANCE_SCRIPT = ROOT / "scripts" / "phase22_target_host_acceptance.py"
 
 
 def _require_file(path: Path) -> str:
@@ -68,6 +69,7 @@ def main() -> int:
         backup_restore_script = _require_file(BACKUP_RESTORE_SCRIPT)
         backup_restore_doc = _require_file(BACKUP_RESTORE_DOC)
         release_identity_script = _require_file(RELEASE_IDENTITY_SCRIPT)
+        target_host_acceptance_script = _require_file(TARGET_HOST_ACCEPTANCE_SCRIPT)
 
         for service in ("postgres", "api-migrate", "redis", "api", "web", "ingress", "worker", "beat"):
             _service_block(compose, service, PROD_COMPOSE)
@@ -289,6 +291,16 @@ def main() -> int:
             '"build",',
         ):
             _require(release_identity_script, needle, RELEASE_IDENTITY_SCRIPT)
+
+        for needle in (
+            "HOST_IDENTITY_CONTRACT",
+            "PRODUCTION_APPLICATION_CONTAINERS",
+            "resolve_target_environment_fingerprint",
+            "verify_running_release_identity",
+            "record_target_host_foundation_receipt",
+            '"record-foundation"',
+        ):
+            _require(target_host_acceptance_script, needle, TARGET_HOST_ACCEPTANCE_SCRIPT)
 
         _require(api_dockerfile, "HEALTHCHECK", API_DOCKERFILE)
         _require(api_dockerignore, "gmai.db", API_DOCKERIGNORE)
