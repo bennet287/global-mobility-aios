@@ -20,6 +20,27 @@ The helper derives the exact 40-character Git commit and a deterministic SHA-256
 
 This release identity is necessary but not sufficient for canary or production acceptance. A target-host acceptance executor must still inspect the **running** container/image labels and compare them with the prepared deployment-acceptance run, observe migration/health/networking behavior, and record immutable receipts. A successful image build or matching label alone is not a deployment, rollback or production-readiness claim.
 
+### Phase 22 target-host foundation executor
+
+The first target-host executor contract is deliberately fail-closed. It can establish a deterministic host fingerprint, verify that the four long-running application containers are running the exact prepared release/configuration identity, and persist immutable evidence for the six existing Phase 22 gates. **Foundation v1 cannot record a satisfied gate.** Every receipt it writes is `blocked`, `failed`, or `unknown`; there is no public receipt-write endpoint.
+
+Before preparing the deployment-acceptance run on the same VPS, derive the host fingerprint:
+
+```bash
+python scripts/phase22_target_host_acceptance.py fingerprint --json
+```
+
+After the prepared run exists and the exact candidate images are running:
+
+```bash
+python scripts/phase22_target_host_acceptance.py record-foundation \
+  --run-id <deployment-run-uuid> \
+  --tenant-key default \
+  --json
+```
+
+The command independently recomputes the host fingerprint and inspects the running API, web, worker and beat image labels. If either host identity or release identity differs from the prepared run, it exits without creating receipts. On an exact match it records six **blocked** receipts describing which gate-specific probes are still absent. The host fingerprint is a deterministic operational identity hash, not cryptographic remote attestation; the host operator remains inside the trust boundary. Because receipts are immutable per run/gate, a foundation run that records blocked receipts is not later upgraded in place to a passing canary; prepare a new run after satisfied-capable gate executors have been implemented.
+
 ## Whole-product production acceptance
 
 **Status: NOT YET VERIFIED ON A PRODUCTION HOST.** The workflow named `V12 Production Proof` is repository CI evidence: it checks code, isolated database contracts, builds and browser journeys, some of which use fixture API responses. It does not deploy the complete product to a VPS. A passing workflow must never be described as proof that AIOS is operating in production.

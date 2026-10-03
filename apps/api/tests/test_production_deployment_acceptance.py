@@ -20,6 +20,7 @@ from app.models.production_deployment_acceptance import (
 from app.services.organization_command import (
     AuthorityDenied,
     IdempotencyConflict,
+    InvalidReference,
     InvalidTransition,
     OrganizationCommandContext,
     canonical_json,
@@ -29,9 +30,11 @@ from app.services.production_deployment_acceptance import (
     DEPLOYMENT_ACCEPTANCE_ACTIVITY_TYPE,
     DEPLOYMENT_ACCEPTANCE_GATES,
     DEPLOYMENT_ACCEPTANCE_SOURCE_TYPE,
+    TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR,
     deployment_acceptance_receipt_fingerprint,
     prepare_deployment_acceptance_run,
     project_deployment_acceptance_run,
+    record_target_host_foundation_receipt,
 )
 
 
@@ -409,3 +412,169 @@ def test_deployment_acceptance_api_is_no_store_and_has_no_receipt_write_route(
         json={"status": "satisfied"},
     )
     assert forbidden_receipt_write.status_code == 404
+
+def _executor_context() -> OrganizationCommandContext:
+    return OrganizationCommandContext(
+        tenant_key="default",
+        actor_id=TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR,
+        actor_type=OrganizationActorType.system,
+        authenticated_user_id="system",
+        role="operator",
+        department="Technology",
+    )
+
+
+def _foundation_details() -> dict:
+    return {
+        "target_environment_fingerprint_verified": True,
+        "release_identity_verified": True,
+        "gate_probe_implemented": False,
+        "blocker": "foundation v1 deliberately cannot satisfy this gate",
+        "secret_values_recorded": False,
+    }
+
+
+def test_target_host_foundation_receipt_is_internal_fail_closed_and_idempotent(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-foundation-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    executor = _executor_context()
+
+    with pytest.raises(InvalidReference, match="satisfied acceptance gate"):
+        record_target_host_foundation_receipt(
+            db_session,
+            executor,
+            deployment_run_id=run.id,
+            gate_key="release_networking",
+            status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            redacted_details=_foundation_details(),
+        )
+
+    first = record_target_host_foundation_receipt(
+        db_session,
+        executor,
+        deployment_run_id=run.id,
+        gate_key="release_networking",
+        status="blocked",
+        observed_target_environment_fingerprint=run.target_environment_fingerprint,
+        observed_release_commit_sha=run.release_commit_sha,
+        observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+        redacted_details=_foundation_details(),
+    )
+    replay = record_target_host_foundation_receipt(
+        db_session,
+        executor,
+        deployment_run_id=run.id,
+        gate_key="release_networking",
+        status="blocked",
+        observed_target_environment_fingerprint=run.target_environment_fingerprint,
+        observed_release_commit_sha=run.release_commit_sha,
+        observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+        redacted_details=_foundation_details(),
+    )
+    assert replay.id == first.id
+
+    with pytest.raises(IdempotencyConflict):
+        record_target_host_foundation_receipt(
+            db_session,
+            executor,
+            deployment_run_id=run.id,
+            gate_key="release_networking",
+            status="failed",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            redacted_details=_foundation_details(),
+        )
+
+
+def test_target_host_foundation_receipt_requires_exact_prepared_identity_and_executor(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-foundation-identity-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+
+    with pytest.raises(AuthorityDenied, match="canonical target-host executor"):
+        record_target_host_foundation_receipt(
+            db_session,
+            context,
+            deployment_run_id=run.id,
+            gate_key="operations",
+            status="blocked",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            redacted_details=_foundation_details(),
+        )
+
+    with pytest.raises(InvalidReference, match="does not match the prepared run"):
+        record_target_host_foundation_receipt(
+            db_session,
+            _executor_context(),
+            deployment_run_id=run.id,
+            gate_key="operations",
+            status="blocked",
+            observed_target_environment_fingerprint="9" * 64,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            redacted_details=_foundation_details(),
+        )
+    assert _count(db_session, ProductionDeploymentAcceptanceCheckReceipt) == 0
+
+
+def test_six_foundation_receipts_complete_observation_but_keep_canary_blocked(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-foundation-six-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    executor = _executor_context()
+    for gate in DEPLOYMENT_ACCEPTANCE_GATES:
+        record_target_host_foundation_receipt(
+            db_session,
+            executor,
+            deployment_run_id=run.id,
+            gate_key=gate.gate_key,
+            status="blocked",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            redacted_details=_foundation_details(),
+        )
+
+    read = project_deployment_acceptance_run(db_session, context, run)
+    assert read.deployment_observed is True
+    assert read.checks_complete is True
+    assert {gate.status for gate in read.gates} == {"blocked"}
+    assert read.canary_evidence_status == "blocked"
+    assert read.canary_evidence_satisfied is False
+    assert read.deployment_authorized_by_receipt is False
+    assert read.promotion_authorized is False
+    assert read.production_ready is False
+    assert read.real_client_data_admitted is False
+    assert read.consequential_external_actions_enabled is False
+    assert read.paid_autonomous_execution_enabled is False
