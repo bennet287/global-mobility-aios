@@ -37,6 +37,12 @@ AUTH_ADMIN_PASSWORD=change-this
 JWT_SECRET=change-this-to-a-long-random-secret
 ```
 
+## Production sign-in
+
+The same `/auth/login` form shows deployment-administrator access instructions in production and leaves the username empty. It does not display local default credentials, `.env` guidance, configured bootstrap identity or secret references. Local instructions and escaped username prefilling remain available outside production. Authentication, selected signed roles, session lifetime and cookie policy remain with the existing owners; this is not a per-user identity directory or SSO implementation.
+
+Production startup requires non-default credentials and disabled header-role bypass. Provision the bootstrap credential and references through `docs/DOCKER_PRODUCTION_PROFILE_V3_3.md`. Production browser/cookie/CORS/expiry and real workload secret-isolation proof remain Phase 22 acceptance requirements; the corrected page is only a prerequisite.
+
 ## Local Script/Test Headers
 
 Trusted local scripts and pytest use:

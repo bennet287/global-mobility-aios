@@ -42,20 +42,32 @@ def _page(title: str, body: str) -> HTMLResponse:
 def login_page(error: str = "") -> HTMLResponse:
     error_html = f"<p class='error'>{html.escape(error)}</p>" if error else ""
     roles = "".join(f"<option value='{role}'>{role}</option>" for role in sorted(ROLES))
+    production = settings.is_production()
+    introduction = (
+        "Operator sign-in. Use the credentials provided by your deployment administrator."
+        if production else
+        "Local v3.1 operator login. Use environment variables before sharing this beyond your machine."
+    )
+    access_help = (
+        "Contact your deployment administrator if you need access."
+        if production else
+        "Default local credentials are <code>admin</code> / <code>admin</code> unless changed in <code>.env</code>."
+    )
+    username = "" if production else html.escape(settings.auth_admin_username)
     return _page("Global Mobility AIOS Login", f"""
       <h1>Global Mobility AIOS Login</h1>
-      <p class="muted">Local v3.1 operator login. Use environment variables before sharing this beyond your machine.</p>
+      <p class="muted">{introduction}</p>
       {error_html}
       <form method="post" action="/auth/login">
         <label for="username">Username</label>
-        <input id="username" name="username" autocomplete="username" value="{html.escape(settings.auth_admin_username)}" />
+        <input id="username" name="username" autocomplete="username" value="{username}" />
         <label for="password">Password</label>
         <input id="password" name="password" type="password" autocomplete="current-password" />
         <label for="role">Role</label>
         <select id="role" name="role">{roles}</select>
         <button type="submit">Sign in</button>
       </form>
-      <p class="muted">Default local credentials are <code>admin</code> / <code>admin</code> unless changed in <code>.env</code>.</p>
+      <p class="muted">{access_help}</p>
     """)
 
 
