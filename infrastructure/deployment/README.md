@@ -41,6 +41,57 @@ python scripts/phase22_target_host_acceptance.py record-foundation \
 
 The command independently recomputes the host fingerprint and inspects the running API, web, worker and beat image labels. If either host identity or release identity differs from the prepared run, it exits without creating receipts. On an exact match it records six **blocked** receipts describing which gate-specific probes are still absent. The host fingerprint is a deterministic operational identity hash, not cryptographic remote attestation; the host operator remains inside the trust boundary. Because receipts are immutable per run/gate, a foundation run that records blocked receipts is not later upgraded in place to a passing canary; prepare a new run after satisfied-capable gate executors have been implemented.
 
+### Phase 22 release/networking executor v2
+
+After the signed external-network verifier workflow is operational on protected `main`, a **fresh** prepared deployment-acceptance run may exercise the satisfied-capable release/networking drill.
+
+The executor must itself run from a clean trusted `main` management checkout. Keep two persistent, clean release checkouts on the target host:
+
+- the exact candidate commit/configuration named by the prepared run;
+- the exact rollback commit/configuration named by the prepared run.
+
+Do not place `.env.production` inside either release checkout; pass its protected host path explicitly.
+
+Before executing, both exact candidate and rollback API/web image tags must already exist locally with the canonical release labels. The executor does not build or pull a different release during the drill.
+
+Run:
+
+```bash
+python scripts/phase22_target_host_acceptance.py record-release-networking \
+  --run-id <fresh-deployment-run-uuid> \
+  --tenant-key default \
+  --external-network-envelope /secure/evidence/envelope.json \
+  --env-file /secure/config/.env.production \
+  --candidate-root /srv/aios/releases/<candidate-sha> \
+  --rollback-root /srv/aios/releases/<rollback-sha> \
+  --json
+```
+
+The v2 executor:
+
+1. verifies its clean `main` management checkout;
+2. verifies both release checkouts and deterministic configuration fingerprints;
+3. validates the signed external-network manifest through the existing Phase 22 validator and requires the protected `refs/heads/main` verifier provenance;
+4. verifies target-host identity, candidate running identity, and exact candidate/rollback image labels;
+5. restarts the candidate application/ingress and re-proves health/identity;
+6. records a read-only database compatibility baseline;
+7. retains the candidate's forward schema; never runs rollback `api-migrate` or schema downgrade;
+8. switches API/web/worker/beat/ingress to the exact rollback release using the same observed Compose project, without rebuilding images or recreating PostgreSQL/Redis;
+9. requires rollback health, exact labels, unchanged Alembic revision, model/schema compatibility, and unchanged stable lead-row count;
+10. restores the exact candidate application/ingress without running migrations;
+11. re-proves candidate health/identity/schema/data compatibility;
+12. waits for a newly transferred signed envelope whose observation started after restoration, then verifies the final public network;
+13. writes exactly one immutable existing `release_networking` receipt.
+
+A failed rollback is recorded as failed evidence after candidate restoration is proven. Unverified restoration stops without writing a receipt and requires operator intervention. The database retains the already applied forward schema throughout the drill. Both application switches disable builds, pulls and dependency recreation.
+
+The initial envelope is preflight evidence only. After the executor reports the restoration timestamp on stderr, dispatch the protected verifier separately and atomically replace the envelope at the supplied path. Its signed observation must begin after that timestamp. The executor waits for at most `--timeout-seconds` (30–900 seconds) and fails closed on missing, stale or failed evidence. GitHub credentials and the signing private key remain off the target host.
+
+A foundation-v1 `release_networking=blocked` receipt cannot be upgraded. Use a fresh prepared run because Phase 22 receipts are immutable per run/gate.
+
+Even a satisfied `release_networking` receipt is **not** production authorization or GRSI promotion. The other five Phase 22 gates remain separately required.
+
+
 ## Whole-product production acceptance
 
 **Status: NOT YET VERIFIED ON A PRODUCTION HOST.** The workflow named `V12 Production Proof` is repository CI evidence: it checks code, isolated database contracts, builds and browser journeys, some of which use fixture API responses. It does not deploy the complete product to a VPS. A passing workflow must never be described as proof that AIOS is operating in production.

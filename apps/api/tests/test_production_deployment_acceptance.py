@@ -34,6 +34,10 @@ from app.services.production_deployment_acceptance import (
     NETWORKING_CONTRACT_KEY,
     NETWORKING_CONTRACT_VERSION,
     TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR,
+    TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_ACTOR,
+    TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_KEY,
+    TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION,
+    TARGET_HOST_RELEASE_NETWORKING_VERIFIER_REF,
     _prepared_activity_payload,
     _run_fingerprint,
     deployment_acceptance_receipt_fingerprint,
@@ -41,6 +45,7 @@ from app.services.production_deployment_acceptance import (
     prepare_deployment_acceptance_run,
     project_deployment_acceptance_run,
     record_target_host_foundation_receipt,
+    record_target_host_release_networking_receipt,
 )
 from app.services.organization_activity import stage_activity
 
@@ -758,3 +763,242 @@ def test_six_foundation_receipts_complete_observation_but_keep_canary_blocked(
     assert read.real_client_data_admitted is False
     assert read.consequential_external_actions_enabled is False
     assert read.paid_autonomous_execution_enabled is False
+
+
+def _release_networking_executor_context() -> OrganizationCommandContext:
+    return OrganizationCommandContext(
+        tenant_key="default",
+        actor_id=TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_ACTOR,
+        actor_type=OrganizationActorType.system,
+        authenticated_user_id="system",
+        role="operator",
+        department="Technology",
+        position_key=None,
+        authority_level=None,
+    )
+
+
+def _release_networking_details(
+    run: ProductionDeploymentAcceptanceRun,
+    *,
+    executor_commit_sha: str = "1" * 40,
+    satisfied: bool = True,
+) -> dict:
+    revision = "0100_phase22_release_networking_contract"
+    return {
+        "executor_commit_sha": executor_commit_sha,
+        "target_environment_fingerprint_verified": True,
+        "candidate_release_identity_verified": True,
+        "candidate_restart_verified": True,
+        "candidate_restart_health_verified": True,
+        "external_network_manifest_sha256": "2" * 64,
+        "external_verifier_public_key_fingerprint": VERIFIER_KEY_FP,
+        "external_verifier_ref": TARGET_HOST_RELEASE_NETWORKING_VERIFIER_REF,
+        "external_verifier_commit_sha": "3" * 40,
+        "external_network_contract_satisfied": satisfied,
+        "external_network_observed_after_restore": satisfied,
+        "rollback_release_commit_sha": run.rollback_release_commit_sha,
+        "rollback_configuration_fingerprint": run.rollback_configuration_fingerprint,
+        "rollback_image_identity_verified": True,
+        "rollback_retained_schema_verified": True,
+        "rollback_release_identity_verified": True,
+        "rollback_schema_compatibility_verified": True,
+        "rollback_stable_data_verified": True,
+        "rollback_health_verified": True,
+        "candidate_restore_retained_schema_verified": True,
+        "candidate_restored": True,
+        "candidate_restore_identity_verified": True,
+        "candidate_restore_schema_compatibility_verified": True,
+        "candidate_restore_stable_data_verified": True,
+        "candidate_restore_health_verified": True,
+        "candidate_schema_revision_before": revision,
+        "rollback_schema_revision": revision,
+        "candidate_schema_revision_after_restore": revision,
+        "failure_stage": None if satisfied else "external_network",
+        "failure_code": None if satisfied else "external_network_contract_failed",
+        "secret_values_recorded": False,
+    }
+
+
+def test_release_networking_v2_is_only_satisfied_capable_for_exact_evidence(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-release-networking-v2-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    executor = _release_networking_executor_context()
+    details = _release_networking_details(run)
+
+    receipt = record_target_host_release_networking_receipt(
+        db_session,
+        executor,
+        deployment_run_id=run.id,
+        status="satisfied",
+        observed_target_environment_fingerprint=run.target_environment_fingerprint,
+        observed_release_commit_sha=run.release_commit_sha,
+        observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+        executor_commit_sha=details["executor_commit_sha"],
+        redacted_details=details,
+    )
+    assert receipt.status == "satisfied"
+    assert receipt.gate_key == "release_networking"
+    assert receipt.executor_contract_key == TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_KEY
+    assert receipt.executor_contract_version == TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION
+    read = project_deployment_acceptance_run(db_session, context, run)
+    release_gate = next(item for item in read.gates if item.gate_key == "release_networking")
+    assert release_gate.status == "satisfied"
+    assert read.canary_evidence_status == "partial"
+    assert read.canary_evidence_satisfied is False
+    assert read.production_ready is False
+    assert read.promotion_authorized is False
+
+
+def test_release_networking_v2_satisfied_fails_closed_on_incomplete_rollback(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-release-networking-v2-incomplete-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    details = _release_networking_details(run)
+    details["rollback_schema_compatibility_verified"] = False
+    with pytest.raises(InvalidReference, match="every v2 proof"):
+        record_target_host_release_networking_receipt(
+            db_session,
+            _release_networking_executor_context(),
+            deployment_run_id=run.id,
+            status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            executor_commit_sha=details["executor_commit_sha"],
+            redacted_details=details,
+        )
+    assert _count(db_session, ProductionDeploymentAcceptanceCheckReceipt) == 0
+
+
+def test_release_networking_v2_requires_protected_verifier_ref_and_fresh_run(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-release-networking-v2-ref-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    details = _release_networking_details(run)
+    details["external_verifier_ref"] = "refs/heads/design/aios-v2-complete-redesign"
+    with pytest.raises(InvalidReference, match="protected main verifier ref"):
+        record_target_host_release_networking_receipt(
+            db_session,
+            _release_networking_executor_context(),
+            deployment_run_id=run.id,
+            status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            executor_commit_sha=details["executor_commit_sha"],
+            redacted_details=details,
+        )
+
+    foundation = _executor_context()
+    record_target_host_foundation_receipt(
+        db_session,
+        foundation,
+        deployment_run_id=run.id,
+        gate_key="release_networking",
+        status="blocked",
+        observed_target_environment_fingerprint=run.target_environment_fingerprint,
+        observed_release_commit_sha=run.release_commit_sha,
+        observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+        redacted_details=_foundation_details(),
+    )
+    clean_details = _release_networking_details(run)
+    with pytest.raises(IdempotencyConflict, match="immutable evidence"):
+        record_target_host_release_networking_receipt(
+            db_session,
+            _release_networking_executor_context(),
+            deployment_run_id=run.id,
+            status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            executor_commit_sha=clean_details["executor_commit_sha"],
+            redacted_details=clean_details,
+        )
+
+
+def test_release_networking_v2_rejects_noncanonical_executor(
+    db_session: Session,
+) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(
+        db_session,
+        key=f"phase22-release-networking-v2-executor-{uuid4()}",
+        context=context,
+        work=work,
+        decision=decision,
+    )
+    details = _release_networking_details(run)
+    with pytest.raises(AuthorityDenied, match="canonical v2 target-host executor"):
+        record_target_host_release_networking_receipt(
+            db_session,
+            context,
+            deployment_run_id=run.id,
+            status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            executor_commit_sha=details["executor_commit_sha"],
+            redacted_details=details,
+        )
+
+
+def test_release_networking_freshness_checked_before_drill(db_session: Session) -> None:
+    from app.services.production_deployment_acceptance import validated_deployment_networking_contract
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(db_session, key=f"fresh-check-{uuid4()}", context=context, work=work, decision=decision)
+    executor = _release_networking_executor_context()
+    validated_deployment_networking_contract(db_session, executor, deployment_run_id=run.id, require_fresh_release_networking=True)
+    record_target_host_foundation_receipt(
+        db_session, _executor_context(), deployment_run_id=run.id,
+        gate_key="release_networking", status="blocked",
+        observed_target_environment_fingerprint=run.target_environment_fingerprint,
+        observed_release_commit_sha=run.release_commit_sha,
+        observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+        redacted_details=_foundation_details(),
+    )
+    with pytest.raises(InvalidTransition, match="fresh run"):
+        validated_deployment_networking_contract(db_session, executor, deployment_run_id=run.id, require_fresh_release_networking=True)
+
+
+def test_satisfied_receipt_requires_post_restore_external_proof(db_session: Session) -> None:
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(db_session, key=f"post-restore-{uuid4()}", context=context, work=work, decision=decision)
+    details = _release_networking_details(run)
+    details["external_network_observed_after_restore"] = False
+    with pytest.raises(InvalidReference, match="every v2 proof"):
+        record_target_host_release_networking_receipt(
+            db_session, _release_networking_executor_context(), deployment_run_id=run.id, status="satisfied",
+            observed_target_environment_fingerprint=run.target_environment_fingerprint,
+            observed_release_commit_sha=run.release_commit_sha,
+            observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
+            executor_commit_sha=details["executor_commit_sha"], redacted_details=details,
+        )
