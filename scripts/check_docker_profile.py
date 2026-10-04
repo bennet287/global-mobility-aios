@@ -148,16 +148,30 @@ def main() -> int:
         _require(api_block, "CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?", PROD_COMPOSE)
         _require(api_block, '127.0.0.1:${API_PORT:-8000}:8000', PROD_COMPOSE)
 
-        _require(compose, "x-runtime-secret-volume: &runtime_secret_volume", PROD_COMPOSE)
-        _require_absent(compose, "x-llm-secret-volume:", PROD_COMPOSE)
+        _require_absent(compose, "x-runtime-secret-volume:", PROD_COMPOSE)
+        scopes = ("database", "auth", "automation", "documents", "storage", "llm", "bootstrap")
+        for scope in scopes:
+            _require(compose, f"x-{scope}-secret-volume: &{scope}_secret_volume", PROD_COMPOSE)
+            _require(compose, f"target: /run/secrets/aios/{scope}", PROD_COMPOSE)
         _require(compose, "source: ${AIOS_SECRETS_DIR:?", PROD_COMPOSE)
-        _require(compose, "target: /run/secrets/aios", PROD_COMPOSE)
         _require(compose, "read_only: true", PROD_COMPOSE)
         _require(compose, "create_host_path: false", PROD_COMPOSE)
-        _require(api_block, "- *runtime_secret_volume", PROD_COMPOSE)
-        _require(worker_block, "- *runtime_secret_volume", PROD_COMPOSE)
-        _require(postgres_block, "- *runtime_secret_volume", PROD_COMPOSE)
-        _require(migration_block, "- *runtime_secret_volume", PROD_COMPOSE)
+        expected_mounts = {
+            "postgres": (postgres_block, {"database"}),
+            "api-migrate": (migration_block, {"database"}),
+            "api": (api_block, set(scopes)),
+            "worker": (worker_block, set(scopes) - {"bootstrap"}),
+            "beat": (beat_block, set()),
+            "web": (web_block, set()),
+            "ingress": (ingress_block, set()),
+        }
+        for block, allowed in expected_mounts.values():
+            for scope in scopes:
+                needle = f"- *{scope}_secret_volume"
+                if scope in allowed:
+                    _require(block, needle, PROD_COMPOSE)
+                else:
+                    _require_absent(block, needle, PROD_COMPOSE)
 
         migrated_runtime_secrets = (
             ("DATABASE_PASSWORD", "database/postgres_password"),
@@ -181,7 +195,7 @@ def main() -> int:
 
         _require(
             env_example,
-            "AUTH_ADMIN_PASSWORD_REF=file:///run/secrets/aios/auth/admin_password",
+            "AUTH_ADMIN_PASSWORD_REF=file:///run/secrets/aios/bootstrap/admin_password",
             PROD_ENV_EXAMPLE,
         )
         _require_absent(env_example, "\nAUTH_ADMIN_PASSWORD=", PROD_ENV_EXAMPLE)

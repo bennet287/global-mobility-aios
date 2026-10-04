@@ -66,10 +66,58 @@ x-release-build-args: &release_build_args
   AIOS_RELEASE_COMMIT_SHA: ${AIOS_RELEASE_COMMIT_SHA:?Build through scripts/production_release_identity.py}
   AIOS_RELEASE_CONFIGURATION_FINGERPRINT: ${AIOS_RELEASE_CONFIGURATION_FINGERPRINT:?Build through scripts/production_release_identity.py}
 
-x-runtime-secret-volume: &runtime_secret_volume
+x-database-secret-volume: &database_secret_volume
   type: bind
-  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}
-  target: /run/secrets/aios
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/database
+  target: /run/secrets/aios/database
+  read_only: true
+  bind:
+    create_host_path: false
+
+x-auth-secret-volume: &auth_secret_volume
+  type: bind
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/auth
+  target: /run/secrets/aios/auth
+  read_only: true
+  bind:
+    create_host_path: false
+
+x-automation-secret-volume: &automation_secret_volume
+  type: bind
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/automation
+  target: /run/secrets/aios/automation
+  read_only: true
+  bind:
+    create_host_path: false
+
+x-documents-secret-volume: &documents_secret_volume
+  type: bind
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/documents
+  target: /run/secrets/aios/documents
+  read_only: true
+  bind:
+    create_host_path: false
+
+x-storage-secret-volume: &storage_secret_volume
+  type: bind
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/storage
+  target: /run/secrets/aios/storage
+  read_only: true
+  bind:
+    create_host_path: false
+
+x-llm-secret-volume: &llm_secret_volume
+  type: bind
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/llm
+  target: /run/secrets/aios/llm
+  read_only: true
+  bind:
+    create_host_path: false
+
+x-bootstrap-secret-volume: &bootstrap_secret_volume
+  type: bind
+  source: ${AIOS_SECRETS_DIR:?Set the production AIOS runtime secrets directory}/bootstrap
+  target: /run/secrets/aios/bootstrap
   read_only: true
   bind:
     create_host_path: false
@@ -84,7 +132,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-gmai}
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
-      - *runtime_secret_volume
+      - *database_secret_volume
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-gmai} -d $${POSTGRES_DB:-gmai}"]
       interval: 10s
@@ -108,7 +156,7 @@ services:
         condition: service_healthy
     command: alembic -c alembic.ini upgrade head
     volumes:
-      - *runtime_secret_volume
+      - *database_secret_volume
     healthcheck:
       disable: true
     restart: "no"
@@ -147,7 +195,13 @@ services:
       CLAMAV_BLOCK_ON_SCANNER_ERROR:
       ALLOW_INTERNAL_DRAFT_PATHWAY_SIMULATION:
     volumes:
-      - *runtime_secret_volume
+      - *database_secret_volume
+      - *auth_secret_volume
+      - *automation_secret_volume
+      - *documents_secret_volume
+      - *storage_secret_volume
+      - *llm_secret_volume
+      - *bootstrap_secret_volume
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     depends_on:
@@ -219,7 +273,12 @@ services:
     environment:
       <<: *application_runtime_env
     volumes:
-      - *runtime_secret_volume
+      - *database_secret_volume
+      - *auth_secret_volume
+      - *automation_secret_volume
+      - *documents_secret_volume
+      - *storage_secret_volume
+      - *llm_secret_volume
     depends_on:
       postgres:
         condition: service_healthy
