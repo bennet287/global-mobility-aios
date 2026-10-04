@@ -1,0 +1,180 @@
+name: Phase 22 External Network Verifier
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_run_id:
+        description: Prepared Phase 22 deployment-run UUID
+        required: true
+        type: string
+      networking_contract_fingerprint:
+        description: Exact prepared networking-contract SHA-256 fingerprint
+        required: true
+        type: string
+      web_hostname:
+        description: Prepared public web hostname
+        required: true
+        type: string
+      api_hostname:
+        description: Prepared public API hostname
+        required: true
+        type: string
+      expected_public_ipv4:
+        description: Prepared globally routable IPv4 address
+        required: true
+        type: string
+      allowed_public_tcp_ports:
+        description: Exact prepared TCP allowlist, e.g. 80,443 or 22,80,443
+        required: true
+        type: string
+      expected_verifier_public_key_fingerprint:
+        description: SHA-256 fingerprint pinned in the prepared networking contract
+        required: true
+        type: string
+
+concurrency:
+  group: phase22-external-network-verifier-${{ inputs.deployment_run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  protected-verifier-ref:
+    name: Verify protected verifier ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      TRUSTED_VERIFIER_REF: refs/heads/main
+    steps:
+      - name: Enforce trusted verifier ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "$TRUSTED_VERIFIER_REF" ]]; then
+            echo "::error::Operational verifier must execute from $TRUSTED_VERIFIER_REF, got $GITHUB_REF"
+            exit 1
+          fi
+          if [[ "$GITHUB_WORKFLOW_REF" != "bennet287/global-mobility-aios/.github/workflows/phase22-external-network-verifier.yml@refs/heads/main" ]]; then
+            echo "::error::Verifier workflow identity/ref is not the trusted protected workflow"
+            exit 1
+          fi
+
+      - name: Verify active main-branch ruleset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          repository = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GH_TOKEN']
+          headers = {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': f'Bearer {token}',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'global-mobility-aios-phase22-verifier',
+          }
+
+          def get_json(url):
+              request = urllib.request.Request(url, headers=headers)
+              with urllib.request.urlopen(request, timeout=15) as response:
+                  return json.load(response)
+
+          rulesets = get_json(f'https://api.github.com/repos/{repository}/rulesets')
+          summary = next(
+              (item for item in rulesets
+               if item.get('name') == 'Production proof enforcement'
+               and item.get('enforcement') == 'active'),
+              None,
+          )
+          if summary is None:
+              raise SystemExit('active Production proof enforcement ruleset is missing')
+          detail = get_json(summary['url'] if 'url' in summary else summary['_links']['self']['href'])
+          include = set(detail.get('conditions', {}).get('ref_name', {}).get('include', []))
+          if 'refs/heads/main' not in include:
+              raise SystemExit('Production proof enforcement does not protect refs/heads/main')
+          rule_types = {rule.get('type') for rule in detail.get('rules', [])}
+          required = {'deletion', 'non_fast_forward', 'required_status_checks'}
+          if not required <= rule_types:
+              raise SystemExit('main ruleset is missing required protection primitives')
+          checks = next(
+              rule for rule in detail['rules'] if rule.get('type') == 'required_status_checks'
+          )
+          contexts = {
+              item.get('context')
+              for item in checks.get('parameters', {}).get('required_status_checks', [])
+          }
+          expected = {
+              'Repository policy and constraints',
+              'Backend regression (SQLite)',
+              'Frontend tests, types and build',
+              'PostgreSQL governance contracts',
+          }
+          if not expected <= contexts:
+              raise SystemExit('main ruleset is missing required production-proof status checks')
+          print('main verifier ref protection verified')
+          PY
+
+  verify-public-network:
+    name: Signed off-host public-network observation
+    needs: protected-verifier-ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: phase22-external-network-verifier
+    steps:
+      - name: Checkout trusted verifier revision only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bounded verifier crypto dependency
+        run: python -m pip install --disable-pip-version-check cryptography==49.0.0
+
+      - name: Execute and sign external observations
+        env:
+          PHASE22_EXTERNAL_VERIFIER_ED25519_PRIVATE_KEY_B64: ${{ secrets.PHASE22_EXTERNAL_VERIFIER_ED25519_PRIVATE_KEY_B64 }}
+        shell: bash
+        run: |
+          if [[ -z "${PHASE22_EXTERNAL_VERIFIER_ED25519_PRIVATE_KEY_B64:-}" ]]; then
+            echo "::error::Protected Environment signing key is unavailable"
+            exit 1
+          fi
+          set -euo pipefail
+          mkdir -p phase22-verifier-artifact
+          python scripts/phase22_external_network_verifier.py \
+            --deployment-run-id "${{ inputs.deployment_run_id }}" \
+            --networking-contract-fingerprint "${{ inputs.networking_contract_fingerprint }}" \
+            --web-hostname "${{ inputs.web_hostname }}" \
+            --api-hostname "${{ inputs.api_hostname }}" \
+            --expected-public-ipv4 "${{ inputs.expected_public_ipv4 }}" \
+            --allowed-public-tcp-ports "${{ inputs.allowed_public_tcp_ports }}" \
+            --expected-verifier-public-key-fingerprint "${{ inputs.expected_verifier_public_key_fingerprint }}" \
+            --repository "$GITHUB_REPOSITORY" \
+            --workflow-path ".github/workflows/phase22-external-network-verifier.yml" \
+            --verifier-ref "$GITHUB_REF" \
+            --verifier-commit-sha "$GITHUB_SHA" \
+            --github-actions-run-id "$GITHUB_RUN_ID" \
+            --github-actions-run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --envelope-out phase22-verifier-artifact/envelope.json \
+            --summary-out phase22-verifier-artifact/summary.json
+
+      - name: Upload signed verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase22-external-network-${{ inputs.deployment_run_id }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: phase22-verifier-artifact
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
