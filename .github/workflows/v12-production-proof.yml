@@ -63,10 +63,29 @@ jobs:
               )
               assert 'env_file' not in services[service]
           assert services['postgres']['environment']['POSTGRES_PASSWORD_FILE'] == '/run/secrets/aios/database/postgres_password'
-          for service in ('postgres', 'api-migrate', 'api', 'worker'):
+          shared_scopes = {'database', 'auth', 'automation', 'documents', 'storage', 'llm'}
+          expected_scopes = {
+              'postgres': {'database'}, 'api-migrate': {'database'},
+              'api': shared_scopes | {'bootstrap'}, 'worker': shared_scopes,
+              'beat': set(), 'web': set(), 'ingress': set(), 'redis': set(),
+          }
+          for service, scopes in expected_scopes.items():
               volumes = services[service].get('volumes', [])
-              assert any(volume.get('target') == '/run/secrets/aios' and volume.get('read_only')
-                         for volume in volumes), f'{service} lacks the read-only secret mount'
+              assert not any(volume.get('target') == '/run/secrets/aios' for volume in volumes)
+              secret_volumes = [volume for volume in volumes
+                                if volume.get('target', '').startswith('/run/secrets/aios/')]
+              assert {volume['target'] for volume in secret_volumes} == {
+                  f'/run/secrets/aios/{scope}' for scope in scopes
+              }, f'{service} received unexpected credential scopes'
+              assert len(secret_volumes) == len(scopes)
+              for volume in secret_volumes:
+                  scope = volume['target'].rsplit('/', 1)[1]
+                  assert volume['type'] == 'bind' and volume.get('read_only')
+                  # Compose versions may omit false fields from resolved JSON.
+                  # The source-profile check separately requires explicit false.
+                  assert volume.get('bind', {}).get('create_host_path', False) is False
+                  assert volume['source'] == f'/etc/global-mobility-aios/runtime-secrets/{scope}'
+          assert services['api']['environment']['AUTH_ADMIN_PASSWORD_REF'] == 'file:///run/secrets/aios/bootstrap/admin_password'
           worker_env = services['worker'].get('environment', {})
           assert 'env_file' not in services['worker']
           runtime_refs = {'JWT_SECRET_REF', 'AUTOMATION_ENCRYPTION_KEY_REF',

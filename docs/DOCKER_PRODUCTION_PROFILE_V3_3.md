@@ -20,7 +20,7 @@ Included in `docker-compose.prod.yml`:
 - no `.env.production` injection into the web container, keeping database, signing, storage, and provider secrets out of the frontend runtime;
 - PostgreSQL receives its database identity and a password-file path; the migration container receives a passwordless database URL plus a reference to the same password file. Compose still uses `.env.production` for interpolation;
 - Celery beat receives only the production flag, Redis broker URL and scheduler-only switch; it does not import task modules or receive database credentials. The worker handles database and external actions with its own runtime configuration;
-- one bounded read-only AIOS runtime-secret mount at `/run/secrets/aios` for PostgreSQL, migration, API and worker, with host-path auto-creation disabled;
+- workload-scoped read-only credential-directory mounts below `/run/secrets/aios`, with PostgreSQL/migration limited to database material, bootstrap material limited to API, and host-path auto-creation disabled;
 - JWT signing, API bootstrap admin login, automation connector encryption, automation webhook authentication, optional MinIO access/secret keys, document-access signing, and remote-provider credentials supplied to application code through `*_REF` references rather than their secret values in Compose environment metadata;
 - the worker receives an explicit database/broker, document, provider and automation allowlist from Compose interpolation, excluding API login credentials and browser/ingress configuration; optional settings absent from the host env keep application defaults;
 - the API uses the same shared runtime allowlist plus login, CORS, telemetry and upload-scan settings; it no longer loads every value in `.env.production` into its container;
@@ -94,7 +94,7 @@ Provision `AIOS_SECRETS_DIR` on the target host before Compose starts. Keep the 
 runtime-secrets/
   database/postgres_password
   auth/jwt_secret
-  auth/admin_password
+  bootstrap/admin_password
   automation/encryption_key
   automation/webhook_secret
   storage/minio_access_key
@@ -104,6 +104,12 @@ runtime-secrets/
   llm/moonshot_api_key
   llm/gemini_api_key
 ```
+
+Compose binds stable credential directories by scope, not the entire root or individual files. PostgreSQL and api-migrate receive `database` only. API and worker share the current required `database`, JWT-only `auth`, `automation`, `documents`, `storage` and `llm` scopes. API alone receives `bootstrap`; beat retains its scheduler-only/no-secret-mount profile. Web, ingress and Redis have no AIOS credential-directory mounts. Provision every scope directory before Compose starts; `storage`/`llm` may be empty for inactive backends/providers. `create_host_path: false` prevents silent provisioning.
+
+**Existing-host transition:** during the governed release maintenance window, move the existing `auth/admin_password` file to `bootstrap/admin_password` on the same host filesystem, retaining private permissions, and change `AUTH_ADMIN_PASSWORD_REF` to `file:///run/secrets/aios/bootstrap/admin_password`. Do not leave a copy, backup or credential-bearing symlink in `auth`; that scope is shared with workers. Keep other active references unchanged. An old admin reference fails closed after the move. Do not perform this transition through the acceptance probe. Recreate the intended service containers for the new mount configuration, then prove login, worker operation and workload mount/read denial on the host before treating isolation as deployed evidence.
+
+For rotation, keep the mounted scope directories themselves stable. Atomically replace individual files **inside** those directories; never replace a mounted directory or bind individual secret files. Keep staged/previous database files in `database` and previous connector keys in `automation` for the authorized rollback window. This preserves the existing password-probe override and key-re-encryption procedures without duplicating values by workload. Code/Compose and local resolver tests do not prove actual Docker mount or live rotation behavior; those remain target-host acceptance work.
 
 Only provision provider files for providers that are actually enabled. The application accepts only bounded absolute `file:///run/secrets/aios/...` references under the mounted root; missing, empty, oversized, non-UTF-8, out-of-scope and symlink-escape references fail closed. API startup resolves its admin-password reference plus five shared database-password, JWT, automation encryption, webhook and document-access refs before serving; the two MinIO key refs are additionally required when `DOCUMENT_STORAGE_BACKEND=minio`. The worker uses the same shared backend-dependent rule. Alembic builds its database connection from the passwordless `DATABASE_URL` and `DATABASE_PASSWORD_REF`.
 
