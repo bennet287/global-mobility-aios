@@ -243,6 +243,8 @@ async function assertFlagship(page: Page) {
   const stage = page.locator(".living-webgpu-stage");
   const architecture = page.locator(".living-hq-architecture");
   const roster = page.locator(".living-hq-department-deck");
+  const missionRoom = architecture.locator('[data-room-type="mission"]');
+  const boardRoom = architecture.locator('[data-room-type="board"]');
 
   await expect(scene.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
   await expect(stage).toBeVisible();
@@ -257,6 +259,14 @@ async function assertFlagship(page: Page) {
   await expect(roster).toHaveAttribute("data-locomotion-allowed", "false");
   await expect(architecture).toHaveAttribute("data-presentation-only", "true");
   await expect(architecture).toHaveAttribute("data-authority", "none");
+  await expect(architecture).toHaveAttribute("data-occupancy-claimed", "false");
+  await expect(missionRoom).toHaveAttribute("data-occupancy-claimed", "false");
+  await expect(boardRoom).toHaveAttribute("data-occupancy-claimed", "false");
+  await expect(missionRoom).toContainText("1 active Missions · 1 open blockers");
+  await expect(missionRoom).toContainText("this room does not create or route work");
+  await expect(boardRoom).toContainText("0 Board-attention risks · 0 current decisions · 0 open human actions");
+  await expect(boardRoom).toContainText("No current canonical Board-attention or human-action demand is projected.");
+  await expect(architecture.locator(".living-hq-architecture-truth")).toContainText("Board action");
 }
 
 test.beforeAll(() => mkdirSync("living-hq-artifacts", { recursive: true }));
