@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import uuid
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 import app.core.auth as auth_module
@@ -288,3 +290,38 @@ def test_agent_run_cancellation_requires_admin_role(raw_client: TestClient) -> N
     )
     assert allowed.status_code == 404
     assert allowed.json()["detail"] == "Agent run not found"
+
+
+@pytest.mark.parametrize("environment", ["production", "prod"])
+def test_production_login_page_does_not_disclose_local_hints_or_configured_identity(
+    raw_client: TestClient, monkeypatch, environment: str,
+) -> None:
+    monkeypatch.setattr(settings, "app_env", environment)
+    monkeypatch.setattr(settings, "auth_admin_username", "private-bootstrap-identity")
+    # Rendering must not resolve or expose the configured bootstrap secret.
+    monkeypatch.setattr(settings, "auth_admin_password_ref", "file:///run/secrets/aios/bootstrap/unavailable")
+    response = raw_client.get("/auth/login")
+    assert response.status_code == 200
+    assert "credentials provided by your deployment administrator" in response.text
+    assert "private-bootstrap-identity" not in response.text
+    assert "Default local credentials" not in response.text
+    assert "Local v3.1 operator login" not in response.text
+    assert ".env" not in response.text
+    assert "file:///" not in response.text
+    assert 'name="username" autocomplete="username" value=""' in response.text
+    assert 'method="post" action="/auth/login"' in response.text
+    assert 'name="role"' in response.text
+    assert "set-cookie" not in response.headers
+
+
+def test_local_login_retains_instructions_and_escapes_configured_username(
+    raw_client: TestClient, monkeypatch,
+) -> None:
+    monkeypatch.setattr(settings, "app_env", "local")
+    monkeypatch.setattr(settings, "auth_admin_username", '\"><script>untrusted()</script>')
+    response = raw_client.get("/auth/login")
+    assert response.status_code == 200
+    assert "Default local credentials" in response.text
+    assert "Local v3.1 operator login" in response.text
+    assert "&lt;script&gt;untrusted()&lt;/script&gt;" in response.text
+    assert "<script>untrusted()</script>" not in response.text
