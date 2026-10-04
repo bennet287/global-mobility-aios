@@ -1,10 +1,11 @@
 # AIOS V2 Migration and Final Acceptance Checklist
 
-**Baseline date:** 2026-09-10
-**Current sealed redesign base:** `e3fd0b162bff3ab725f402fedbbb0b5ce8efe7ff` (actual merge SHA of PR #135)
+**Original baseline date:** 2026-09-10
+**Status reconciliation:** 2026-10-04 (bounded historical acceptance only)
+**Recorded Living HQ convergence merge:** `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543` (PR #147; not whole-product final acceptance)
 **Accepted Living HQ Phase 13G.1H visual/live-behavior head:** `8b92aa09d81f21808492b0bab4178c1ca9ebad3e` (Owner acceptance recorded on PR #147 after Browser Proof #111 desktop + phone inspection)
 
-This checklist prevents structural migration or green CI from being mistaken for whole-product V2 completion.
+This checklist prevents structural migration or green CI from being mistaken for whole-product V2 completion. Its original Phase 13 (legacy retirement) and Phase 14 (final V2 acceptance) differ from the expanded current Phase 13 Living HQ and Phase 14 native-skills programme. Those original closure obligations remain explicitly scheduled in `docs/ROADMAP.md`. Unchecked items remain unclosed here unless named accepted evidence supports reconciliation; they do not all imply missing implementation. See `AIOS_V2_PHASE_COMPLETENESS_REVIEW_2026-10-04.md` for the dated scope/gap assessment.
 
 ## Phase 10 — Professional / Operator migration
 
@@ -79,10 +80,13 @@ Execution method: **Tier A targeted iteration → visual/UX acceptance → norma
 - [x] Living HQ Browser Proof #111 PASS on accepted 13G.1H head
 - [x] V12 Production Proof #1906 PASS on accepted 13G.1H head
 - [x] Q17 and Q18 artifacts produced by V12 #1906 on accepted 13G.1H head
-- [ ] 13G.2 companion-spec reconciliation committed on a new exact candidate head
-- [ ] 13G.2 exact-head Repository Policy + Living HQ Browser Proof + V12 final seal PASS
-- [ ] PR #147 promoted from Draft only after the exact 13G.2 candidate is accepted
-- [ ] actual Phase 13G merge SHA/tree/parents/signature recorded after merge
+- [x] 13G.2 companion-spec reconciliation committed on a new exact candidate head
+- [x] 13G.2 exact-head Repository Policy + Living HQ Browser Proof + V12 final seal PASS
+- [x] PR #147 promoted from Draft only after the exact 13G.2 candidate is accepted
+- [x] actual Phase 13G merge SHA/tree/parents and merged GitHub status recorded
+- [ ] historical merge-signature verification re-established (not inferred from merged status)
+
+The 13G.2 closure above is supported by the accepted final head `199c6ee4771d5bbac1a5b1c4aba84947392f2af6`, exact-head Repository Policy #1278, Living HQ Browser Proof #113 and V12 #1908 refreshed from GitHub and merged PR #147 at `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`. The merge tree is `721b13f15830838dae475bcb4a82dbd5ba8b5354`, with parents `310b73a2eec63f9f0b2f3a0d53752867c1097359` and the accepted head. Local signature status is unverifiable in this runtime; merged status is not cryptographic verification. This reconciliation does not check any unrelated final gate below.
 
 The accepted Living HQ boundary remains one-way and presentation-only: canonical organization state may drive visible state; animation, spatial selection, room/character placement, ambient motion, or HUD interaction may not create canonical work, evidence, decisions, authority, physical presence, occupancy, availability, handoffs, conversations, or Board action.
 
@@ -90,7 +94,7 @@ The accepted Living HQ boundary remains one-way and presentation-only: canonical
 
 Primary navigation target: **Overview · My Case · Documents · Timeline · Messages**.
 
-Phase 11A navigation foundation was sealed at actual merge SHA `5259892dbf1fa1e9cdff238deb0492d4e846eaa2`. Visual Redesign Convergence then established the presentation language used by the accepted Overview, My Case and Documents surfaces through PR #131; Timeline was accepted and merged in PR #135 at `e3fd0b162bff3ab725f402fedbbb0b5ce8efe7ff`. Messages desktop and phone visible-review artifacts were inspected on exact normalized candidate `d765914244bff4d13e5eb7477252df6b6fd1da14` after all targeted Mobility browser proofs and V12 passed; this checklist update becomes part of the final Messages candidate and therefore requires a fresh exact-head seal before merge.
+Phase 11A navigation foundation was sealed at actual merge SHA `5259892dbf1fa1e9cdff238deb0492d4e846eaa2`. Visual Redesign Convergence then established the presentation language used by the accepted Overview, My Case and Documents surfaces through PR #131; Timeline was accepted and merged in PR #135 at `e3fd0b162bff3ab725f402fedbbb0b5ce8efe7ff`. Messages desktop and phone visible-review artifacts were inspected on exact normalized candidate `d765914244bff4d13e5eb7477252df6b6fd1da14` after all targeted Mobility browser proofs and V12 passed; that candidate is historical evidence; current ROADMAP records Mobility visual convergence as sealed. This does not close its remaining whole-product hardening or live journey obligations.
 
 - [x] Phase 11A five-domain navigation foundation sealed
 - [x] Mobility shell built on accepted converged V2 visual language

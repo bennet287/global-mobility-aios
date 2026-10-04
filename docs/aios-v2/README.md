@@ -29,7 +29,7 @@ Do not add an “active programme” or “next slice” section here.
 
 ## Sealed post-redesign programme — Autonomous Global Regulatory Intelligence
 
-The programme that followed redesign completion strengthened Global Intelligence into a high-autonomy **Global Immigration Intelligence Department** that can maintain visa/residence/work/study/family/business/talent/digital-nomad/permanent-residence knowledge across jurisdictions with minimal routine human intervention. RI.A1–RI.A8 are sealed; the architecture below remains a reference rather than the current work queue.
+The programme that followed accepted Mobility/Operator and Living HQ convergence strengthened Global Intelligence into a high-autonomy **Global Immigration Intelligence Department** that can maintain visa/residence/work/study/family/business/talent/digital-nomad/permanent-residence knowledge across jurisdictions with minimal routine human intervention. RI.A1–RI.A8 are sealed; the architecture below remains a reference rather than the current work queue.
 
 This is an extension of `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md`, not a separate product authority.
 
