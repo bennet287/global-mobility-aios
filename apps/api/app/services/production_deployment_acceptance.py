@@ -579,6 +579,30 @@ def _validate_run_integrity(
         raise DeploymentAcceptanceIntegrityError("deployment preparation Activity payload drifted")
 
 
+def validated_deployment_networking_contract(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    deployment_run_id: UUID,
+) -> tuple[ProductionDeploymentAcceptanceRun, dict[str, Any]]:
+    """Resolve an integrity-checked prepared run and its immutable networking contract."""
+
+    run = tenant_record(
+        session,
+        ProductionDeploymentAcceptanceRun,
+        deployment_run_id,
+        context.tenant_key,
+        label="deployment acceptance run",
+    )
+    _validate_run_integrity(session, context, run)
+    networking_contract = _stored_networking_contract(run)
+    if networking_contract is None:
+        raise InvalidTransition(
+            "external network verification requires a prepared networking contract"
+        )
+    return run, networking_contract
+
+
 def _receipt_map(
     session: Session,
     run: ProductionDeploymentAcceptanceRun,
