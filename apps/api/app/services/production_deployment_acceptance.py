@@ -63,6 +63,12 @@ TARGET_HOST_FOUNDATION_EXECUTOR_ACTOR = "phase22-target-host-foundation"
 TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_KEY = "phase22.target-host-foundation.v1"
 TARGET_HOST_FOUNDATION_EXECUTOR_CONTRACT_VERSION = 1
 TARGET_HOST_FOUNDATION_STATUSES = frozenset({"blocked", "failed", "unknown"})
+TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_ACTOR = "phase22-target-host-release-networking"
+TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_KEY = "phase22.target-host-release-networking.v2"
+TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION = 2
+TARGET_HOST_RELEASE_NETWORKING_GATE_KEY = "release_networking"
+TARGET_HOST_RELEASE_NETWORKING_STATUSES = frozenset({"satisfied", "failed", "blocked", "unknown"})
+TARGET_HOST_RELEASE_NETWORKING_VERIFIER_REF = "refs/heads/main"
 NETWORKING_CONTRACT_KEY = "phase22.single_vps.public_networking"
 NETWORKING_CONTRACT_VERSION = 1
 _NETWORKING_CONTRACT_FIELDS = frozenset(
@@ -584,6 +590,7 @@ def validated_deployment_networking_contract(
     context: OrganizationCommandContext,
     *,
     deployment_run_id: UUID,
+    require_fresh_release_networking: bool = False,
 ) -> tuple[ProductionDeploymentAcceptanceRun, dict[str, Any]]:
     """Resolve an integrity-checked prepared run and its immutable networking contract."""
 
@@ -600,6 +607,8 @@ def validated_deployment_networking_contract(
         raise InvalidTransition(
             "external network verification requires a prepared networking contract"
         )
+    if require_fresh_release_networking and "release_networking" in _receipt_map(session, run):
+        raise InvalidTransition("release/networking drill requires a fresh run without an existing gate receipt")
     return run, networking_contract
 
 
@@ -826,7 +835,7 @@ def _target_host_foundation_receipt_semantics(
     }
 
 
-def _receipt_matches_foundation_semantics(
+def _receipt_matches_semantics(
     receipt: ProductionDeploymentAcceptanceCheckReceipt,
     *,
     semantics: dict[str, Any],
@@ -853,6 +862,265 @@ def _receipt_matches_foundation_semantics(
         and receipt.created_by == semantics["created_by"]
         and stored_details == semantics["redacted_details"]
     )
+
+
+def target_host_release_networking_executor_identity_fingerprint(
+    executor_commit_sha: str,
+) -> str:
+    executor_commit_sha = _hex(
+        executor_commit_sha,
+        field="executor_commit_sha",
+        length=40,
+    )
+    return canonical_fingerprint(
+        {
+            "executor_contract_key": TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_KEY,
+            "executor_contract_version": TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION,
+            "executor_commit_sha": executor_commit_sha,
+        }
+    )
+
+
+def _require_target_host_release_networking_executor(
+    context: OrganizationCommandContext,
+) -> None:
+    if (
+        context.actor_type is not OrganizationActorType.system
+        or context.actor_id != TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_ACTOR
+        or context.authenticated_user_id != "system"
+        or context.role != "operator"
+    ):
+        raise AuthorityDenied(
+            "release/networking receipt writes are reserved for the canonical v2 target-host executor"
+        )
+
+
+def _release_networking_bool(details: dict[str, Any], key: str) -> bool:
+    value = details.get(key)
+    if not isinstance(value, bool):
+        raise InvalidReference(f"release/networking evidence field {key} must be boolean")
+    return value
+
+
+def _release_networking_text(
+    details: dict[str, Any],
+    key: str,
+    *,
+    allow_none: bool = False,
+    max_length: int = 255,
+) -> str | None:
+    value = details.get(key)
+    if value is None and allow_none:
+        return None
+    if not isinstance(value, str) or not value.strip() or len(value) > max_length:
+        raise InvalidReference(f"release/networking evidence field {key} is invalid")
+    return value.strip()
+
+
+def _validate_release_networking_details(
+    run: ProductionDeploymentAcceptanceRun,
+    *,
+    status: str,
+    executor_commit_sha: str,
+    redacted_details: dict[str, Any],
+) -> dict[str, Any]:
+    if not isinstance(redacted_details, dict):
+        raise InvalidReference("release/networking receipt details must be a JSON object")
+    executor_commit_sha = _hex(
+        executor_commit_sha,
+        field="executor_commit_sha",
+        length=40,
+    )
+    expected_keys = {
+        "executor_commit_sha",
+        "target_environment_fingerprint_verified",
+        "candidate_release_identity_verified",
+        "candidate_restart_verified",
+        "candidate_restart_health_verified",
+        "external_network_manifest_sha256",
+        "external_verifier_public_key_fingerprint",
+        "external_verifier_ref",
+        "external_verifier_commit_sha",
+        "external_network_contract_satisfied",
+        "external_network_observed_after_restore",
+        "rollback_release_commit_sha",
+        "rollback_configuration_fingerprint",
+        "rollback_image_identity_verified",
+        "rollback_retained_schema_verified",
+        "rollback_release_identity_verified",
+        "rollback_schema_compatibility_verified",
+        "rollback_stable_data_verified",
+        "rollback_health_verified",
+        "candidate_restore_retained_schema_verified",
+        "candidate_restored",
+        "candidate_restore_identity_verified",
+        "candidate_restore_schema_compatibility_verified",
+        "candidate_restore_stable_data_verified",
+        "candidate_restore_health_verified",
+        "candidate_schema_revision_before",
+        "rollback_schema_revision",
+        "candidate_schema_revision_after_restore",
+        "failure_stage",
+        "failure_code",
+        "secret_values_recorded",
+    }
+    if set(redacted_details) != expected_keys:
+        raise InvalidReference(
+            "release/networking receipt details do not match the v2 evidence contract"
+        )
+
+    details = dict(redacted_details)
+    if _release_networking_text(details, "executor_commit_sha") != executor_commit_sha:
+        raise InvalidReference("release/networking executor commit does not match evidence details")
+    details["executor_commit_sha"] = executor_commit_sha
+
+    details["external_network_manifest_sha256"] = _hex(
+        _release_networking_text(details, "external_network_manifest_sha256") or "",
+        field="external_network_manifest_sha256",
+        length=64,
+    )
+    details["external_verifier_public_key_fingerprint"] = _hex(
+        _release_networking_text(details, "external_verifier_public_key_fingerprint") or "",
+        field="external_verifier_public_key_fingerprint",
+        length=64,
+    )
+    verifier_ref = _release_networking_text(details, "external_verifier_ref")
+    if verifier_ref != TARGET_HOST_RELEASE_NETWORKING_VERIFIER_REF:
+        raise InvalidReference("release/networking evidence must come from the protected main verifier ref")
+    details["external_verifier_ref"] = verifier_ref
+    details["external_verifier_commit_sha"] = _hex(
+        _release_networking_text(details, "external_verifier_commit_sha") or "",
+        field="external_verifier_commit_sha",
+        length=40,
+    )
+    details["rollback_release_commit_sha"] = _hex(
+        _release_networking_text(details, "rollback_release_commit_sha") or "",
+        field="rollback_release_commit_sha",
+        length=40,
+    )
+    details["rollback_configuration_fingerprint"] = _hex(
+        _release_networking_text(details, "rollback_configuration_fingerprint") or "",
+        field="rollback_configuration_fingerprint",
+        length=64,
+    )
+    if (
+        details["rollback_release_commit_sha"] != run.rollback_release_commit_sha
+        or details["rollback_configuration_fingerprint"] != run.rollback_configuration_fingerprint
+    ):
+        raise InvalidReference("release/networking rollback evidence does not match the prepared run")
+
+    for key in (
+        "candidate_schema_revision_before",
+        "rollback_schema_revision",
+        "candidate_schema_revision_after_restore",
+    ):
+        details[key] = _release_networking_text(
+            details,
+            key,
+            allow_none=status != "satisfied",
+            max_length=128,
+        )
+
+    details["failure_stage"] = _release_networking_text(
+        details,
+        "failure_stage",
+        allow_none=True,
+        max_length=128,
+    )
+    details["failure_code"] = _release_networking_text(
+        details,
+        "failure_code",
+        allow_none=True,
+        max_length=200,
+    )
+
+    required_true = (
+        "target_environment_fingerprint_verified",
+        "candidate_release_identity_verified",
+        "candidate_restart_verified",
+        "candidate_restart_health_verified",
+        "external_network_contract_satisfied",
+        "external_network_observed_after_restore",
+        "rollback_image_identity_verified",
+        "rollback_retained_schema_verified",
+        "rollback_release_identity_verified",
+        "rollback_schema_compatibility_verified",
+        "rollback_stable_data_verified",
+        "rollback_health_verified",
+        "candidate_restore_retained_schema_verified",
+        "candidate_restored",
+        "candidate_restore_identity_verified",
+        "candidate_restore_schema_compatibility_verified",
+        "candidate_restore_stable_data_verified",
+        "candidate_restore_health_verified",
+    )
+    for key in required_true:
+        details[key] = _release_networking_bool(details, key)
+    if _release_networking_bool(details, "secret_values_recorded"):
+        raise InvalidReference("release/networking evidence must never record secret values")
+    details["secret_values_recorded"] = False
+
+    if status == "satisfied":
+        if not all(details[key] for key in required_true):
+            raise InvalidReference(
+                "satisfied release/networking evidence requires every v2 proof to succeed"
+            )
+        if details["failure_stage"] is not None or details["failure_code"] is not None:
+            raise InvalidReference("satisfied release/networking evidence cannot carry a failure")
+        revisions = {
+            details["candidate_schema_revision_before"],
+            details["rollback_schema_revision"],
+            details["candidate_schema_revision_after_restore"],
+        }
+        if len(revisions) != 1:
+            raise InvalidReference(
+                "satisfied release/networking evidence requires unchanged schema revision across rollback"
+            )
+    elif details["failure_stage"] is None:
+        raise InvalidReference(
+            "non-satisfied release/networking evidence must identify the bounded failure stage"
+        )
+
+    return details
+
+
+def _target_host_release_networking_receipt_semantics(
+    *,
+    run: ProductionDeploymentAcceptanceRun,
+    gate: DeploymentAcceptanceGateSpec,
+    status: str,
+    observed_target_environment_fingerprint: str,
+    observed_release_commit_sha: str,
+    observed_release_configuration_fingerprint: str,
+    executor_commit_sha: str,
+    redacted_details: dict[str, Any],
+) -> dict[str, Any]:
+    base = {
+        "deployment_run_id": str(run.id),
+        "gate_key": gate.gate_key,
+        "gate_version": gate.gate_version,
+        "status": status,
+        "observed_target_environment_fingerprint": observed_target_environment_fingerprint,
+        "observed_release_commit_sha": observed_release_commit_sha,
+        "observed_release_configuration_fingerprint": observed_release_configuration_fingerprint,
+        "executor_contract_key": TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_KEY,
+        "executor_contract_version": TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION,
+        "executor_identity_fingerprint": target_host_release_networking_executor_identity_fingerprint(
+            executor_commit_sha
+        ),
+        "redacted_details": redacted_details,
+    }
+    return {
+        **base,
+        "evidence_digest": canonical_fingerprint(
+            {
+                **base,
+                "evidence_contract": "phase22.target-host-release-networking.evidence.v2",
+            }
+        ),
+        "evidence_reference": f"phase22-target-host-release-networking://{run.id}/{gate.gate_key}",
+        "created_by": TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_ACTOR,
+    }
 
 
 def record_target_host_foundation_receipt(
@@ -935,7 +1203,7 @@ def record_target_host_foundation_receipt(
         )
     ).first()
     if existing is not None:
-        if not _receipt_matches_foundation_semantics(existing, semantics=semantics):
+        if not _receipt_matches_semantics(existing, semantics=semantics):
             raise IdempotencyConflict(
                 "deployment acceptance gate already has immutable evidence with different semantics"
             )
@@ -1012,7 +1280,7 @@ def record_target_host_foundation_receipt(
                 ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
             )
         ).first()
-        if concurrent is not None and _receipt_matches_foundation_semantics(
+        if concurrent is not None and _receipt_matches_semantics(
             concurrent,
             semantics=semantics,
         ):
@@ -1020,6 +1288,180 @@ def record_target_host_foundation_receipt(
             return concurrent
         raise DependencyConflict(
             "deployment acceptance receipt changed concurrently"
+        ) from exc
+    return receipt
+
+
+def record_target_host_release_networking_receipt(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    deployment_run_id: UUID,
+    status: str,
+    observed_target_environment_fingerprint: str,
+    observed_release_commit_sha: str,
+    observed_release_configuration_fingerprint: str,
+    executor_commit_sha: str,
+    redacted_details: dict[str, Any],
+) -> ProductionDeploymentAcceptanceCheckReceipt:
+    """Persist the one satisfied-capable Phase 22 release/networking receipt."""
+
+    _require_target_host_release_networking_executor(context)
+    run = tenant_record(
+        session,
+        ProductionDeploymentAcceptanceRun,
+        deployment_run_id,
+        context.tenant_key,
+        label="deployment acceptance run",
+    )
+    _validate_run_integrity(session, context, run)
+    if run.networking_contract_fingerprint is None:
+        raise InvalidTransition(
+            "release/networking v2 requires a prepared networking contract"
+        )
+    if status not in TARGET_HOST_RELEASE_NETWORKING_STATUSES:
+        raise InvalidReference("unsupported release/networking receipt status")
+
+    gate = next(
+        item
+        for item in DEPLOYMENT_ACCEPTANCE_GATES
+        if item.gate_key == TARGET_HOST_RELEASE_NETWORKING_GATE_KEY
+    )
+    observed_target_environment_fingerprint = _hex(
+        observed_target_environment_fingerprint,
+        field="observed_target_environment_fingerprint",
+        length=64,
+    )
+    observed_release_commit_sha = _hex(
+        observed_release_commit_sha,
+        field="observed_release_commit_sha",
+        length=40,
+    )
+    observed_release_configuration_fingerprint = _hex(
+        observed_release_configuration_fingerprint,
+        field="observed_release_configuration_fingerprint",
+        length=64,
+    )
+    if (
+        observed_target_environment_fingerprint != run.target_environment_fingerprint
+        or observed_release_commit_sha != run.release_commit_sha
+        or observed_release_configuration_fingerprint
+        != run.release_configuration_fingerprint
+    ):
+        raise InvalidReference(
+            "release/networking executor observed an identity that does not match the prepared run"
+        )
+
+    details = _validate_release_networking_details(
+        run,
+        status=status,
+        executor_commit_sha=executor_commit_sha,
+        redacted_details=redacted_details,
+    )
+    details_json = canonical_json(details)
+    if len(details_json.encode("utf-8")) > 16_384:
+        raise InvalidReference("release/networking receipt details exceed the bounded evidence size")
+
+    semantics = _target_host_release_networking_receipt_semantics(
+        run=run,
+        gate=gate,
+        status=status,
+        observed_target_environment_fingerprint=observed_target_environment_fingerprint,
+        observed_release_commit_sha=observed_release_commit_sha,
+        observed_release_configuration_fingerprint=observed_release_configuration_fingerprint,
+        executor_commit_sha=executor_commit_sha,
+        redacted_details=details,
+    )
+    existing = session.exec(
+        select(ProductionDeploymentAcceptanceCheckReceipt).where(
+            ProductionDeploymentAcceptanceCheckReceipt.tenant_key == context.tenant_key,
+            ProductionDeploymentAcceptanceCheckReceipt.deployment_run_id == run.id,
+            ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
+        )
+    ).first()
+    if existing is not None:
+        if not _receipt_matches_semantics(existing, semantics=semantics):
+            raise IdempotencyConflict(
+                "deployment acceptance gate already has immutable evidence with different semantics"
+            )
+        _receipt_map(session, run)
+        return existing
+
+    observed_at = now_utc().replace(tzinfo=None)
+    receipt = ProductionDeploymentAcceptanceCheckReceipt(
+        tenant_key=context.tenant_key,
+        deployment_run_id=run.id,
+        gate_key=gate.gate_key,
+        gate_version=gate.gate_version,
+        status=status,
+        observed_target_environment_fingerprint=observed_target_environment_fingerprint,
+        observed_release_commit_sha=observed_release_commit_sha,
+        observed_release_configuration_fingerprint=observed_release_configuration_fingerprint,
+        executor_contract_key=TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_KEY,
+        executor_contract_version=TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION,
+        executor_identity_fingerprint=semantics["executor_identity_fingerprint"],
+        evidence_digest=semantics["evidence_digest"],
+        evidence_reference=semantics["evidence_reference"],
+        redacted_details_json=details_json,
+        observed_at=observed_at,
+        record_fingerprint="0" * 64,
+        created_by=TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_ACTOR,
+        created_at=observed_at,
+    )
+    receipt.record_fingerprint = deployment_acceptance_receipt_fingerprint(
+        tenant_key=receipt.tenant_key,
+        deployment_run_id=receipt.deployment_run_id,
+        gate_key=receipt.gate_key,
+        gate_version=receipt.gate_version,
+        status=receipt.status,
+        observed_target_environment_fingerprint=receipt.observed_target_environment_fingerprint,
+        observed_release_commit_sha=receipt.observed_release_commit_sha,
+        observed_release_configuration_fingerprint=receipt.observed_release_configuration_fingerprint,
+        executor_contract_key=receipt.executor_contract_key,
+        executor_contract_version=receipt.executor_contract_version,
+        executor_identity_fingerprint=receipt.executor_identity_fingerprint,
+        evidence_digest=receipt.evidence_digest,
+        evidence_reference=receipt.evidence_reference,
+        redacted_details=details,
+        observed_at=receipt.observed_at,
+        created_by=receipt.created_by,
+    )
+    session.add(receipt)
+    try:
+        commit_mutations(
+            session,
+            mutations=(
+                AuditMutation(
+                    action="production.deployment_acceptance.receipt.release_networking_v2",
+                    entity_type="production_deployment_acceptance_check_receipt",
+                    entity_id=receipt.id,
+                    after_state=receipt,
+                    reason=(
+                        "Recorded bounded Phase 22 release/networking target-host evidence. "
+                        "The receipt is evidence only and grants no deployment or promotion authority."
+                    ),
+                ),
+            ),
+            context=context,
+            refresh=(receipt,),
+        )
+    except IntegrityError as exc:
+        session.rollback()
+        concurrent = session.exec(
+            select(ProductionDeploymentAcceptanceCheckReceipt).where(
+                ProductionDeploymentAcceptanceCheckReceipt.tenant_key == context.tenant_key,
+                ProductionDeploymentAcceptanceCheckReceipt.deployment_run_id == run.id,
+                ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
+            )
+        ).first()
+        if concurrent is not None and _receipt_matches_semantics(
+            concurrent,
+            semantics=semantics,
+        ):
+            _receipt_map(session, run)
+            return concurrent
+        raise DependencyConflict(
+            "deployment acceptance release/networking receipt changed concurrently"
         ) from exc
     return receipt
 
