@@ -91,6 +91,31 @@ A foundation-v1 `release_networking=blocked` receipt cannot be upgraded. Use a f
 
 Even a satisfied `release_networking` receipt is **not** production authorization or GRSI promotion. The other five Phase 22 gates remain separately required.
 
+### Phase 22 identity-boundaries executor
+
+The identity executor uses the existing prepared run and immutable receipt owner. Run it from a clean trusted `main` management checkout on the target VPS, with the exact candidate checkout and running release, a fresh `identity_boundaries` gate, controlled bootstrap credentials and the intended HTTPS web/API origins. A previous foundation or failed identity receipt cannot be upgraded; prepare a fresh run for a retry.
+
+The management process needs the existing API Python dependencies and a governed connection to the canonical deployment-acceptance database, plus read access to the configured host secret scopes and Docker. Keep connection credentials and configuration outside the clean release/management checkouts. Bootstrap material is resolved privately from the deployed file reference; do not put passwords or cookies in command arguments.
+
+Install the repository's `apps/web/e2e` Node dependencies and its Playwright Chromium runtime as a separate management-tooling step. The probe does not install tooling, disable certificate validation, provision credentials, rotate secrets, change the deployed session TTL or alter the server clock. The browser uses actual ingress responses without fixture routing. Missing tooling or incompatible SameSite/CORS topology prevents satisfaction.
+
+```bash
+python scripts/phase22_identity_boundaries.py \
+  --run-id <fresh-deployment-run-uuid> \
+  --tenant-key default \
+  --candidate-root /srv/aios/releases/<candidate-sha> \
+  --secrets-root /etc/global-mobility-aios/runtime-secrets \
+  --max-wait-seconds 28920
+```
+
+Choose an explicit wait budget that covers the unchanged deployed session TTL and probe overhead. The default session lifetime is eight hours; expiry proof genuinely waits for the issued session to expire. Keep the candidate and credentials stable for that observation. No partial receipt is upgraded after waiting.
+
+The executor checks exact prepared run, host, checkout and running release identities before probing, then exercises real form login and the cockpit's compiled organization-activities request. It pairs authenticated access with anonymous, forged-header and signed restricted-role denials; checks cookie scope, flags and lifetime, approved/denied CORS, and default/invalid login rejection; observes real expiry and replays the original expired token alongside a fresh successful login. It also checks bounded deployed mount, read-denial, reference, environment, client-asset, rendered-page and interval-log surfaces. Final identity and configuration checks must still succeed before a satisfied receipt is written.
+
+Credentials, signing material and cookies stay in private bounded execution memory, including browser-helper stdin. The probe exports no screenshots, traces, HAR or storage state. Persistent evidence contains fixed proof fields, surface-contract identifiers, counts, observation times and bounded failure identifiers. Finite literal scans do not establish universal secret absence: transformed values, unobserved logs and other surfaces remain outside the contract. The host operator and trusted management checkout remain inside the trust boundary; this is operational evidence, not remote attestation.
+
+A nonzero exit indicates incomplete or failed proof. Read the canonical receipt status; an identity mismatch may stop without writing a receipt. Even a satisfied identity receipt proves neither independent per-user role assignment nor credential rotation, whole-product readiness, six-gate acceptance, canary qualification or GRSI promotion. The bootstrap holder currently selects a signed role. Paid autonomous execution remains off.
+
 
 ## Whole-product production acceptance
 

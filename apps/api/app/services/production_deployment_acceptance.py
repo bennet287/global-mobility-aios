@@ -4,6 +4,7 @@ import ipaddress
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -69,6 +70,21 @@ TARGET_HOST_RELEASE_NETWORKING_EXECUTOR_CONTRACT_VERSION = 2
 TARGET_HOST_RELEASE_NETWORKING_GATE_KEY = "release_networking"
 TARGET_HOST_RELEASE_NETWORKING_STATUSES = frozenset({"satisfied", "failed", "blocked", "unknown"})
 TARGET_HOST_RELEASE_NETWORKING_VERIFIER_REF = "refs/heads/main"
+TARGET_HOST_IDENTITY_EXECUTOR_ACTOR = "phase22-target-host-identity-boundaries"
+TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_KEY = "phase22.target-host-identity-boundaries.v1"
+TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_VERSION = 1
+TARGET_HOST_IDENTITY_GATE_KEY = "identity_boundaries"
+TARGET_HOST_IDENTITY_STATUSES = frozenset({"satisfied", "failed", "blocked", "unknown"})
+IDENTITY_REQUIRED_PROOFS = (
+    "host_release_verified_before", "host_release_verified_after",
+    "runtime_configuration_verified", "browser_login_verified", "web_compiled_request_verified",
+    "cookie_policy_verified", "cors_verified", "unauthenticated_denial_verified",
+    "forged_header_denial_verified", "default_invalid_login_denial_verified",
+    "signed_role_denial_verified", "real_session_expiry_verified", "expired_token_replay_denied",
+    "runtime_secret_mounts_verified", "runtime_secret_read_denial_verified",
+    "runtime_secret_references_verified", "runtime_environment_scan_verified",
+    "client_asset_scan_verified", "rendered_page_scan_verified", "interval_log_scan_verified",
+)
 NETWORKING_CONTRACT_KEY = "phase22.single_vps.public_networking"
 NETWORKING_CONTRACT_VERSION = 1
 _NETWORKING_CONTRACT_FIELDS = frozenset(
@@ -591,6 +607,7 @@ def validated_deployment_networking_contract(
     *,
     deployment_run_id: UUID,
     require_fresh_release_networking: bool = False,
+    require_fresh_identity_boundaries: bool = False,
 ) -> tuple[ProductionDeploymentAcceptanceRun, dict[str, Any]]:
     """Resolve an integrity-checked prepared run and its immutable networking contract."""
 
@@ -609,6 +626,8 @@ def validated_deployment_networking_contract(
         )
     if require_fresh_release_networking and "release_networking" in _receipt_map(session, run):
         raise InvalidTransition("release/networking drill requires a fresh run without an existing gate receipt")
+    if require_fresh_identity_boundaries and "identity_boundaries" in _receipt_map(session, run):
+        raise InvalidTransition("identity drill requires a fresh run without an existing gate receipt")
     return run, networking_contract
 
 
@@ -1462,6 +1481,309 @@ def record_target_host_release_networking_receipt(
             return concurrent
         raise DependencyConflict(
             "deployment acceptance release/networking receipt changed concurrently"
+        ) from exc
+    return receipt
+
+
+def target_host_identity_executor_identity_fingerprint(
+    executor_commit_sha: str,
+) -> str:
+    executor_commit_sha = _hex(
+        executor_commit_sha,
+        field="executor_commit_sha",
+        length=40,
+    )
+    return canonical_fingerprint(
+        {
+            "executor_contract_key": TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_KEY,
+            "executor_contract_version": TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_VERSION,
+            "executor_commit_sha": executor_commit_sha,
+        }
+    )
+
+
+def _require_target_host_identity_executor(
+    context: OrganizationCommandContext,
+) -> None:
+    if (
+        context.actor_type is not OrganizationActorType.system
+        or context.actor_id != TARGET_HOST_IDENTITY_EXECUTOR_ACTOR
+        or context.authenticated_user_id != "system"
+        or context.role != "operator"
+    ):
+        raise AuthorityDenied(
+            "identity boundaries receipt writes are reserved for the canonical identity target-host executor"
+        )
+
+
+def _validate_identity_details(
+    run: ProductionDeploymentAcceptanceRun, *, status: str, executor_commit_sha: str,
+    redacted_details: dict[str, Any],
+) -> dict[str, Any]:
+    if not isinstance(redacted_details, dict):
+        raise InvalidReference("identity evidence must be an object")
+    fields = set(IDENTITY_REQUIRED_PROOFS) | {
+        "executor_commit_sha", "observed_started_at", "observed_completed_at",
+        "session_ttl_seconds", "waited_seconds", "asset_files_scanned", "log_bytes_scanned",
+        "secret_values_recorded", "failure_stage", "failure_code", "surface_contract",
+    }
+    if set(redacted_details) != fields:
+        raise InvalidReference("identity evidence does not match its bounded contract")
+    details = dict(redacted_details)
+    if details["executor_commit_sha"] != _hex(executor_commit_sha, field="executor_commit_sha", length=40):
+        raise InvalidReference("identity executor revision mismatch")
+    if details["surface_contract"] != "phase22.identity.finite-surfaces.v1":
+        raise InvalidReference("identity surface contract mismatch")
+    for key in (*IDENTITY_REQUIRED_PROOFS, "secret_values_recorded"):
+        if type(details[key]) is not bool:
+            raise InvalidReference("identity proof must be boolean")
+    if details["secret_values_recorded"]:
+        raise InvalidReference("identity evidence must never record secret values")
+    for key in ("session_ttl_seconds", "waited_seconds", "asset_files_scanned", "log_bytes_scanned"):
+        if type(details[key]) is not int or not 0 <= details[key] <= 100_000_000:
+            raise InvalidReference("identity evidence count is invalid")
+    for key in ("observed_started_at", "observed_completed_at"):
+        value = details[key]
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9TZ:+.\-]{20,40}", value):
+            raise InvalidReference("identity observation time is invalid")
+    try:
+        started = datetime.fromisoformat(details["observed_started_at"])
+        completed = datetime.fromisoformat(details["observed_completed_at"])
+        prepared_at = run.created_at.replace(tzinfo=timezone.utc) if run.created_at.tzinfo is None else run.created_at
+        if started.tzinfo is None or completed.tzinfo is None or completed < started or started < prepared_at or completed.timestamp() > now_utc().timestamp() + 30:
+            raise ValueError
+    except (ValueError, TypeError):
+        raise InvalidReference("identity observation interval is invalid") from None
+    for key in ("failure_stage", "failure_code"):
+        value = details[key]
+        if value is not None and (not isinstance(value, str) or not re.fullmatch(r"[a-z_]{1,64}", value)):
+            raise InvalidReference("identity failure identifier is invalid")
+    if details["failure_stage"] not in {None, "runtime", "browser", "postflight"} or details["failure_code"] not in {None, "identity_probe_failed"}:
+        raise InvalidReference("identity failure identifiers are not supported")
+    if status == "satisfied":
+        if not all(details[key] for key in IDENTITY_REQUIRED_PROOFS):
+            raise InvalidReference("identity satisfaction requires every proof")
+        if details["failure_stage"] is not None or details["failure_code"] is not None:
+            raise InvalidReference("identity satisfaction cannot carry failure")
+        ttl = details["session_ttl_seconds"]
+        if not 300 <= ttl <= 86400 or details["waited_seconds"] < ttl:
+            raise InvalidReference("identity satisfaction requires real configured session lifetime")
+        if (completed - started).total_seconds() < ttl or details["asset_files_scanned"] < 1 or details["log_bytes_scanned"] < 1:
+            raise InvalidReference("identity satisfaction requires complete observed surfaces")
+    elif details["failure_stage"] is None or details["failure_code"] is None:
+        raise InvalidReference("identity failure requires bounded identifiers")
+    return details
+
+
+def _target_host_identity_receipt_semantics(
+    *,
+    run: ProductionDeploymentAcceptanceRun,
+    gate: DeploymentAcceptanceGateSpec,
+    status: str,
+    observed_target_environment_fingerprint: str,
+    observed_release_commit_sha: str,
+    observed_release_configuration_fingerprint: str,
+    executor_commit_sha: str,
+    redacted_details: dict[str, Any],
+) -> dict[str, Any]:
+    base = {
+        "deployment_run_id": str(run.id),
+        "gate_key": gate.gate_key,
+        "gate_version": gate.gate_version,
+        "status": status,
+        "observed_target_environment_fingerprint": observed_target_environment_fingerprint,
+        "observed_release_commit_sha": observed_release_commit_sha,
+        "observed_release_configuration_fingerprint": observed_release_configuration_fingerprint,
+        "executor_contract_key": TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_KEY,
+        "executor_contract_version": TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_VERSION,
+        "executor_identity_fingerprint": target_host_identity_executor_identity_fingerprint(
+            executor_commit_sha
+        ),
+        "redacted_details": redacted_details,
+    }
+    return {
+        **base,
+        "evidence_digest": canonical_fingerprint(
+            {
+                **base,
+                "evidence_contract": "phase22.target-host-identity-boundaries.evidence.v1",
+            }
+        ),
+        "evidence_reference": f"phase22-target-host-identity-boundaries://{run.id}/{gate.gate_key}",
+        "created_by": TARGET_HOST_IDENTITY_EXECUTOR_ACTOR,
+    }
+
+
+def record_target_host_identity_receipt(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    deployment_run_id: UUID,
+    status: str,
+    observed_target_environment_fingerprint: str,
+    observed_release_commit_sha: str,
+    observed_release_configuration_fingerprint: str,
+    executor_commit_sha: str,
+    redacted_details: dict[str, Any],
+) -> ProductionDeploymentAcceptanceCheckReceipt:
+    """Persist the one satisfied-capable Phase 22 identity boundaries receipt."""
+
+    _require_target_host_identity_executor(context)
+    run = tenant_record(
+        session,
+        ProductionDeploymentAcceptanceRun,
+        deployment_run_id,
+        context.tenant_key,
+        label="deployment acceptance run",
+    )
+    _validate_run_integrity(session, context, run)
+    if run.networking_contract_fingerprint is None:
+        raise InvalidTransition(
+            "identity boundaries v1 requires a prepared networking contract"
+        )
+    if status not in TARGET_HOST_IDENTITY_STATUSES:
+        raise InvalidReference("unsupported identity boundaries receipt status")
+
+    gate = next(
+        item
+        for item in DEPLOYMENT_ACCEPTANCE_GATES
+        if item.gate_key == TARGET_HOST_IDENTITY_GATE_KEY
+    )
+    observed_target_environment_fingerprint = _hex(
+        observed_target_environment_fingerprint,
+        field="observed_target_environment_fingerprint",
+        length=64,
+    )
+    observed_release_commit_sha = _hex(
+        observed_release_commit_sha,
+        field="observed_release_commit_sha",
+        length=40,
+    )
+    observed_release_configuration_fingerprint = _hex(
+        observed_release_configuration_fingerprint,
+        field="observed_release_configuration_fingerprint",
+        length=64,
+    )
+    if (
+        observed_target_environment_fingerprint != run.target_environment_fingerprint
+        or observed_release_commit_sha != run.release_commit_sha
+        or observed_release_configuration_fingerprint
+        != run.release_configuration_fingerprint
+    ):
+        raise InvalidReference(
+            "identity boundaries executor observed an identity that does not match the prepared run"
+        )
+
+    details = _validate_identity_details(
+        run,
+        status=status,
+        executor_commit_sha=executor_commit_sha,
+        redacted_details=redacted_details,
+    )
+    details_json = canonical_json(details)
+    if len(details_json.encode("utf-8")) > 16_384:
+        raise InvalidReference("identity boundaries receipt details exceed the bounded evidence size")
+
+    semantics = _target_host_identity_receipt_semantics(
+        run=run,
+        gate=gate,
+        status=status,
+        observed_target_environment_fingerprint=observed_target_environment_fingerprint,
+        observed_release_commit_sha=observed_release_commit_sha,
+        observed_release_configuration_fingerprint=observed_release_configuration_fingerprint,
+        executor_commit_sha=executor_commit_sha,
+        redacted_details=details,
+    )
+    existing = session.exec(
+        select(ProductionDeploymentAcceptanceCheckReceipt).where(
+            ProductionDeploymentAcceptanceCheckReceipt.tenant_key == context.tenant_key,
+            ProductionDeploymentAcceptanceCheckReceipt.deployment_run_id == run.id,
+            ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
+        )
+    ).first()
+    if existing is not None:
+        if not _receipt_matches_semantics(existing, semantics=semantics):
+            raise IdempotencyConflict(
+                "deployment acceptance gate already has immutable evidence with different semantics"
+            )
+        _receipt_map(session, run)
+        return existing
+
+    observed_at = now_utc().replace(tzinfo=None)
+    receipt = ProductionDeploymentAcceptanceCheckReceipt(
+        tenant_key=context.tenant_key,
+        deployment_run_id=run.id,
+        gate_key=gate.gate_key,
+        gate_version=gate.gate_version,
+        status=status,
+        observed_target_environment_fingerprint=observed_target_environment_fingerprint,
+        observed_release_commit_sha=observed_release_commit_sha,
+        observed_release_configuration_fingerprint=observed_release_configuration_fingerprint,
+        executor_contract_key=TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_KEY,
+        executor_contract_version=TARGET_HOST_IDENTITY_EXECUTOR_CONTRACT_VERSION,
+        executor_identity_fingerprint=semantics["executor_identity_fingerprint"],
+        evidence_digest=semantics["evidence_digest"],
+        evidence_reference=semantics["evidence_reference"],
+        redacted_details_json=details_json,
+        observed_at=observed_at,
+        record_fingerprint="0" * 64,
+        created_by=TARGET_HOST_IDENTITY_EXECUTOR_ACTOR,
+        created_at=observed_at,
+    )
+    receipt.record_fingerprint = deployment_acceptance_receipt_fingerprint(
+        tenant_key=receipt.tenant_key,
+        deployment_run_id=receipt.deployment_run_id,
+        gate_key=receipt.gate_key,
+        gate_version=receipt.gate_version,
+        status=receipt.status,
+        observed_target_environment_fingerprint=receipt.observed_target_environment_fingerprint,
+        observed_release_commit_sha=receipt.observed_release_commit_sha,
+        observed_release_configuration_fingerprint=receipt.observed_release_configuration_fingerprint,
+        executor_contract_key=receipt.executor_contract_key,
+        executor_contract_version=receipt.executor_contract_version,
+        executor_identity_fingerprint=receipt.executor_identity_fingerprint,
+        evidence_digest=receipt.evidence_digest,
+        evidence_reference=receipt.evidence_reference,
+        redacted_details=details,
+        observed_at=receipt.observed_at,
+        created_by=receipt.created_by,
+    )
+    session.add(receipt)
+    try:
+        commit_mutations(
+            session,
+            mutations=(
+                AuditMutation(
+                    action="production.deployment_acceptance.receipt.identity_boundaries_v1",
+                    entity_type="production_deployment_acceptance_check_receipt",
+                    entity_id=receipt.id,
+                    after_state=receipt,
+                    reason=(
+                        "Recorded bounded Phase 22 identity boundaries target-host evidence. "
+                        "The receipt is evidence only and grants no deployment or promotion authority."
+                    ),
+                ),
+            ),
+            context=context,
+            refresh=(receipt,),
+        )
+    except IntegrityError as exc:
+        session.rollback()
+        concurrent = session.exec(
+            select(ProductionDeploymentAcceptanceCheckReceipt).where(
+                ProductionDeploymentAcceptanceCheckReceipt.tenant_key == context.tenant_key,
+                ProductionDeploymentAcceptanceCheckReceipt.deployment_run_id == run.id,
+                ProductionDeploymentAcceptanceCheckReceipt.gate_key == gate.gate_key,
+            )
+        ).first()
+        if concurrent is not None and _receipt_matches_semantics(
+            concurrent,
+            semantics=semantics,
+        ):
+            _receipt_map(session, run)
+            return concurrent
+        raise DependencyConflict(
+            "deployment acceptance identity boundaries receipt changed concurrently"
         ) from exc
     return receipt
 
