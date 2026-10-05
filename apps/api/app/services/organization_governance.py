@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlmodel import Session, func, select
 
+from app.core.organization_task_transport import OrganizationTaskTransport
 from app.models.domain import (
     AgentRun,
     AutomationEvent,
@@ -3099,6 +3100,7 @@ def _claim_work_execution(
     work_item_id: UUID,
     *,
     actor: str,
+    transport: OrganizationTaskTransport | None = None,
 ) -> tuple[OrganizationalWorkItem, OrganizationExecutionAttempt]:
     now = _now()
     token = str(uuid4())
@@ -3167,6 +3169,7 @@ def _claim_work_execution(
             "attempt": claimed.execution_attempts,
             "max_attempts": claimed.max_execution_attempts,
             "execution_token": token,
+            "transport": (transport or OrganizationTaskTransport()).audit_state(),
         },
         actor=actor,
         source=SOURCE,
@@ -3376,6 +3379,7 @@ def execute_work_item(
     work: OrganizationalWorkItem,
     *,
     actor: str = "organization-worker",
+    transport: OrganizationTaskTransport | None = None,
 ) -> OrganizationalWorkItem:
     action = _work_action(work)
     if not department_runtime_available(work.department, action):
@@ -3464,7 +3468,7 @@ def execute_work_item(
         session.refresh(work)
         return work
 
-    claimed, attempt = _claim_work_execution(session, work.id, actor=actor)
+    claimed, attempt = _claim_work_execution(session, work.id, actor=actor, transport=transport)
     try:
         return _execute_claimed_work_item(session, claimed, attempt=attempt, actor=actor)
     except WorkCancellationRequested:

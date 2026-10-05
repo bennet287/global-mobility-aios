@@ -165,3 +165,16 @@ celery_app.conf.update(
         },
     },
 )
+
+
+# Scheduler-only startup remains independent of database/task/provider imports.
+if settings.celery_beat_scheduler_only:
+    from celery.signals import after_task_publish
+    from app.core.organization_task_transport import observe_scan_publication
+
+    after_task_publish.connect(
+        observe_scan_publication,
+        sender="app.tasks.organization_tasks.scan_organization_work",
+        weak=False,
+        dispatch_uid="organization-scan-publication-v1",
+    )
