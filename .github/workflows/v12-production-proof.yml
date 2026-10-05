@@ -324,6 +324,7 @@ jobs:
           apps/api/tests/test_organization_rea_artifacts.py
           apps/api/tests/test_organization_rea_admission.py
           apps/api/tests/test_organization_rea_build.py
+          apps/api/tests/test_organization_rea_compilation.py
           apps/api/tests/test_organization_eligibility_effect.py
           apps/api/tests/test_organization_eligibility_orchestration.py
           apps/api/tests/test_organization_eligibility_lineage_contract.py

@@ -22,7 +22,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from pydantic import ValidationError
 from app.models.domain import now_utc
-from app.schemas_organization_rea_build import ReaSignedBuildStatement, package_path
+from app.schemas_organization_rea_build import ReaSignedBuildStatement, ReaPackageFile, package_path
 from app.services.audit_log import record_audit
 from app.services.organization_command import AuthorityDenied, InvalidTransition, canonical_fingerprint, canonical_json
 from app.services import organization_rea_admission as admission, organization_rea_artifacts as artifact
@@ -44,6 +44,134 @@ class ReaBuildTrust:
     builder_public_key: bytes
     build_policy_sha256: str
     installed_root: Path
+
+
+@dataclass(frozen=True)
+class ReaCompilationTrust:
+    """Operator-reviewed CI byte pins, never authenticated by report labels.
+
+    These independently configured pins assume the operator inspected the exact
+    owning GitHub run. They confer no authority and are not a public input.
+    """
+    report_root: Path
+    report_relative: str
+    report_sha256: str
+    candidate_sha: str
+    repository: str
+    run_id: str
+    run_attempt: str
+    workflow_sha256: str
+    helper_sha256: str
+    provider_decision_id: str
+    provider_contract_sha256: str
+
+
+def _compilation_report(trust, *, decision_id, contract, manifest, scope):
+    if type(trust) is not ReaCompilationTrust:
+        raise AuthorityDenied('independent compilation trust missing')
+    digest_fields = (trust.report_sha256, trust.workflow_sha256, trust.helper_sha256, trust.provider_contract_sha256)
+    if any(type(v) is not str or re.fullmatch(r'[0-9a-f]{64}', v) is None for v in digest_fields):
+        raise InvalidTransition('compilation trust digest invalid')
+    if type(trust.candidate_sha) is not str or re.fullmatch(r'[0-9a-f]{40}', trust.candidate_sha) is None or trust.repository != 'bennet287/global-mobility-aios':
+        raise InvalidTransition('compilation trust candidate/repository invalid')
+    if type(trust.run_id) is not str or re.fullmatch(r'[1-9][0-9]{0,19}', trust.run_id) is None or type(trust.run_attempt) is not str or re.fullmatch(r'[1-9][0-9]{0,5}', trust.run_attempt) is None:
+        raise InvalidTransition('compilation trust run invalid')
+    if type(trust.provider_decision_id) is not str or trust.provider_decision_id != str(decision_id) or trust.provider_contract_sha256 != canonical_fingerprint(contract):
+        raise InvalidTransition('compilation trust canonical review differs')
+    if type(trust.report_relative) is not str:
+        raise InvalidTransition('compilation report relative path invalid')
+    package_path(trust.report_relative)
+    parent = artifact._directory(trust.report_root)
+    try:
+        parts = trust.report_relative.split('/')
+        for part in parts[:-1]:
+            if os.fstat(parent).st_mode & 0o222:
+                raise InvalidTransition('compilation report directory writable')
+            child = os.open(part, os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW, dir_fd=parent)
+            os.close(parent)
+            parent = child
+        parent_before = os.fstat(parent)
+        if parent_before.st_mode & 0o222:
+            raise InvalidTransition('compilation report directory writable')
+        fd = os.open(parts[-1], os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK, dir_fd=parent)
+    except Exception:
+        os.close(parent)
+        raise
+    try:
+        before = os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode) or before.st_mode & 0o222 or before.st_nlink != 1 or not 0 < before.st_size <= 4*1024*1024:
+            raise InvalidTransition('compilation report file mode/link/size unsafe')
+        chunks, count = [], 0
+        while count <= before.st_size:
+            chunk = os.read(fd, min(65536, before.st_size+1-count))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            count += len(chunk)
+        raw = b''.join(chunks)
+        if _identity(os.fstat(fd)) != _identity(before) or _identity(os.fstat(parent)) != _identity(parent_before) or len(raw) != before.st_size or hashlib.sha256(raw).hexdigest() != trust.report_sha256:
+            raise InvalidTransition('compilation report bytes differ')
+    finally:
+        os.close(fd)
+        os.close(parent)
+    report = _bounded_json(raw)
+    def exact(value, expected, message):
+        if canonical_json(value) != canonical_json(expected):
+            raise InvalidTransition(message)
+    def keys(value, expected):
+        if type(value) is not dict or set(value) != set(expected):
+            raise InvalidTransition('compilation report schema differs')
+    keys(report, {'format', 'repeatability', 'package', 'diagnostic_only'})
+    exact(report['format'], 'aios-rea-package-correlation.v1', 'compilation report format differs')
+    exact(report['diagnostic_only'], True, 'compilation report diagnostic boundary differs')
+    repeated = report['repeatability']
+    true_flags = {'repeatability_observed', 'source_compiler_recipe_context_observed'}
+    false_flags = {'publisher_provenance_verified','runtime_dependency_closure_verified','installed_runtime_bytes_verified','isolation_verified','provider_ready','live_transport_owned','execution_authorized'}
+    keys(repeated, {'format','context','source','recipe','toolchain','files','received_manifest_sha256'} | true_flags | false_flags)
+    exact(repeated['format'], 'aios-rea-build-repeatability.v1', 'repeatability format differs')
+    for flag in true_flags:
+        exact(repeated[flag], True, 'compilation observation flag differs')
+    for flag in false_flags:
+        exact(repeated[flag], False, 'compilation authority flag differs')
+    expected_context = {'candidate':trust.candidate_sha,'repository':trust.repository,'run_id':trust.run_id,'run_attempt':trust.run_attempt,'runner':'ubuntu-24.04'}
+    exact(repeated['context'], expected_context, 'compilation context differs')
+    materials = _materials()
+    expected_source = {'commit':REA_SOURCE_COMMIT,'tree':materials['source_tree'],'materials_sha256':REA_SOURCE_MATERIALS_SHA256,
+                       'dependency_lock_sha256':materials['dependency_lock_sha256'],'reviewed_recipe_sha256':materials['recipe_sha256'],
+                       'tracked_files':materials['file_count'],'tracked_bytes':materials['total_bytes']}
+    exact(repeated['source'], expected_source, 'compilation source inputs differ')
+    expected_recipe = {'helper_sha256':trust.helper_sha256,'workflow_sha256':trust.workflow_sha256,
+                       'command':'node node_modules/typescript/bin/tsc -p tsconfig.build.json','lifecycle_scripts':False,'fresh_npm_cache':True}
+    exact(repeated['recipe'], expected_recipe, 'compilation recipe differs')
+    tools = repeated['toolchain']
+    keys(tools, {'versions','input_sha256'})
+    exact(tools['versions'], {'node':'v24.18.0','npm':'11.16.0','typescript':'5.9.3'}, 'compilation tool versions differ')
+    keys(tools['input_sha256'], {'node','npm_cli','npm_package','typescript_package','typescript_entry','typescript_tsc','typescript_compiler'})
+    if any(type(v) is not str or re.fullmatch(r'[0-9a-f]{64}', v) is None for v in tools['input_sha256'].values()):
+        raise InvalidTransition('compilation tool hashes invalid')
+    received = repeated['received_manifest_sha256']
+    keys(received, {'a','b'})
+    if any(type(v) is not str or re.fullmatch(r'[0-9a-f]{64}',v) is None for v in received.values()):
+        raise InvalidTransition('received build manifest digests invalid')
+    def validated_files(value):
+        if type(value) is not list or not 1 <= len(value) <= MAX_FILES:
+            raise InvalidTransition('compilation file list invalid')
+        parsed = [ReaPackageFile.model_validate(v).model_dump() for v in value]
+        paths = [v['path'] for v in parsed]
+        if paths != sorted(paths) or len(set(paths)) != len(paths) or len({p.casefold() for p in paths}) != len(paths) or sum(v['size'] for v in parsed) > MAX_EXPANDED:
+            raise InvalidTransition('compilation file list incomplete/unsafe')
+        return parsed
+    package = report['package']
+    keys(package, {'archive_sha256','archive_bytes','files'})
+    exact(package['archive_sha256'], scope.build_sha256, 'compilation approved archive digest differs')
+    exact(package['archive_bytes'], scope.build_bytes, 'compilation approved archive size differs')
+    exact(validated_files(package['files']), manifest, 'compilation complete package manifest differs')
+    dist = [{'path':v['path'][5:],'size':v['size'],'sha256':v['sha256']} for v in manifest if v['path'].startswith('dist/')]
+    exact(validated_files(repeated['files']), dist, 'compilation complete dist manifest differs')
+    return {'report_sha256':trust.report_sha256,'context':expected_context,'workflow_sha256':trust.workflow_sha256,'helper_sha256':trust.helper_sha256,
+            'provider_decision_id':str(decision_id),'provider_contract_sha256':trust.provider_contract_sha256,
+            'compiled_dist_manifest_sha256':canonical_fingerprint(dist),'compiled_dist_files':len(dist),'compiled_dist_bytes':sum(v['size'] for v in dist),
+            'accepted_ci_bytes_assumed':True,'owning_github_execution_authenticated':False}
 
 
 def _materials():
@@ -253,7 +381,8 @@ def _installed_manifest(root):
 
 def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id,
                         deployment_trust: admission.ReaDeploymentTrust,
-                        build_trust: ReaBuildTrust, signed_statement: bytes):
+                        build_trust: ReaBuildTrust, signed_statement: bytes,
+                        compilation_trust: ReaCompilationTrust | None = None):
     """Emit nonauthorizing evidence after fresh canonical and byte checks."""
     try:
         parsed = _bounded_json(signed_statement)
@@ -275,6 +404,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         materials = {v['path']:v for v in material_snapshot['files']}
         row, contract, scope, authorized = admission.resolve_rea_provider_review(session, context, decision_id=decision_id, trust=deployment_trust)
         work, attempt = admission._barrier(session, context, authorized.work_item_id, attempt_id)
+        compilation_summary = None
+        manifest = None
         def fresh():
             current = admission.resolve_rea_provider_review(session, context, decision_id=decision_id, trust=deployment_trust)
             if canonical_fingerprint(current[1]) != canonical_fingerprint(contract):
@@ -282,6 +413,10 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             admission._attempt(session, context, work.id, attempt.id)
             artifact.revalidate_rea_artifact_custody(session, context, receipt_id=receipt_id, decision_id=authorized.decision_id, custody_root=deployment_trust.custody_root)
             require_fresh_time()
+            if compilation_summary is not None:
+                current_report = _compilation_report(compilation_trust, decision_id=row.id, contract=contract, manifest=manifest, scope=scope)
+                if canonical_json(current_report) != canonical_json(compilation_summary):
+                    raise InvalidTransition('compilation report changed during inspection')
         def require_fresh_time():
             now = artifact._utc(now_utc())
             if not statement.started_at <= statement.finished_at <= now < min(scope.expires_at, authorized.expires_at) or now-statement.finished_at > timedelta(hours=24):
@@ -297,6 +432,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         installed = _installed_manifest(build_trust.installed_root)
         if installed != manifest:
             raise InvalidTransition('installed complete manifest differs from archive')
+        if compilation_trust is not None:
+            compilation_summary = _compilation_report(compilation_trust, decision_id=row.id, contract=contract, manifest=manifest, scope=scope)
         result = dict(receipt_id=str(uuid4()), tenant_key=context.tenant_key, work_item_id=str(work.id), attempt_id=str(attempt.id), attempt_number=attempt.attempt_number,
             execution_token_sha256=hashlib.sha256(attempt.execution_token.encode()).hexdigest(), decision_id=str(row.id), contract_sha256=canonical_fingerprint(contract),
             artifact_decision_id=str(authorized.decision_id), artifact_sha256=authorized.artifact_sha256, custody_receipt_id=str(receipt_id),
@@ -306,7 +443,13 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             signed_builder_statement_verified=True, package_archive_manifest_verified=True, installed_package_snapshot_matches=True,
             source_to_build_verified=False, publisher_verified=False, runtime_closure_verified=False, provider_ready=False, execution_authorized=False, live_transport_owned=False, isolation_verified=False,
             blockers=['actual_source_build_reproducibility_unproven','publisher_provenance_unproven','dependency_and_node_runtime_closure_unproven','immutable_installed_bytes_at_use_unproven','actual_worker_isolation_unproven','owned_live_transport_unproven','per_call_entitlement_and_resources_unadmitted'])
+        if compilation_summary is not None:
+            result['blockers'] = ['authenticated_ci_execution_provenance_unproven' if value == 'actual_source_build_reproducibility_unproven' else value for value in result['blockers']]
+            result['compiled_package_dist_matches'] = True
+            result['compilation_report_sha256'] = compilation_summary['report_sha256']
         evidence = {'result':result, 'signed_envelope':parsed}
+        if compilation_summary is not None:
+            evidence['compilation_correlation'] = compilation_summary
         serialized_evidence = json.dumps(evidence, ensure_ascii=True, sort_keys=True)
         if len(canonical_json(evidence).encode()) > artifact.MAX_AUDIT_BYTES or len(serialized_evidence.encode()) > artifact.MAX_AUDIT_BYTES:
             raise InvalidTransition('signed package evidence exceeds audit JSON bounds')

@@ -10,6 +10,9 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone, timedelta
 import hashlib
+import gzip
+import io
+import tarfile
 import json
 import math
 import os
@@ -96,8 +99,8 @@ def identity(info) -> tuple:
     return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
 
-def read_regular(path: Path, limit: int = MAX_FILE_BYTES) -> bytes:
-    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+def read_regular(path: Path, limit: int = MAX_FILE_BYTES, *, dir_fd=None) -> bytes:
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=dir_fd)
     try:
         before = os.fstat(fd)
         require(stat.S_ISREG(before.st_mode) and before.st_nlink == 1 and before.st_size <= limit, "unsafe regular file")
@@ -328,9 +331,68 @@ def compare(a: Path, b: Path, materials_path: Path, ctx: dict, recipe_value: dic
             "provider_ready": False, "live_transport_owned": False, "execution_authorized": False}
 
 
+def read_source_asset(root: Path, path: str) -> bytes:
+    safe_path(path)
+    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        parts = PurePosixPath(path).parts
+        for part in parts[:-1]:
+            next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            os.close(fd)
+            fd = next_fd
+        return read_regular(Path(parts[-1]), dir_fd=fd)
+    finally:
+        os.close(fd)
+
+
+def package(a: Path, b: Path, source: Path, materials_path: Path, ctx: dict, recipe_value: dict, output: Path) -> dict:
+    """Assemble diagnostic bytes only, without npm pack or builder authority."""
+    require(not output.exists(), "package output exists")
+    report = compare(a, b, materials_path, ctx, recipe_value)
+    verify_source(source, materials_path)
+    snapshot = materials(materials_path)
+    source_files = {v["path"]: v for v in snapshot["files"]}
+    metadata = parse_json(read_source_asset(source, "package.json"))
+    prefixes = metadata["files"]
+    require(type(prefixes) is list and all(type(v) is str for v in prefixes), "package declarations invalid")
+    required = {"package.json", "LICENSE", "README.md"}
+    required.update(path for path in source_files if any(path == p or path.startswith(p + "/") for p in prefixes if p != "dist"))
+    _, dist = load_build(a, ctx, "a", report["source"], recipe_value)
+    contents = {"dist/" + path: data for path, data in dist.items()}
+    for path in sorted(required):
+        safe_path(path)
+        # Complete source verification before and after these inert reads binds
+        # the assets to the pinned tracked bytes; no build/generator runs here.
+        data = read_source_asset(source, path)
+        pin = source_files[path]
+        require(len(data) == pin["size"] and sha(data) == pin["sha256"], "source asset drift")
+        contents[path] = data
+    require(len(contents) <= MAX_FILES and sum(map(len, contents.values())) <= MAX_BYTES, "package bounds")
+    require(len({p.casefold() for p in contents}) == len(contents), "package path collision")
+    raw_tar = io.BytesIO()
+    with tarfile.open(fileobj=raw_tar, mode="w", format=tarfile.USTAR_FORMAT) as archive:
+        for path, data in sorted(contents.items()):
+            member = tarfile.TarInfo("package/" + path)
+            member.size = len(data)
+            member.mode = 0o644
+            member.mtime = member.uid = member.gid = 0
+            archive.addfile(member, io.BytesIO(data))
+    raw = gzip.compress(raw_tar.getvalue(), mtime=0)
+    verify_source(source, materials_path)
+    manifest = [{"path": p, "size": len(v), "sha256": sha(v)} for p, v in sorted(contents.items())]
+    result = {"format": "aios-rea-package-correlation.v1", "repeatability": report,
+              "package": {"archive_sha256": sha(raw), "archive_bytes": len(raw), "files": manifest},
+              "diagnostic_only": True}
+    require(len(canonical(result)) <= MAX_JSON_BYTES, "package report bound")
+    output.mkdir(parents=True)
+    (output / "rea-package.tar.gz").write_bytes(raw)
+    (output / "correlation.json").write_bytes(canonical(result))
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("verify-source", "capture", "compare"))
+    parser.add_argument("operation", choices=("verify-source", "capture", "compare", "package"))
     parser.add_argument("--source", type=Path)
     parser.add_argument("--materials", type=Path, required=True)
     parser.add_argument("--candidate")
@@ -346,7 +408,7 @@ def main() -> None:
     parser.add_argument("--workflow", type=Path)
     args = parser.parse_args()
     try:
-        needed = {"verify-source": ("source",), "capture": ("source", "candidate", "run_id", "run_attempt", "job", "output", "node", "npm_cli", "workflow"), "compare": ("candidate", "run_id", "run_attempt", "a", "b", "output", "workflow")}[args.operation]
+        needed = {"verify-source": ("source",), "capture": ("source", "candidate", "run_id", "run_attempt", "job", "output", "node", "npm_cli", "workflow"), "compare": ("candidate", "run_id", "run_attempt", "a", "b", "output", "workflow"), "package": ("source", "candidate", "run_id", "run_attempt", "a", "b", "output", "workflow")}[args.operation]
         require(all(getattr(args, field) is not None for field in needed), "required operation argument missing")
         if args.operation == "verify-source":
             result = verify_source(args.source, args.materials)
@@ -357,6 +419,8 @@ def main() -> None:
             if args.operation == "capture":
                 result = capture(args.source, args.output, args.materials, ctx, args.job,
                                  toolchain(args.source, args.node, args.npm_cli), recipe_value)
+            elif args.operation == "package":
+                result = package(args.a, args.b, args.source, args.materials, ctx, recipe_value, args.output)
             else:
                 result = compare(args.a, args.b, args.materials, ctx, recipe_value)
                 require(not args.output.exists(), "comparison output exists")
