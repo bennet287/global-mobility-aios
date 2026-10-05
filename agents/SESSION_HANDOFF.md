@@ -10,7 +10,7 @@ Canonical integration branch:
 
 `design/aios-v2-complete-redesign`
 
-Resolve the live branch SHA and active PRs directly from GitHub before dependent work. The latest implementation checkpoint adds organization-task transport correlation after the read-only core-journey source inventory, batch-publication correction and identity-boundaries executor; this pointer does not assert a live branch SHA.
+Resolve the live branch SHA and active PRs directly from GitHub before dependent work. Implementation checkpoints include the complete source-pinned REA catalog foundation, organization-task transport correlation, read-only core-journey source inventory, batch-publication correction and identity-boundaries executor; this pointer does not assert a live branch SHA.
 
 Current programme: `Governed Recursive Self-Improvement (GRSI)`.
 
