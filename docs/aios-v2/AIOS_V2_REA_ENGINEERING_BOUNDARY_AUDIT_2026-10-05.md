@@ -70,6 +70,8 @@ Two existing model limits matter: OrganizationPosition is a global registry, not
 
 ## First executable slice
 
+**Scope clarification after this audit:** the user explicitly requires full AIOS integration of all 122 reviewed tools under `engineering.reverse_engineering`. Section 8.1 of `AIOS_V2_EMPLOYEE_CAPABILITY_AND_SKILLS_ARCHITECTURE.md` owns that integration contract. The two-tool proposal below remains a first verification fixture only; it is superseded as the final scope. Full activation requires complete catalog mapping and admitted, governed, independently verified execution coverage for every applicable tool. This clarification grants no invocation authority.
+
 The narrow proposed pilot is **static managed-artifact inspection**, rather than blanket admission of native analysis, runtime tracing or reconstruction workflows. Candidate exact tools are `inspect_managed_artifact` and `get_evidence_bundle`; this proposal grants neither tool today. The managed provider declares identity `rea-dotnet-static`, version `1`, with no process/network/filesystem-write capability effects. Source routing lazily selects it for that operation, but opening/profile resolution and configured server startup still need independent effect verification. Its initial file read has no artifact-size ceiling; execution-free parsing is not memory/resource isolation. Ghidra's documented resource settings likewise do not establish a per-operation deadline, fixed queue limit or fixed response-size ceiling. AIOS must supply these limits rather than infer them from provider metadata.
 
 The pilot must satisfy these predicates before a transport call:
