@@ -12,6 +12,24 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class ReaCompilationEvidence(StrictModel):
+    """Board-reviewed correlation pins; file location stays deployment-owned."""
+
+    report_sha256: Digest
+    candidate_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
+    repository: Literal["bennet287/global-mobility-aios"]
+    run_id: Annotated[StrictStr, Field(pattern=r"^[1-9][0-9]{0,19}$")]
+    run_attempt: Annotated[StrictStr, Field(pattern=r"^[1-9][0-9]{0,5}$")]
+    workflow_sha256: Digest
+    helper_sha256: Digest
+    review_reference: Text
+
+    @field_validator("review_reference")
+    @classmethod
+    def meaningful(cls, value):
+        return ReaArtifactScope.meaningful(value)
+
+
 class ReaToolAdmission(StrictModel):
     tool_id: Key
     disposition: Literal["candidate", "blocked"]
@@ -40,6 +58,7 @@ class ReaProviderScope(StrictModel):
     build_bytes: Annotated[StrictInt, Field(ge=1, le=256*1024*1024)]
     build_review_reference: Text
     publisher_review_reference: Text
+    compilation_evidence: ReaCompilationEvidence | None = None
     worker_id: Key
     worker_public_key_hex: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{64}$")]
     isolation_policy_sha256: Digest

@@ -63,7 +63,12 @@ def _contract(row):
         scope = ReaProviderScope.model_validate(contract["scope"])
     except (ValidationError, TypeError, ValueError) as exc:
         raise InvalidTransition("invalid provider review scope") from exc
-    if contract["scope"] != scope.model_dump(mode="json") or row.source_object_type != KIND or row.source_object_id != scope.build_sha256 or row.source_object_version != canonical_fingerprint(contract):
+    serialized_scope = scope.model_dump(mode="json")
+    # Pre-compilation reviews never serialized this later nullable field. Treat
+    # only its absence as None without changing original contract/hash/audits.
+    if "compilation_evidence" not in contract["scope"] and scope.compilation_evidence is None:
+        serialized_scope.pop("compilation_evidence", None)
+    if contract["scope"] != serialized_scope or row.source_object_type != KIND or row.source_object_id != scope.build_sha256 or row.source_object_version != canonical_fingerprint(contract):
         raise InvalidTransition("provider review source/scope differs")
     return contract, scope
 
@@ -141,6 +146,16 @@ def propose_rea_provider_review(session, context, payload: ReaProviderProposal):
     contract = {"kind": KIND, "scope": payload.scope.model_dump(mode="json"), "link": link,
                 "artifact_decision_id": str(payload.artifact_decision_id), "artifact_contract_sha256": authorized.contract_sha256,
                 "catalog_sha256": REA_LOCAL_CATALOG_SHA256, "source_commit": REA_SOURCE_COMMIT}
+    # An unchanged retry of a historical review must retain its original generic
+    # decision fingerprint. This exception covers only the newly nullable field;
+    # every other contract/request value still passes existing exact checks.
+    if existing is not None and payload.scope.compilation_evidence is None:
+        original, _ = _contract(existing)
+        if "compilation_evidence" not in original["scope"]:
+            historical_candidate = {**contract, "scope": dict(contract["scope"])}
+            historical_candidate["scope"].pop("compilation_evidence", None)
+            if canonical_json(historical_candidate) == canonical_json(original):
+                contract = original
     # Bound the escaped serialized contract too: generic creation/approval audits
     # embed conditions_json as a JSON string and escape it a second time.
     if len(canonical_json([contract]).encode()) > artifact.MAX_CONTRACT_BYTES or len(json.dumps([contract], ensure_ascii=True).encode()) > artifact.MAX_CONTRACT_BYTES:
@@ -256,7 +271,7 @@ def issue_rea_worker_challenge(session, context, *, decision_id, attempt_id, rec
         now = artifact._utc(now_utc())
         challenge = {"kind": "rea_worker_challenge_v1", "challenge_id": str(uuid4()), "nonce": secrets.token_hex(32),
             "session_id": str(uuid4()), "tenant_key": context.tenant_key, "decision_id": str(row.id),
-            "contract_sha256": canonical_fingerprint(contract), "scope": scope.model_dump(mode="json"), "work_link": contract["link"],
+            "contract_sha256": canonical_fingerprint(contract), "scope": contract["scope"], "work_link": contract["link"],
             "work_item_id": str(work.id), "attempt_id": str(attempt.id), "attempt_number": attempt.attempt_number,
             "execution_token_sha256": hashlib.sha256(attempt.execution_token.encode()).hexdigest(),
             "artifact_decision_id": str(authorized.decision_id), "artifact_contract_sha256": authorized.contract_sha256,
@@ -313,7 +328,7 @@ def consume_rea_worker_observation(session, context, *, challenge_id: UUID, obse
             raise InvalidTransition("worker challenge changed during validation")
         row, contract, scope, authorized = resolve_rea_provider_review(session, context, decision_id=decision_id, trust=trust)
         work, attempt = _attempt(session, context, work_id, attempt_id)
-        current = {"decision_id": str(row.id), "contract_sha256": canonical_fingerprint(contract), "scope": scope.model_dump(mode="json"),
+        current = {"decision_id": str(row.id), "contract_sha256": canonical_fingerprint(contract), "scope": contract["scope"],
             "work_link": contract["link"], "work_item_id": str(row.work_item_id), "attempt_id": str(attempt.id),
             "attempt_number": attempt.attempt_number, "execution_token_sha256": hashlib.sha256(attempt.execution_token.encode()).hexdigest(),
             "artifact_decision_id": str(authorized.decision_id), "artifact_contract_sha256": authorized.contract_sha256,
