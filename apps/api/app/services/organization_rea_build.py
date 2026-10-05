@@ -48,10 +48,10 @@ class ReaBuildTrust:
 
 @dataclass(frozen=True)
 class ReaCompilationTrust:
-    """Operator-reviewed CI byte pins, never authenticated by report labels.
+    """Deployment locator plus redundant CI pins, never an authority owner.
 
-    These independently configured pins assume the operator inspected the exact
-    owning GitHub run. They confer no authority and are not a public input.
+    The current human Board-approved provider scope owns the accepted evidence
+    identity. These deployment pins must match it exactly and remain non-public.
     """
     report_root: Path
     report_relative: str
@@ -69,6 +69,21 @@ class ReaCompilationTrust:
 def _compilation_report(trust, *, decision_id, contract, manifest, scope):
     if type(trust) is not ReaCompilationTrust:
         raise AuthorityDenied('independent compilation trust missing')
+    approved = scope.compilation_evidence
+    if approved is None:
+        raise AuthorityDenied('governed compilation evidence approval missing')
+    approved_pins = {
+        'report_sha256': approved.report_sha256, 'candidate_sha': approved.candidate_sha,
+        'repository': approved.repository, 'run_id': approved.run_id, 'run_attempt': approved.run_attempt,
+        'workflow_sha256': approved.workflow_sha256, 'helper_sha256': approved.helper_sha256,
+    }
+    supplied_pins = {
+        'report_sha256': trust.report_sha256, 'candidate_sha': trust.candidate_sha,
+        'repository': trust.repository, 'run_id': trust.run_id, 'run_attempt': trust.run_attempt,
+        'workflow_sha256': trust.workflow_sha256, 'helper_sha256': trust.helper_sha256,
+    }
+    if canonical_json(supplied_pins) != canonical_json(approved_pins):
+        raise InvalidTransition('compilation trust differs from governed review')
     digest_fields = (trust.report_sha256, trust.workflow_sha256, trust.helper_sha256, trust.provider_contract_sha256)
     if any(type(v) is not str or re.fullmatch(r'[0-9a-f]{64}', v) is None for v in digest_fields):
         raise InvalidTransition('compilation trust digest invalid')
@@ -170,6 +185,8 @@ def _compilation_report(trust, *, decision_id, contract, manifest, scope):
     exact(validated_files(repeated['files']), dist, 'compilation complete dist manifest differs')
     return {'report_sha256':trust.report_sha256,'context':expected_context,'workflow_sha256':trust.workflow_sha256,'helper_sha256':trust.helper_sha256,
             'provider_decision_id':str(decision_id),'provider_contract_sha256':trust.provider_contract_sha256,
+            'governed_compilation_evidence_approved':True,
+            'governed_compilation_evidence_sha256':canonical_fingerprint(approved.model_dump(mode='json')),
             'compiled_dist_manifest_sha256':canonical_fingerprint(dist),'compiled_dist_files':len(dist),'compiled_dist_bytes':sum(v['size'] for v in dist),
             'accepted_ci_bytes_assumed':True,'owning_github_execution_authenticated':False}
 
@@ -446,6 +463,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         if compilation_summary is not None:
             result['blockers'] = ['authenticated_ci_execution_provenance_unproven' if value == 'actual_source_build_reproducibility_unproven' else value for value in result['blockers']]
             result['compiled_package_dist_matches'] = True
+            result['governed_compilation_evidence_approved'] = True
+            result['governed_compilation_evidence_sha256'] = compilation_summary['governed_compilation_evidence_sha256']
             result['compilation_report_sha256'] = compilation_summary['report_sha256']
         evidence = {'result':result, 'signed_envelope':parsed}
         if compilation_summary is not None:

@@ -312,3 +312,133 @@ def test_expiry_during_verification_or_witness_leaves_nonce_unconsumed(db_sessio
     with pytest.raises(InvalidTransition,match="expired before consumption"):
         consume(db_session,board,setup,ch,obs,tools)
     assert not db_session.exec(select(AuditLog).where(AuditLog.action==admission.CONSUME)).all()
+
+
+def historical_scope_serialization(monkeypatch):
+    """Serialize only the newly nullable field as the prior release did."""
+    from app.schemas_organization_rea_admission import ReaProviderScope
+    original = ReaProviderScope.model_dump
+    def prior(self, *args, **kwargs):
+        value = original(self, *args, **kwargs)
+        if self.compilation_evidence is None:
+            value.pop('compilation_evidence', None)
+        return value
+    monkeypatch.setattr(ReaProviderScope, 'model_dump', prior)
+
+
+@pytest.fixture
+def historical_setup(db_session, board, tmp_path, monkeypatch):
+    with monkeypatch.context() as prior:
+        historical_scope_serialization(prior)
+        state = build_setup(db_session, board, tmp_path)
+    return state
+
+
+def lineage_snapshot(session, row):
+    logs = session.exec(select(AuditLog).where(AuditLog.entity_id == str(row.id)).order_by(AuditLog.id)).all()
+    return (row.conditions_json, row.source_object_version, row.record_fingerprint,
+            [(str(log.id), log.action, log.before_state_json, log.after_state_json) for log in logs])
+
+
+def test_prior_release_scope_resolution_preserves_entire_lineage(db_session, board, historical_setup):
+    state = historical_setup
+    before = lineage_snapshot(db_session, state['row'])
+    original = artifact._json(state['row'].conditions_json)[0]
+    assert 'compilation_evidence' not in original['scope']
+    row, contract, scope, authorized = admission.resolve_rea_provider_review(db_session, board, decision_id=state['row'].id, trust=state['trust'])
+    assert scope.compilation_evidence is None
+    assert contract == original
+    assert canonical_fingerprint(contract) == state['row'].source_object_version
+    assert lineage_snapshot(db_session, row) == before
+    ch = challenge(db_session, board, state)
+    assert ch['contract_sha256'] == canonical_fingerprint(original)
+    assert ch['scope'] == original['scope']
+    assert 'compilation_evidence' not in ch['scope']
+    result = consume(db_session, board, state, ch)
+    assert result['execution_authorized'] is False
+    assert lineage_snapshot(db_session, row) == before
+
+
+def test_prior_release_identical_retry_retains_generic_fingerprint(db_session, board, historical_setup):
+    state = historical_setup
+    before = lineage_snapshot(db_session, state['row'])
+    repeated = admission.propose_rea_provider_review(db_session, board, state['request'])
+    assert repeated.id == state['row'].id
+    assert lineage_snapshot(db_session, repeated) == before
+
+
+def test_prior_release_review_can_be_superseded_without_rewrite(db_session, board, historical_setup):
+    state = historical_setup
+    before = lineage_snapshot(db_session, state['row'])
+    request = state['request'].model_copy(deep=True)
+    request.decision_key = 'new-release-successor'
+    request.supersedes_decision_id = state['row'].id
+    successor = admission.propose_rea_provider_review(db_session, board, request)
+    assert successor.status == 'pending_board'
+    assert lineage_snapshot(db_session, state['row']) == before
+    with pytest.raises(InvalidTransition):
+        admission.resolve_rea_provider_review(db_session, board, decision_id=successor.id, trust=state['trust'])
+    successor = approve(db_session, board, successor)
+    assert admission.resolve_rea_provider_review(db_session, board, decision_id=successor.id, trust=state['trust'])[0].id == successor.id
+    assert lineage_snapshot(db_session, state['row']) == before
+    with pytest.raises(InvalidTransition):
+        admission.resolve_rea_provider_review(db_session, board, decision_id=state['row'].id, trust=state['trust'])
+
+
+@pytest.mark.parametrize('change', ['missing-other', 'unknown', 'malformed-compilation'])
+def test_nullable_compatibility_does_not_relax_other_scope_values(db_session, board, historical_setup, change):
+    state = historical_setup
+    contract = artifact._json(state['row'].conditions_json)[0]
+    if change == 'missing-other':
+        contract['scope'].pop('tools')
+    elif change == 'unknown':
+        contract['scope']['unknown'] = None
+    else:
+        contract['scope']['compilation_evidence'] = {}
+    state['row'].conditions_json = canonical_json([contract])
+    state['row'].source_object_version = canonical_fingerprint(contract)
+    db_session.add(state['row']);db_session.flush()
+    with pytest.raises(InvalidTransition):
+        admission._contract(state['row'])
+
+
+def test_prior_release_default_signed_package_inspection(db_session, board, tmp_path, monkeypatch):
+    from tests.test_organization_rea_build import package_setup, inspect
+    with monkeypatch.context() as prior:
+        historical_scope_serialization(prior)
+        state = package_setup.__wrapped__(db_session, board, tmp_path)
+    before = lineage_snapshot(db_session, state['row'])
+    assert 'compilation_evidence' not in artifact._json(state['row'].conditions_json)[0]['scope']
+    result = inspect(db_session, board, state)
+    assert result['package_archive_manifest_verified'] is True
+    assert result['source_to_build_verified'] is False
+    assert 'compiled_package_dist_matches' not in result
+    assert lineage_snapshot(db_session, state['row']) == before
+
+
+def test_prior_release_retry_rejects_other_changed_scope(db_session, board, historical_setup):
+    from app.services.organization_command import IdempotencyConflict
+    state = historical_setup
+    before = lineage_snapshot(db_session, state['row'])
+    request = state['request'].model_copy(deep=True)
+    request.scope.build_review_reference = 'different reviewed relation'
+    with pytest.raises(IdempotencyConflict):
+        admission.propose_rea_provider_review(db_session, board, request)
+    assert lineage_snapshot(db_session, state['row']) == before
+
+
+def test_prior_release_locator_cannot_supply_missing_compilation_approval(db_session, board, tmp_path, monkeypatch):
+    from tests.test_organization_rea_build import package_setup, inspect, assert_no_audit
+    from app.services import organization_rea_build as build
+    with monkeypatch.context() as prior:
+        historical_scope_serialization(prior)
+        state = package_setup.__wrapped__(db_session, board, tmp_path)
+    contract, scope = admission._contract(state['row'])
+    assert scope.compilation_evidence is None
+    locator = build.ReaCompilationTrust(tmp_path, 'missing.json', '0'*64, '0'*40,
+        'bennet287/global-mobility-aios', '1', '1', '0'*64, '0'*64, str(state['row'].id), canonical_fingerprint(contract))
+    before = lineage_snapshot(db_session, state['row'])
+    with pytest.raises(AuthorityDenied, match='governed compilation evidence'):
+        inspect(db_session, board, state, compilation_trust=locator)
+    assert_no_audit(db_session)
+    assert lineage_snapshot(db_session, state['row']) == before

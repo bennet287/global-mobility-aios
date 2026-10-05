@@ -10,14 +10,13 @@ from sqlmodel import select
 from app.models.domain import AuditLog
 from app.services import organization_rea_build as build
 from app.services.organization_command import InvalidTransition, AuthorityDenied, canonical_json, canonical_fingerprint
-from tests.test_organization_rea_build import package_setup, inspect, board, assert_no_audit
+from tests.test_organization_rea_build import package_setup, inspect, board, assert_no_audit, approve
 
 
 @pytest.fixture
 def correlated(package_setup, tmp_path, db_session, board):
     state = package_setup
     materials = build._materials()
-    contract = build.admission.resolve_rea_provider_review(db_session, board, decision_id=state['row'].id, trust=state['trust'])[1]
     ctx = dict(candidate='a'*40, repository='bennet287/global-mobility-aios',run_id='123',run_attempt='1',runner='ubuntu-24.04')
     source = dict(commit=build.REA_SOURCE_COMMIT,tree=materials['source_tree'],materials_sha256=build.REA_SOURCE_MATERIALS_SHA256,
                   dependency_lock_sha256=materials['dependency_lock_sha256'],reviewed_recipe_sha256=materials['recipe_sha256'],tracked_files=materials['file_count'],tracked_bytes=materials['total_bytes'])
@@ -30,7 +29,20 @@ def correlated(package_setup, tmp_path, db_session, board):
     report = dict(format='aios-rea-package-correlation.v1',repeatability=repeat,package=dict(archive_sha256=state['request'].scope.build_sha256,archive_bytes=state['request'].scope.build_bytes,files=state['manifest']),diagnostic_only=True)
     root = tmp_path/'report';root.mkdir()
     path = root/'correlation.json';path.write_bytes(canonical_json(report).encode());path.chmod(0o444);root.chmod(0o555)
-    trust = build.ReaCompilationTrust(root,'correlation.json',hashlib.sha256(path.read_bytes()).hexdigest(),ctx['candidate'],ctx['repository'],ctx['run_id'],ctx['run_attempt'],recipe['workflow_sha256'],recipe['helper_sha256'],str(state['row'].id),canonical_fingerprint(contract))
+    report_sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    request = state['request'].model_copy(deep=True)
+    request.decision_key = 'governed-compilation-provider'
+    request.supersedes_decision_id = state['row'].id
+    scope = request.scope.model_dump(mode='json')
+    scope['compilation_evidence'] = dict(
+        report_sha256=report_sha,candidate_sha=ctx['candidate'],repository=ctx['repository'],
+        run_id=ctx['run_id'],run_attempt=ctx['run_attempt'],workflow_sha256=recipe['workflow_sha256'],
+        helper_sha256=recipe['helper_sha256'],review_reference='Board reviewed exact CI package correlation')
+    request.scope = build.admission.ReaProviderScope.model_validate(scope)
+    state['row'] = approve(db_session,board,build.admission.propose_rea_provider_review(db_session,board,request))
+    state['request'] = request
+    contract = build.admission.resolve_rea_provider_review(db_session, board, decision_id=state['row'].id, trust=state['trust'])[1]
+    trust = build.ReaCompilationTrust(root,'correlation.json',report_sha,ctx['candidate'],ctx['repository'],ctx['run_id'],ctx['run_attempt'],recipe['workflow_sha256'],recipe['helper_sha256'],str(state['row'].id),canonical_fingerprint(contract))
     state.update(compilation_trust=trust,report=report,report_path=path)
     cleanup_fd=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
     try:
@@ -47,6 +59,21 @@ def rewrite(state, report=None, raw=None):
     state['compilation_trust']=replace(state['compilation_trust'],report_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
 
 
+def approve_rewritten_report(session, board, state):
+    """Keep parser negatives behind genuine matching human Board review pins."""
+    from uuid import uuid4
+    request = state['request'].model_copy(deep=True)
+    request.decision_key = 'repinned-report-' + uuid4().hex
+    request.supersedes_decision_id = state['row'].id
+    request.scope.compilation_evidence = request.scope.compilation_evidence.model_copy(
+        update={'report_sha256':state['compilation_trust'].report_sha256})
+    row = approve(session, board, build.admission.propose_rea_provider_review(session,board,request))
+    contract = build.admission.resolve_rea_provider_review(session,board,decision_id=row.id,trust=state['trust'])[1]
+    state['row'], state['request'] = row, request
+    state['compilation_trust'] = replace(state['compilation_trust'],provider_decision_id=str(row.id),provider_contract_sha256=canonical_fingerprint(contract))
+    return contract
+
+
 def correlated_inspect(session, board, state):
     return inspect(session,board,state,compilation_trust=state['compilation_trust'])
 
@@ -54,6 +81,8 @@ def correlated_inspect(session, board, state):
 def test_complete_correlation_narrow_evidence(db_session,board,correlated):
     result=correlated_inspect(db_session,board,correlated)
     assert result['compiled_package_dist_matches'] is True
+    assert result['governed_compilation_evidence_approved'] is True
+    assert result['governed_compilation_evidence_sha256'] == canonical_fingerprint(correlated['request'].scope.compilation_evidence.model_dump(mode='json'))
     assert 'authenticated_ci_execution_provenance_unproven' in result['blockers']
     assert 'actual_source_build_reproducibility_unproven' not in result['blockers']
     for key in ('source_to_build_verified','publisher_verified','runtime_closure_verified','provider_ready','execution_authorized','live_transport_owned','isolation_verified'):
@@ -61,6 +90,8 @@ def test_complete_correlation_narrow_evidence(db_session,board,correlated):
     evidence=build.artifact._json(db_session.exec(select(AuditLog).where(AuditLog.action==build.ACTION)).one().after_state_json)
     summary=evidence['compilation_correlation']
     assert summary['compiled_dist_files']==4 and summary['owning_github_execution_authenticated'] is False
+    assert summary['governed_compilation_evidence_approved'] is True
+    assert summary['governed_compilation_evidence_sha256'] == result['governed_compilation_evidence_sha256']
     assert summary['accepted_ci_bytes_assumed'] is True
     assert 'files' not in summary and 'repeatability' not in summary
     assert str(correlated['report_path']) not in canonical_json(evidence)
@@ -70,7 +101,17 @@ def test_complete_correlation_narrow_evidence(db_session,board,correlated):
 def test_default_inspector_shape_unchanged(db_session,board,package_setup):
     result=inspect(db_session,board,package_setup)
     assert 'compiled_package_dist_matches' not in result
+    assert 'governed_compilation_evidence_approved' not in result
+    assert package_setup['request'].scope.compilation_evidence is None
     assert 'actual_source_build_reproducibility_unproven' in result['blockers']
+
+
+def test_compilation_correlation_requires_governed_review(db_session,board,correlated):
+    state=correlated
+    contract=build.admission.resolve_rea_provider_review(db_session,board,decision_id=state['row'].id,trust=state['trust'])[1]
+    scope=state['request'].scope.model_copy(update={'compilation_evidence':None})
+    with pytest.raises(AuthorityDenied,match='governed compilation evidence'):
+        build._compilation_report(state['compilation_trust'],decision_id=state['row'].id,contract=contract,manifest=state['manifest'],scope=scope)
 
 
 @pytest.mark.parametrize('mutation', [
@@ -92,13 +133,14 @@ def test_default_inspector_shape_unchanged(db_session,board,package_setup):
 ])
 def test_strict_report_drift_denied(db_session,board,correlated,mutation):
     report=json.loads(canonical_json(correlated['report']));mutation(report);rewrite(correlated,report)
+    approve_rewritten_report(db_session,board,correlated)
     with pytest.raises((InvalidTransition,AuthorityDenied)):
         correlated_inspect(db_session,board,correlated)
     assert_no_audit(db_session)
 
 
 @pytest.mark.parametrize('field,value',[('candidate_sha','0'*40),('repository','other/repo'),('run_id','456'),('run_attempt','2'),('helper_sha256','0'*64),('workflow_sha256','0'*64),('report_sha256','0'*64),('provider_decision_id','00000000-0000-0000-0000-000000000000'),('provider_contract_sha256','0'*64)])
-def test_independent_pins_and_review_binding(db_session,board,correlated,field,value):
+def test_deployment_pins_must_match_governed_review(db_session,board,correlated,field,value):
     correlated['compilation_trust']=replace(correlated['compilation_trust'],**{field:value})
     with pytest.raises((InvalidTransition,AuthorityDenied)):
         correlated_inspect(db_session,board,correlated)
@@ -144,6 +186,7 @@ def test_report_rechecked_before_audit_and_commit(db_session,board,correlated,mo
 @pytest.mark.parametrize('raw',[b'{"format":"one","format":"two"}',b'{"a":NaN}',b'{"a":Infinity}',b'{"a":1e400}',b'"\\ud800"'])
 def test_raw_report_strict_even_with_independent_digest(db_session,board,correlated,raw):
     rewrite(correlated,raw=raw)
+    approve_rewritten_report(db_session,board,correlated)
     with pytest.raises(InvalidTransition):correlated_inspect(db_session,board,correlated)
     assert_no_audit(db_session)
 
@@ -172,7 +215,8 @@ def test_complete_report_cannot_omit_additional_approved_dist(correlated,db_sess
     contract=build.admission.resolve_rea_provider_review(db_session,board,decision_id=state['row'].id,trust=state['trust'])[1]
     manifest=sorted(state['manifest']+[dict(path='dist/extra.js',size=1,sha256='a'*64)],key=lambda v:v['path'])
     state['report']['package']['files']=manifest;rewrite(state)
-    with pytest.raises(InvalidTransition,match='complete dist'):
+    contract=approve_rewritten_report(db_session,board,state)
+    with pytest.raises(InvalidTransition):
         build._compilation_report(state['compilation_trust'],decision_id=state['row'].id,contract=contract,manifest=manifest,scope=state['request'].scope)
 
 
@@ -195,6 +239,7 @@ def test_complete_manifest_schema_both_sections(db_session,board,correlated,sect
     elif mutation=='float-size':files[0]['size']=float(files[0]['size'])
     else:files[0]['extra']=True
     rewrite(correlated)
+    approve_rewritten_report(db_session,board,correlated)
     with pytest.raises(InvalidTransition):correlated_inspect(db_session,board,correlated)
     assert_no_audit(db_session)
 
@@ -202,6 +247,7 @@ def test_complete_manifest_schema_both_sections(db_session,board,correlated,sect
 @pytest.mark.parametrize('flag',['publisher_provenance_verified','runtime_dependency_closure_verified','installed_runtime_bytes_verified','live_transport_owned'])
 def test_no_report_self_authority(db_session,board,correlated,flag):
     correlated['report']['repeatability'][flag]=True;rewrite(correlated)
+    approve_rewritten_report(db_session,board,correlated)
     with pytest.raises(InvalidTransition):correlated_inspect(db_session,board,correlated)
     assert_no_audit(db_session)
 
