@@ -28,6 +28,8 @@ from app.models.domain import (
     OrganizationWorkItemDependency,
     OrganizationalWorkItem,
 )
+from app.schemas_organization_rea_admission import ReaProviderProposal
+from app.services.organization_rea_admission import propose_rea_provider_review
 from app.schemas_organization_rea_artifacts import ReaArtifactProposal, ReaArtifactRevocation, ReaArtifactAuthorizationRead
 from app.services.organization_rea_artifacts import propose_rea_artifact, propose_rea_artifact_revocation, resolve_rea_artifact_authorization
 from app.schemas_organization_records import (
@@ -1072,3 +1074,8 @@ def read_rea_artifact_authorization_endpoint(decision_id: UUID, context: Organiz
 @router.post("/engineering/rea/artifact-authorizations/{decision_id}/revocations", response_model=DecisionRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(_rea_business_body)])
 def propose_rea_artifact_revocation_endpoint(decision_id: UUID, payload: ReaArtifactRevocation, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)):
     return _command(lambda: propose_rea_artifact_revocation(session, context, decision_id=decision_id, **payload.model_dump()))
+
+
+@router.post("/engineering/rea/provider-proposals", response_model=DecisionRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(_rea_business_body)])
+def propose_rea_provider_endpoint(payload: "ReaProviderProposal", context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)):
+    return _command(lambda: propose_rea_provider_review(session, context, payload))
