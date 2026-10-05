@@ -7,6 +7,11 @@ from sqlalchemy import and_, or_
 from sqlmodel import Session, select
 
 from app.core.celery_app import celery_app
+from app.core.organization_task_transport import (
+    OrganizationTaskTransport,
+    log_scan_dispatch,
+    uuid_text,
+)
 from app.core import db as db_module
 from app.models.domain import ExecutiveDecision, OrganizationalWorkItem
 from app.services.organization_governance import (
@@ -18,14 +23,16 @@ from app.services.organization_governance import (
 )
 
 
-@celery_app.task(name="app.tasks.organization_tasks.execute_organization_work_item")
-def execute_organization_work_item_task(work_item_id: str) -> dict:
+@celery_app.task(bind=True, name="app.tasks.organization_tasks.execute_organization_work_item")
+def execute_organization_work_item_task(self, work_item_id: str) -> dict:
     with Session(db_module.engine) as session:
         work = session.get(OrganizationalWorkItem, UUID(work_item_id))
         if work is None:
             return {"status": "not_found", "work_item_id": work_item_id}
         try:
-            result = execute_work_item(session, work)
+            result = execute_work_item(
+                session, work, transport=OrganizationTaskTransport.from_request(self.request)
+            )
         except ValueError as exc:
             return {"status": "skipped", "work_item_id": work_item_id, "reason": str(exc)}
         except Exception as exc:
@@ -69,8 +76,8 @@ def scan_ceo_decisions_task(limit: int = 25) -> dict:
         return scan_pending_ceo_decisions(session, limit=limit, actor="ceo-agent")
 
 
-@celery_app.task(name="app.tasks.organization_tasks.scan_organization_work")
-def scan_organization_work_task(limit: int = 25) -> dict:
+@celery_app.task(bind=True, name="app.tasks.organization_tasks.scan_organization_work")
+def scan_organization_work_task(self, limit: int = 25) -> dict:
     now = datetime.now(timezone.utc)
     with Session(db_module.engine) as session:
         ids = session.exec(
@@ -92,9 +99,35 @@ def scan_organization_work_task(limit: int = 25) -> dict:
             .order_by(OrganizationalWorkItem.created_at)
             .limit(max(1, min(limit, 100)))
         ).all()
-    for work_id in ids:
-        execute_organization_work_item_task.delay(str(work_id))
-    return {"queued": len(ids), "work_item_ids": [str(item) for item in ids]}
+    observation = {
+        "scan_transport": OrganizationTaskTransport.from_request(self.request).audit_state(),
+        "children": [],
+        "delivery_verified": False,
+        "execution_verified": False,
+    }
+    for index, work_id in enumerate(ids):
+        try:
+            publication = execute_organization_work_item_task.delay(str(work_id))
+        except Exception:
+            observation.update(
+                publication_status="partial_or_failed",
+                publication_unknown_work_item_id=str(work_id),
+                unattempted_work_item_ids=[str(item) for item in ids[index + 1:]],
+            )
+            log_scan_dispatch(observation)
+            raise RuntimeError("organization_work_publication_failed; delivery_unknown") from None
+        observation["children"].append({
+            "work_item_id": str(work_id),
+            "child_task_id": uuid_text(getattr(publication, "id", None)),
+            "publication_call_returned": True,
+        })
+    observation["publication_status"] = "calls_returned"
+    log_scan_dispatch(observation)
+    return {
+        "queued": len(ids),
+        "work_item_ids": [str(item) for item in ids],
+        "transport_observation": observation,
+    }
 
 
 @celery_app.task(name="app.tasks.organization_tasks.scan_organization_deadlines")
