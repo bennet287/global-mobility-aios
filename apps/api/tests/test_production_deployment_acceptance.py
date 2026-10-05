@@ -1002,3 +1002,67 @@ def test_satisfied_receipt_requires_post_restore_external_proof(db_session: Sess
             observed_release_configuration_fingerprint=run.release_configuration_fingerprint,
             executor_commit_sha=details["executor_commit_sha"], redacted_details=details,
         )
+
+
+def _identity_details(run, monkeypatch):
+    from datetime import timedelta, timezone
+    from app.services import production_deployment_acceptance as owner
+    started = now_utc()
+    completed = started + timedelta(seconds=301)
+    monkeypatch.setattr(owner, 'now_utc', lambda: completed)
+    return {**{key: True for key in owner.IDENTITY_REQUIRED_PROOFS}, 'executor_commit_sha': '9' * 40, 'observed_started_at': started.isoformat(), 'observed_completed_at': completed.isoformat(), 'session_ttl_seconds': 300, 'waited_seconds': 301, 'asset_files_scanned': 3, 'log_bytes_scanned': 100, 'secret_values_recorded': False, 'failure_stage': None, 'failure_code': None, 'surface_contract': 'phase22.identity.finite-surfaces.v1'}
+
+def _identity_write(db_session, run, details, context=None, status='satisfied'):
+    from app.services import production_deployment_acceptance as owner
+    from scripts.phase22_identity_boundaries import executor_context
+    return owner.record_target_host_identity_receipt(db_session, context or executor_context('default'), deployment_run_id=run.id, status=status, observed_target_environment_fingerprint=run.target_environment_fingerprint, observed_release_commit_sha=run.release_commit_sha, observed_release_configuration_fingerprint=run.release_configuration_fingerprint, executor_commit_sha=details['executor_commit_sha'], redacted_details=details)
+
+def test_identity_writer_is_gate_restricted_and_immutable(db_session, monkeypatch):
+    from app.services import production_deployment_acceptance as owner
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(db_session, key=f'identity-{uuid4()}', context=context, work=work, decision=decision)
+    details = _identity_details(run, monkeypatch)
+    with pytest.raises(AuthorityDenied):
+        _identity_write(db_session, run, details, context=context)
+    first = _identity_write(db_session, run, details)
+    assert first.gate_key == 'identity_boundaries'
+    assert _identity_write(db_session, run, details).id == first.id
+    projection = project_deployment_acceptance_run(db_session, context, run)
+    assert not projection.canary_evidence_satisfied and (not projection.production_ready)
+    assert next((g for g in projection.gates if g.gate_key == 'release_networking')).status == 'absent'
+    with pytest.raises(InvalidTransition, match='fresh run'):
+        owner.validated_deployment_networking_contract(db_session, context, deployment_run_id=run.id, require_fresh_identity_boundaries=True)
+    changed = {**details, 'waited_seconds': 302}
+    with pytest.raises(IdempotencyConflict):
+        _identity_write(db_session, run, changed)
+
+@pytest.mark.parametrize('missing', ['browser_login_verified', 'web_compiled_request_verified', 'cookie_policy_verified', 'cors_verified', 'real_session_expiry_verified', 'expired_token_replay_denied', 'runtime_secret_read_denial_verified', 'runtime_secret_references_verified', 'client_asset_scan_verified', 'interval_log_scan_verified', 'host_release_verified_after'])
+def test_identity_partial_proof_cannot_satisfy(db_session, monkeypatch, missing):
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(db_session, key=f'identity-gap-{uuid4()}', context=context, work=work, decision=decision)
+    details = _identity_details(run, monkeypatch)
+    details[missing] = False
+    with pytest.raises(InvalidReference, match='every proof'):
+        _identity_write(db_session, run, details)
+
+@pytest.mark.parametrize('key,value', [('waited_seconds', 299), ('session_ttl_seconds', 299), ('asset_files_scanned', 0), ('log_bytes_scanned', 0), ('secret_values_recorded', True), ('failure_code', 'raw-secret:text'), ('failure_code', 'private_secret'), ('failure_stage', 'private_secret'), ('unexpected_cookie', 'secret'), ('observed_completed_at', '2099-10-01T00:00:00+00:00')])
+def test_identity_writer_rejects_invalid_or_secret_bearing_evidence(db_session, monkeypatch, key, value):
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(db_session, key=f'identity-invalid-{uuid4()}', context=context, work=work, decision=decision)
+    details = _identity_details(run, monkeypatch)
+    details[key] = value
+    with pytest.raises(InvalidReference):
+        _identity_write(db_session, run, details)
+
+def test_identity_failed_evidence_never_upgrades(db_session, monkeypatch):
+    context = _context()
+    work, decision = _work_and_decision(db_session)
+    run = _prepare(db_session, key=f'identity-failed-{uuid4()}', context=context, work=work, decision=decision)
+    details = _identity_details(run, monkeypatch)
+    failed = {**details, 'real_session_expiry_verified': False, 'failure_stage': 'browser', 'failure_code': 'identity_probe_failed'}
+    assert _identity_write(db_session, run, failed, status='failed').status == 'failed'
+    with pytest.raises(IdempotencyConflict):
+        _identity_write(db_session, run, details)
