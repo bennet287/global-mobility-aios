@@ -667,9 +667,10 @@ def run_controlled_agent_batch(
         session.add(run)
         session.flush()
         run_ids.append(run.id)
-        run_agent_task.delay(str(run.id))
 
     session.commit()
+    for run_id in run_ids:
+        run_agent_task.delay(str(run_id))
     return ControlledAgentRunBatchResponse(
         batch_id=batch_id,
         agent_name=resolved_name,
@@ -985,6 +986,7 @@ async def admin_run_controlled_agent_batch(
     if resolved_name not in CONTROLLED_AGENT_REGISTRY:
         raise HTTPException(status_code=404, detail=f"Unknown controlled agent: {agent_name}")
 
+    run_ids: list[UUID] = []
     for lead_id in lead_ids:
         run = AgentRun(
             lead_id=lead_id,
@@ -1005,9 +1007,11 @@ async def admin_run_controlled_agent_batch(
         )
         session.add(run)
         session.flush()
-        run_agent_task.delay(str(run.id))
+        run_ids.append(run.id)
 
     session.commit()
+    for run_id in run_ids:
+        run_agent_task.delay(str(run_id))
     return RedirectResponse(url="/admin/agent-output-reviews", status_code=303)
 
 

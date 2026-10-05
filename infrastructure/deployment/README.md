@@ -117,6 +117,12 @@ Credentials, signing material and cookies stay in private bounded execution memo
 A nonzero exit indicates incomplete or failed proof. Read the canonical receipt status; an identity mismatch may stop without writing a receipt. Even a satisfied identity receipt proves neither independent per-user role assignment nor credential rotation, whole-product readiness, six-gate acceptance, canary qualification or GRSI promotion. The bootstrap holder currently selects a signed role. Paid autonomous execution remains off.
 
 
+### Core-journey batch publication prerequisite
+
+Both the JSON and HTML controlled-agent batch entry points now commit the complete batch of queued AgentRuns before publishing any worker task. A failed database commit publishes nothing. A broker error after commit leaves durable queued intent and propagates; it does not establish which tasks were delivered or executed. This is not atomic database/broker delivery, an outbox, or automatic replay. The actual web/worker journey still requires target-host proof.
+
+The next core-journey prerequisite is a read-only coverage contract bound to the exact release and configuration, derived from the existing route, controlled-agent and runtime owners. Registered routes and organizational capacity do not imply promoted execution. Missing probes for enabled capabilities remain blocked; disabling must derive from observed governing configuration and enforcement. Actual capability coverage, scheduler provenance, governed allow/deny and restart durability are required before a satisfied core receipt is justified.
+
 ## Whole-product production acceptance
 
 **Status: NOT YET VERIFIED ON A PRODUCTION HOST.** The workflow named `V12 Production Proof` is repository CI evidence: it checks code, isolated database contracts, builds and browser journeys, some of which use fixture API responses. It does not deploy the complete product to a VPS. A passing workflow must never be described as proof that AIOS is operating in production.
