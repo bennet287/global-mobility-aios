@@ -1,11 +1,13 @@
 from __future__ import annotations
 from uuid import uuid4
+import pytest
 from sqlmodel import Session, select
 
 from app.models.domain import OrganizationControl, OrganizationRecordReference, OrganizationReferenceRole, OrganizationReferenceTargetType, OrganizationalWorkItem, OfficialSource
 from app.models.organization_standards_mapping import OrganizationStandardsMapping
 from app.services.organization_grc_standards_mapping import create_standards_mapping, project_standards_mappings
-from tests.test_organization_autonomy_promotion_policy import _board_context
+from app.services.organization_command import InvalidReference, NotFound
+from tests.test_organization_autonomy_promotion_policy import _board_context, _position, _profile, _policy
 
 def _evidence(session: Session, *, tenant="default") -> OrganizationRecordReference:
     work = OrganizationalWorkItem(
@@ -54,6 +56,8 @@ def test_standards_mapping_api_is_admin_only_and_explicitly_non_certifying(clien
     replay=client.post("/api/v1/organization/grc/standards-mappings",json=payload)
     assert replay.status_code == 201 and replay.json()["id"] == body["id"]
     assert len(db_session.exec(select(OrganizationStandardsMapping)).all()) == 1
+    denied_read = client.get("/api/v1/organization/grc/standards-mappings", headers={"X-GMAI-Role": "operator", "X-GMAI-User": "operator"})
+    assert denied_read.status_code == 403
 
 def test_mapping_requires_real_tenant_evidence_role(db_session: Session):
     board=_board_context(); control=_control(db_session); evidence=_evidence(db_session)
@@ -78,3 +82,103 @@ def test_mapping_withdrawal_and_control_drift_fail_closed(db_session: Session):
 
 def test_mapping_absence_is_empty_not_noncompliance(db_session: Session):
     assert project_standards_mappings(db_session,_board_context()) == ()
+
+
+def _policy_target(session: Session):
+    board = _board_context()
+    _position(session)
+    _profile(session, board)
+    return _policy(session, board, key="18f-v1")
+
+
+@pytest.mark.parametrize("transition", ["paused", "deleted"])
+def test_stale_global_control_is_omitted_without_hiding_valid_policy_mapping(db_session: Session, transition):
+    board = _board_context()
+    control, evidence = _control(db_session), _evidence(db_session)
+    policy = _policy_target(db_session)
+    stale_payload = _payload(control, evidence, key="18f:stale-control")
+    create_standards_mapping(db_session, board, **stale_payload)
+    valid = create_standards_mapping(db_session, board, **{
+        **_payload(policy, evidence, key="18f:valid-policy"),
+        "target_type": "capability_autonomy_promotion_policy",
+    })
+    if transition == "deleted":
+        db_session.delete(control)
+    else:
+        control.status = "paused"
+        db_session.add(control)
+    db_session.commit()
+
+    assert [row.id for row in project_standards_mappings(db_session, board)] == [valid.id]
+    with pytest.raises(InvalidReference, match="active global organization control"):
+        create_standards_mapping(db_session, board, **{**stale_payload, "mapping_key": "18f:denied"})
+
+
+def test_superseded_policy_is_omitted_without_hiding_valid_control_mapping(db_session: Session):
+    board = _board_context()
+    control, evidence = _control(db_session), _evidence(db_session)
+    policy = _policy_target(db_session)
+    stale_payload = {
+        **_payload(policy, evidence, key="18f:stale-policy"),
+        "target_type": "capability_autonomy_promotion_policy",
+    }
+    create_standards_mapping(db_session, board, **stale_payload)
+    valid = create_standards_mapping(db_session, board, **_payload(control, evidence, key="18f:valid-control"))
+    _policy(db_session, board, key="18f-v2", expected_policy_sequence=1)
+
+    assert [row.id for row in project_standards_mappings(db_session, board)] == [valid.id]
+    with pytest.raises(InvalidReference, match="superseded"):
+        create_standards_mapping(db_session, board, **{**stale_payload, "mapping_key": "18f:denied"})
+
+
+def test_other_tenant_cannot_create_global_control_mapping(db_session: Session):
+    control, evidence = _control(db_session), _evidence(db_session, tenant="other")
+    with pytest.raises(NotFound, match="not available to this tenant"):
+        create_standards_mapping(db_session, _board_context("other"), **_payload(control, evidence))
+
+
+def test_unavailable_tenant_target_is_omitted_and_creation_stays_strict(db_session: Session):
+    board = _board_context()
+    policy, evidence = _policy_target(db_session), _evidence(db_session)
+    payload = {
+        **_payload(policy, evidence),
+        "target_type": "capability_autonomy_promotion_policy",
+    }
+    mapping = create_standards_mapping(db_session, board, **payload)
+    # Model a stored mapping whose target is no longer available in its scope.
+    # The projection must not resolve the policy through the other tenant.
+    mapping.tenant_key = "other"
+    db_session.add(mapping)
+    db_session.commit()
+    assert project_standards_mappings(db_session, _board_context("other")) == ()
+    other_evidence = _evidence(db_session, tenant="other")
+    with pytest.raises(NotFound):
+        create_standards_mapping(db_session, _board_context("other"), **{
+            **payload, "mapping_key": "18f:cross-target", "evidence_reference_ids": [other_evidence.id],
+        })
+
+
+def test_projection_does_not_hide_unknown_target_integrity_errors(db_session: Session, monkeypatch):
+    board = _board_context()
+    control, evidence = _control(db_session), _evidence(db_session)
+    create_standards_mapping(db_session, board, **_payload(control, evidence))
+    monkeypatch.setattr("app.services.organization_grc_standards_mapping._TARGETS", {})
+    with pytest.raises(InvalidReference, match="not allowlisted"):
+        project_standards_mappings(db_session, board)
+
+
+def test_projection_does_not_hide_unknown_control_status_with_valid_policy_mapping(db_session: Session):
+    board = _board_context()
+    control, evidence = _control(db_session), _evidence(db_session)
+    policy = _policy_target(db_session)
+    create_standards_mapping(db_session, board, **_payload(control, evidence, key="18f:corrupt-control"))
+    create_standards_mapping(db_session, board, **{
+        **_payload(policy, evidence, key="18f:valid-policy"),
+        "target_type": "capability_autonomy_promotion_policy",
+    })
+    control.status = "unknown-corrupt-status"
+    db_session.add(control)
+    db_session.commit()
+
+    with pytest.raises(InvalidReference, match="unsupported status"):
+        project_standards_mappings(db_session, board)

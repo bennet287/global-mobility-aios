@@ -20,25 +20,42 @@ _TARGETS = {
     "capability_autonomy_evidence_evaluation_policy": CapabilityAutonomyEvidenceEvaluationPolicy,
 }
 
+class _TargetNotCurrent(InvalidReference):
+    """An allowlisted target no longer supports a current mapping."""
+
+
+class _TargetUnavailable(NotFound):
+    """An allowlisted target is absent from the mapping's tenant scope."""
+
+
 def _target_version(session: Session, context: OrganizationCommandContext, target_type: str, target_id: UUID) -> str:
     model = _TARGETS.get(target_type)
     if model is None:
         raise InvalidReference("standards mapping target is not allowlisted")
     if target_type == "organization_control":
         if context.tenant_key != "default":
-            raise NotFound("organization control is not available to this tenant")
+            raise _TargetUnavailable("organization control is not available to this tenant")
         target = session.get(OrganizationControl, target_id)
-        if target is None or target.control_key != "global" or target.status != "active":
+        if target is None:
+            raise _TargetNotCurrent("standards mapping requires the active global organization control")
+        if target.control_key != "global":
             raise InvalidReference("standards mapping requires the active global organization control")
+        if target.status == "paused":
+            raise _TargetNotCurrent("standards mapping requires the active global organization control")
+        if target.status != "active":
+            raise InvalidReference("standards mapping target control has an unsupported status")
         return canonical_fingerprint({
             "id": str(target.id), "control_key": target.control_key, "status": target.status,
             "reason": target.reason, "changed_by": target.changed_by,
             "updated_at": target.updated_at.isoformat(),
         })
-    target = tenant_record(session, model, target_id, context.tenant_key, label="standards mapping target")
+    try:
+        target = tenant_record(session, model, target_id, context.tenant_key, label="standards mapping target")
+    except NotFound as exc:
+        raise _TargetUnavailable("standards mapping target is unavailable") from exc
     successor = session.exec(select(model.id).where(model.tenant_key == context.tenant_key, model.supersedes_policy_id == target.id)).first()
     if successor is not None:
-        raise InvalidReference("standards mapping target policy was superseded")
+        raise _TargetNotCurrent("standards mapping target policy was superseded")
     return target.record_fingerprint
 
 def create_standards_mapping(
@@ -106,7 +123,11 @@ def project_standards_mappings(session: Session, context: OrganizationCommandCon
     for row in sorted(rows, key=lambda item: (item.framework_key,item.framework_version,item.requirement_id,item.created_at,str(item.id))):
         if row.id in superseded or row.mapping_state != "current":
             continue
-        if _target_version(session, context, row.target_type, row.target_id) != row.target_version:
+        try:
+            target_version = _target_version(session, context, row.target_type, row.target_id)
+        except (_TargetNotCurrent, _TargetUnavailable):
+            continue
+        if target_version != row.target_version:
             continue
         result.append(GRCStandardsMappingRead(
             **row.model_dump(), evidence_reference_ids=tuple(UUID(v) for v in json.loads(row.evidence_reference_ids_json))
