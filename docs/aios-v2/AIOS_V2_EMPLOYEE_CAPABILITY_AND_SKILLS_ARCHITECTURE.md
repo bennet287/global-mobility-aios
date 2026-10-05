@@ -187,6 +187,31 @@ Potential categories include GitHub/code tooling, browser/research, communicatio
 
 An employee's effective action set is the intersection of skill requirements, available tools, credentials, organizational permissions, current work scope, and authority policy.
 
+### 8.1 REA engineering integration — full catalog
+
+The user-selected REA integration belongs to one umbrella capability, `engineering.reverse_engineering`. Its intended scope is the complete reviewed 122-tool MCP catalog, including decompilation, native/managed/artifact/browser/Electron analysis, runtime observation, capture/replay, reconstruction, comparisons and evidence workflows. The managed two-tool fixture in the dated boundary audit is a starting verification scenario, not a reduced product scope.
+
+Each tool has an exact AIOS identifier `engineering.reverse_engineering.rea.<upstream_tool_name>`, its complete input/output schemas, source kind/operation/session metadata, declared effects and annotation hints. The umbrella groups discovery and work matching; it is not a wildcard entitlement. Do not expand a position allowance for the umbrella into permission for all tools. Catalog entries describe reviewed source contracts, not an installed or operational provider. Preserve source/build/catalog/provider/session identities separately.
+
+The catalog foundation is `apps/api/app/services/organization_rea_catalog.py` with a checked-in lossless snapshot in its adjacent `rea_catalog/catalog.json` and preserved `REA_LICENSE.txt`. Discovery returns all 122 exact descriptors with detached schema views. `compare_rea_tools_observation` compares one bounded complete advertised tools/list result, rejecting partial/paginated or drifted contracts; optional source declarations are compared separately and never authenticated by equality. `disabled_rea_runtime_profile` exposes the complete candidate tool set with `enabled=False` and no enable parameter or production selector registration. `scripts/import_rea_catalog.py --check <reviewed-source-checkout>` reproduces the snapshot from pinned tracked source data without executing donor code. Local snapshot/semantic hashes commit to this SDK advertisement projection; upstream source-declared runtime digests use a different direct-Zod projection and are not reproduced or attested by this import. This foundation does not validate invocation arguments, start a transport or establish a provider sandbox.
+
+The intended execution path is `AIOS employee -> canonical WorkItem/attempt -> fresh ContextBundle/runtime intersection -> AIOS dispatcher -> admitted REA session/tool -> bounded attributable observation -> AIOS review`. AIOS owns assignment, authenticated actor binding, artifact authorization/custody, worker isolation, exact per-call authorization, resources/cost admission, transport/session lifecycle, audit and outcome review. REA supplies engineering operations; its tool responses, confidence and reconstruction checks cannot grant authority, qualify competency or promote a VerifiedRule.
+
+The full integration must pass each acceptance layer for every applicable tool; a two-tool demonstration cannot establish full activation:
+
+| Acceptance layer | Required proof |
+| --- | --- |
+| Catalog coverage | All 122 exact identities and schemas mapped without silent omissions, aliases, duplicates or unreviewed additions; reproducible snapshot and drift detection |
+| Provider/session admission | Verified package/build provenance, exact observed catalog and provider identity, supported platform/dependencies, AIOS-owned isolated transport and investigation-bound session; matching catalog data alone is insufficient |
+| Artifact/work authorization | Reviewed source/custodian/purpose/target hash/scope/expiry/revocation, immutable staged bytes, canonical tenant/work/position/attempt ownership, suspension/cancellation/pause/assignment enforcement |
+| Per-call execution | Fresh exact allowance intersection, schema/argument/path and effect admission, bounded time/memory/process/network/filesystem/output, pre-use audit, fixed failure detail and unknown-outcome handling |
+| Evidence/review | Validated bounded observation envelope and semantic evidence IDs, target/session/provider/tool/argument linkage, manifest/content commitments, explicit unknowns and independent review; hashes do not prove truth |
+| Full operational coverage | Tool-by-tool supported and blocked states, positive/negative tests and separately attributed actual-provider fixtures for every applicable effect class; platform or licensing limitations remain explicit |
+
+Tool effects are cumulative rather than mutually exclusive: an observation may also launch a provider process, mutate session state or write analysis caches. Separate parser/static work, native provider launch, passive capture, filesystem persistence, UI/network interaction, destructive/session changes and active replay in execution policy. MCP annotation hints and advertised effect flags are untrusted declarations until the admitted operation/provider environment is independently verified. A Linux replay sandbox does not establish isolation for other REA operations.
+
+Use existing `OrganizationPosition` allowance, context/runtime, WorkItem/execution-attempt, action-output and audit owners. Catalog matching is diagnostic and cannot bypass the missing artifact-authorization, authenticated dispatcher or provider/session admission owners. CLI support is a separately admitted transport using the same AIOS authority path; the 75 CLI commands do not become new autonomous capabilities or a shell fallback around denied MCP tools.
+
 ## 9. Memory and institutional knowledge
 
 Memory and skills are distinct:
