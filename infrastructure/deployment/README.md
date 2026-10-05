@@ -121,7 +121,27 @@ A nonzero exit indicates incomplete or failed proof. Read the canonical receipt 
 
 Both the JSON and HTML controlled-agent batch entry points now commit the complete batch of queued AgentRuns before publishing any worker task. A failed database commit publishes nothing. A broker error after commit leaves durable queued intent and propagates; it does not establish which tasks were delivered or executed. This is not atomic database/broker delivery, an outbox, or automatic replay. The actual web/worker journey still requires target-host proof.
 
-The next core-journey prerequisite is a read-only coverage contract bound to the exact release and configuration, derived from the existing route, controlled-agent and runtime owners. Registered routes and organizational capacity do not imply promoted execution. Missing probes for enabled capabilities remain blocked; disabling must derive from observed governing configuration and enforcement. Actual capability coverage, scheduler provenance, governed allow/deny and restart durability are required before a satisfied core receipt is justified.
+### Core-journey source coverage foundation v1
+
+The internal `project_core_journey_source_coverage` read helper validates the existing prepared run and human read context, then requires a clean candidate checkout at the exact prepared release and canonical configuration fingerprint. It reads bounded tracked Git blobs without importing candidate application code. The inventory includes API registration lineage and method/path pairs, nested routers and direct health registration, frontend page source, controlled agents and explicit aliases, and department runtime declarations. A versioned source-owned catalog annotates proposed probe families; an annotation is not an implemented or passing probe.
+
+Use a trusted repository management checkout with Git and the existing API dependencies installed, and the repository root plus `apps/api` on `PYTHONPATH`. Supply the existing canonical database session and authenticated human command context:
+
+```python
+from pathlib import Path
+from uuid import UUID
+from app.services.production_core_journey_coverage import project_core_journey_source_coverage
+
+report = project_core_journey_source_coverage(
+    session, context,
+    deployment_run_id=UUID("<prepared-run-id>"),
+    candidate_root=Path("/srv/aios/releases/<candidate-sha>"),
+)
+```
+
+This is a service read helper, not a public endpoint or operational gate executor. Pending caller state is not autoflushed. No Activity, receipt, migration or provider call is created. Candidate/configuration drift, invalid prepared lineage and resource bounds fail closed. Source and management-catalog fingerprints and registration aliases preserve the discovered inputs; unknown source forms and unmapped probe families remain explicit blockers. The finite scan permits 10,000 tree/inventory entries, 1 MiB per blob, 12 MiB of source, 8 KiB per metadata row and a 4 MiB report payload, with a 120-second source-inventory budget and 10-second Git command deadlines. Exceeding a bound rejects the projection rather than truncating it.
+
+Every foundation result has `core_journey_status=blocked`, `core_journey_satisfied=false`, `receipt_written=false` and `live_observation=false`. Source inventory does not establish the deployed compiled frontend manifest, installed runtime profiles, promotion or actual capability behavior. A source-held department is not an observed denial. Real capability probes, scheduler dispatch provenance, governed allow/deny and restart durability are still required before a satisfied core receipt is justified. Disabled capability dispositions need observed governing configuration and enforcement; missing credentials or probes cannot substitute for that proof.
 
 ## Whole-product production acceptance
 
