@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Checkout exact AIOS candidate; no donor or compiler in comparison job
+      - name: Checkout exact AIOS candidate; no compiler in comparison job
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ env.CANDIDATE_SHA }}
@@ -124,5 +124,29 @@ jobs:
         with:
           name: rea-repeatability
           path: rea-repeatability.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Checkout fixed source assets for diagnostic package assembly
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: morluto/rea
+          ref: 4c8dc39f439b5283b077c6aa47f262714d7c4bbd
+          path: donor
+          persist-credentials: false
+      - name: Assemble complete source assets and received compiled output bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python aios/scripts/rea_build_repeatability.py package \
+            --source donor --a received-a --b received-b \
+            --materials aios/apps/api/app/services/rea_catalog/build_materials.json \
+            --candidate "$CANDIDATE_SHA" --repository "$GITHUB_REPOSITORY" \
+            --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --workflow aios/.github/workflows/rea-build-repeatability.yml --output rea-package-correlation
+      - name: Preserve diagnostic package and correlation report; no approval or signature
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-package-correlation
+          path: rea-package-correlation/
           if-no-files-found: error
           retention-days: 14

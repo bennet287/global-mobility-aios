@@ -247,7 +247,7 @@ def test_workflow_is_fresh_bounded_no_runtime_authority():
     workflow = (ROOT / ".github/workflows/rea-build-repeatability.yml").read_text()
     assert "build: [a, b]" in workflow and "needs: source-build" in workflow
     assert "ubuntu-24.04" in workflow and "timeout-minutes: 15" in workflow and "timeout-minutes: 5" in workflow
-    assert workflow.count("persist-credentials: false") == 3
+    assert workflow.count("persist-credentials: false") == 4
     assert "--ignore-scripts --no-audit --no-fund" in workflow
     assert "node node_modules/typescript/bin/tsc -p tsconfig.build.json" in workflow
     assert "npm run" not in workflow and "pull_request_target" not in workflow
@@ -278,3 +278,56 @@ def test_directory_changes_during_inventory_denied(tmp_path, monkeypatch):
     monkeypatch.setattr(proof.os, "listdir", changed)
     with pytest.raises(proof.EvidenceError, match="directory changed"):
         proof.inventory(root)
+
+
+@pytest.fixture
+def package_assets(builds, tmp_path, monkeypatch):
+    root=tmp_path/'assets';root.mkdir()
+    bodies={'package.json':proof.canonical({'name':'rea-agents','version':'3.2.1','files':['dist','scripts'],'bin':{'rea':'scripts/rea.mjs','rea-agents':'scripts/rea.mjs'}}),
+            'LICENSE':b'synthetic license','README.md':b'synthetic readme','scripts/rea.mjs':b'synthetic source asset never run'}
+    for path,data in bodies.items():
+        target=root/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
+    actual_materials=proof.materials(MATERIALS)
+    fixture_materials={**actual_materials,'files':[dict(path=p,size=len(v),sha256=proof.sha(v)) for p,v in sorted(bodies.items())]}
+    monkeypatch.setattr(proof,'materials',lambda _:fixture_materials)
+    return root
+
+
+def test_package_contains_complete_actual_outputs_and_assets(builds,package_assets,tmp_path):
+    import gzip
+    import io
+    import tarfile
+    a,b,ctx,recipe=builds
+    report=proof.package(a,b,package_assets,MATERIALS,ctx,recipe,tmp_path/'package-one')
+    raw=(tmp_path/'package-one/rea-package.tar.gz').read_bytes()
+    assert proof.sha(raw)==report['package']['archive_sha256']
+    assert len(raw)==report['package']['archive_bytes']
+    with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as archive:
+        observed={v.name.removeprefix('package/'):archive.extractfile(v).read() for v in archive}
+    assert len(observed)==9
+    assert observed['dist/nested/value.js']==(a/'dist/nested/value.js').read_bytes()
+    assert {'package.json','LICENSE','README.md','scripts/rea.mjs'} <= set(observed)
+    assert report['package']['files']==[dict(path=p,size=len(v),sha256=proof.sha(v)) for p,v in sorted(observed.items())]
+    assert report['diagnostic_only'] is True
+    assert report['repeatability']['execution_authorized'] is False
+    assert gzip.decompress(raw)[257:265]==b'ustar\x0000'
+    from app.services import organization_rea_build as package_inspector
+    parsed,metadata=package_inspector._archive_manifest(raw)
+    assert parsed==report['package']['files']
+    package_inspector._verify_source_assets(parsed,metadata,{v['path']:v for v in proof.materials(MATERIALS)['files']})
+    second=proof.package(a,b,package_assets,MATERIALS,ctx,recipe,tmp_path/'package-two')
+    assert (tmp_path/'package-two/rea-package.tar.gz').read_bytes()==raw
+    assert second==report
+
+
+@pytest.mark.parametrize('mutation',['tamper','missing','symlink-parent'])
+def test_package_source_asset_changes_denied(builds,package_assets,tmp_path,mutation):
+    a,b,ctx,recipe=builds
+    if mutation=='tamper':(package_assets/'LICENSE').write_bytes(b'drift')
+    elif mutation=='missing':(package_assets/'README.md').unlink()
+    else:
+        moved=tmp_path/'moved';(package_assets/'scripts').rename(moved)
+        (package_assets/'scripts').symlink_to(moved,target_is_directory=True)
+    with pytest.raises((proof.EvidenceError,OSError)):
+        proof.package(a,b,package_assets,MATERIALS,ctx,recipe,tmp_path/'package')
+    assert not (tmp_path/'package').exists()
