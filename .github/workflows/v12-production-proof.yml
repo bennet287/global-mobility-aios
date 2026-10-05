@@ -321,6 +321,7 @@ jobs:
         run: >-
           python -m pytest -q
           apps/api/tests/test_connector_key_rotation.py
+          apps/api/tests/test_organization_rea_artifacts.py
           apps/api/tests/test_organization_eligibility_effect.py
           apps/api/tests/test_organization_eligibility_orchestration.py
           apps/api/tests/test_organization_eligibility_lineage_contract.py

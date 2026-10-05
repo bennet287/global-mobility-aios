@@ -28,6 +28,8 @@ from app.models.domain import (
     OrganizationWorkItemDependency,
     OrganizationalWorkItem,
 )
+from app.schemas_organization_rea_artifacts import ReaArtifactProposal, ReaArtifactRevocation, ReaArtifactAuthorizationRead
+from app.services.organization_rea_artifacts import propose_rea_artifact, propose_rea_artifact_revocation, resolve_rea_artifact_authorization
 from app.schemas_organization_records import (
     ActivityCreate,
     ActivityRead,
@@ -1042,3 +1044,31 @@ def export_risk_evidence_endpoint(
     response.headers["Cache-Control"] = "no-store"
     response.headers["Content-Disposition"] = f'attachment; filename="grc-risk-{risk_id}.json"'
     return result
+
+
+async def _rea_business_body(request: Request) -> None:
+    # Pydantic receives an already-decoded object; check the original JSON too so
+    # duplicate fields cannot silently overwrite an artifact/right/scope assertion.
+    from app.services.organization_rea_artifacts import _json, MAX_AUDIT_BYTES
+    try:
+        raw = await request.body()
+        if len(raw) > MAX_AUDIT_BYTES:
+            raise InvalidTransition("artifact request exceeds byte limit")
+        _json(raw.decode("utf-8"), limit=MAX_AUDIT_BYTES)
+    except (InvalidTransition, UnicodeError) as exc:
+        raise HTTPException(status_code=422, detail="Invalid bounded artifact JSON.") from exc
+
+
+@router.post("/engineering/rea/artifact-proposals", response_model=DecisionRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(_rea_business_body)])
+def propose_rea_artifact_endpoint(payload: ReaArtifactProposal, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)):
+    return _command(lambda: propose_rea_artifact(session, context, payload))
+
+
+@router.get("/engineering/rea/artifact-authorizations/{decision_id}", response_model=ReaArtifactAuthorizationRead)
+def read_rea_artifact_authorization_endpoint(decision_id: UUID, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)):
+    return _command(lambda: resolve_rea_artifact_authorization(session, context, decision_id=decision_id))
+
+
+@router.post("/engineering/rea/artifact-authorizations/{decision_id}/revocations", response_model=DecisionRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(_rea_business_body)])
+def propose_rea_artifact_revocation_endpoint(decision_id: UUID, payload: ReaArtifactRevocation, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)):
+    return _command(lambda: propose_rea_artifact_revocation(session, context, decision_id=decision_id, **payload.model_dump()))
