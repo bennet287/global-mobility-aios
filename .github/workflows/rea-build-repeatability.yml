@@ -91,7 +91,13 @@ jobs:
     name: Compare received REA build bytes
     needs: source-build
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
+    # Forked PRs never receive attestation privileges or a privileged fallback.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - name: Checkout exact AIOS candidate; no compiler in comparison job
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -143,10 +149,134 @@ jobs:
             --candidate "$CANDIDATE_SHA" --repository "$GITHUB_REPOSITORY" \
             --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow aios/.github/workflows/rea-build-repeatability.yml --output rea-package-correlation
-      - name: Preserve diagnostic package and correlation report; no approval or signature
+      - name: Preserve diagnostic package and correlation report; no execution grant
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: rea-package-correlation
           path: rea-package-correlation/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Attest exact correlation report after inert package assembly
+        id: correlation-attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: rea-package-correlation/correlation.json
+      - name: Snapshot bounded raw bundle before verifier output exists
+        shell: bash
+        env:
+          RAW_BUNDLE: ${{ steps.correlation-attestation.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          import os
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, "aios/scripts")
+          from rea_ci_attestation import MAX_JSON, snapshot
+          from rea_build_repeatability import parse_json
+          raw, _ = snapshot(Path(os.environ["RAW_BUNDLE"]), MAX_JSON)
+          parse_json(raw)
+          output = Path("rea-ci-attestation-raw")
+          output.mkdir(mode=0o700)
+          (output / "bundle.json").write_bytes(raw)
+          PYCODE
+      - name: Preserve raw signature independently of verification success
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-ci-attestation-raw
+          path: rea-ci-attestation-raw/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Checkout actual executing workflow revision for byte correlation
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: ci-workflow
+          persist-credentials: false
+      - name: Download fixed GitHub CLI archive for fresh signature verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --location --fail --silent --show-error \
+            --connect-timeout 10 --max-time 60 --max-filesize 67108864 \
+            https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz \
+            --output gh-cli.tar.gz
+      - name: Verify raw signed subject freshly without promoting product authority
+        shell: bash
+        env:
+          CI_SOURCE_SHA: ${{ github.sha }}
+          CI_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          python aios/scripts/rea_ci_attestation.py \
+            --subject rea-package-correlation/correlation.json --bundle rea-ci-attestation-raw/bundle.json \
+            --cli-archive gh-cli.tar.gz --candidate-root aios --workflow-root ci-workflow \
+            --candidate "$CANDIDATE_SHA" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --source-sha "$CI_SOURCE_SHA" --workflow-sha "$CI_WORKFLOW_SHA" \
+            --source-ref "$GITHUB_REF" --trigger "$GITHUB_EVENT_NAME" --output rea-ci-attestation
+      - name: Preserve raw signature bundle and diagnostic verification separately
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-ci-attestation
+          path: rea-ci-attestation/
+          if-no-files-found: error
+          retention-days: 14
+
+  verify-attestation:
+    name: Independently verify received REA report signature
+    needs: compare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact reviewed candidate verifier
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          path: aios
+          persist-credentials: false
+      - name: Checkout actual executing workflow revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: ci-workflow
+          persist-credentials: false
+      - name: Download report bytes from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: rea-package-correlation
+          path: received-package
+      - name: Download raw signature bundle from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: rea-ci-attestation-raw
+          path: received-attestation
+      - name: Download fixed GitHub CLI archive in independent job
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --location --fail --silent --show-error \
+            --connect-timeout 10 --max-time 60 --max-filesize 67108864 \
+            https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz \
+            --output gh-cli.tar.gz
+      - name: Freshly authenticate received report and bundle; ignore producer verdict JSON
+        shell: bash
+        env:
+          CI_SOURCE_SHA: ${{ github.sha }}
+          CI_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          python aios/scripts/rea_ci_attestation.py \
+            --subject received-package/correlation.json --bundle received-attestation/bundle.json \
+            --cli-archive gh-cli.tar.gz --candidate-root aios --workflow-root ci-workflow \
+            --candidate "$CANDIDATE_SHA" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --source-sha "$CI_SOURCE_SHA" --workflow-sha "$CI_WORKFLOW_SHA" \
+            --source-ref "$GITHUB_REF" --trigger "$GITHUB_EVENT_NAME" --output rea-ci-attestation-independent
+      - name: Preserve independently fresh diagnostic signature verification
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-ci-attestation-independent
+          path: rea-ci-attestation-independent/
           if-no-files-found: error
           retention-days: 14

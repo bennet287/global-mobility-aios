@@ -246,8 +246,14 @@ def test_materials_digest_pin(tmp_path):
 def test_workflow_is_fresh_bounded_no_runtime_authority():
     workflow = (ROOT / ".github/workflows/rea-build-repeatability.yml").read_text()
     assert "build: [a, b]" in workflow and "needs: source-build" in workflow
-    assert "ubuntu-24.04" in workflow and "timeout-minutes: 15" in workflow and "timeout-minutes: 5" in workflow
-    assert workflow.count("persist-credentials: false") == 4
+    import yaml
+    jobs = yaml.safe_load(workflow)["jobs"]
+    assert {name: job["timeout-minutes"] for name, job in jobs.items()} == {
+        "source-build": 15, "compare": 10, "verify-attestation": 10}
+    assert all(job["runs-on"] == "ubuntu-24.04" for job in jobs.values())
+    checkouts = [step for job in jobs.values() for step in job["steps"]
+                 if step.get("uses", "").startswith("actions/checkout@")]
+    assert checkouts and all(step["with"]["persist-credentials"] is False for step in checkouts)
     assert "--ignore-scripts --no-audit --no-fund" in workflow
     assert "node node_modules/typescript/bin/tsc -p tsconfig.build.json" in workflow
     assert "npm run" not in workflow and "pull_request_target" not in workflow
