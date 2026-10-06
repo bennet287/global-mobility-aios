@@ -22,6 +22,7 @@ from app.services.organization_command import InvalidTransition
 from app.services.organization_rea_catalog import _bounded_json
 from app.services import organization_rea_artifacts as artifact
 from app.schemas_organization_rea_build import package_path
+from app.services import organization_rea_source_relation as relation
 
 EvidenceError = InvalidTransition
 
@@ -201,6 +202,7 @@ class ReaCiAttestationTrust:
     ci_workflow_sha: str
     source_ref: str
     trigger: str
+    source_relation: relation.ReaCiSourceRelationTrust | None = None
 
 
 def immutable_snapshot(root, relative, limit):
@@ -237,17 +239,22 @@ def immutable_snapshot(root, relative, limit):
 def authenticate(compilation_trust, approved):
     trust = compilation_trust.ci_attestation
     require(type(trust) is ReaCiAttestationTrust and approved is not None, "governed raw attestation trust missing")
-    pins = {key: getattr(trust, key) for key in type(approved).model_fields}
+    pins = {key: getattr(trust, key) for key in ("bundle_sha256", "ci_source_sha", "ci_workflow_sha", "source_ref", "trigger")}
     require(all(type(value) is str for value in pins.values()), 'attestation deployment pin type differs')
-    require(pins == approved.model_dump(mode='json'), "attestation deployment pins differ from governed review")
+    require(pins == {key: getattr(approved, key) for key in pins}, "attestation deployment pins differ from governed review")
     expected = expected_identity(candidate=compilation_trust.candidate_sha, run_id=compilation_trust.run_id,
         run_attempt=compilation_trust.run_attempt, source_sha=trust.ci_source_sha, workflow_sha=trust.ci_workflow_sha,
         source_ref=trust.source_ref, trigger=trust.trigger)
     locators = [(compilation_trust.report_root, compilation_trust.report_relative, MAX_JSON),
                 (trust.bundle_root, trust.bundle_relative, MAX_JSON),
                 (trust.cli_archive_root, trust.cli_archive_relative, MAX_ARCHIVE)]
+    source_trust = trust.source_relation
+    if source_trust is not None or approved.source_relation is not None:
+        require(type(source_trust) is relation.ReaCiSourceRelationTrust and approved.source_relation is not None, "source relation trust missing")
+        require({key: getattr(source_trust, key) for key in type(approved.source_relation).model_fields} == approved.source_relation.model_dump(mode="json"), "source relation deployment pins differ")
+        locators.append((source_trust.witness_root, source_trust.witness_relative, relation.MAX_WITNESS))
     snapshots = [immutable_snapshot(*locator) for locator in locators]
-    subject, bundle, archive = [item[0] for item in snapshots]
+    subject, bundle, archive = [item[0] for item in snapshots[:3]]
     require(sha(subject) == compilation_trust.report_sha256 and sha(bundle) == trust.bundle_sha256, "raw attestation digest differs")
     parse_json(bundle)
     with tempfile.TemporaryDirectory(prefix='aios-rea-attestation-') as tmp:
@@ -266,6 +273,11 @@ def authenticate(compilation_trust, approved):
             '--deny-self-hosted-runners', '--format', 'json'], cwd=private, env=env)
         require(cli.read_bytes() == cli_before and sealed_subject.read_bytes() == subject and sealed_bundle.read_bytes() == bundle, "sealed verifier inputs changed")
         proof = validate_result(raw, subject, expected)
+    source_summary = None
+    if source_trust is not None:
+        source_summary = relation.verify(snapshots[3][0], candidate_sha=compilation_trust.candidate_sha,
+            ci_source_sha=proof["certificate"]["sourceRepositoryDigest"], ci_workflow_sha=proof["certificate"]["buildSignerDigest"],
+            trigger=trust.trigger, pins=source_trust, workflow_sha256=compilation_trust.workflow_sha256, helper_sha256=compilation_trust.helper_sha256)
     def revalidate():
         require([immutable_snapshot(*locator) for locator in locators] == snapshots, "raw attestation evidence changed")
     revalidate()
@@ -276,4 +288,8 @@ def authenticate(compilation_trust, approved):
         verified_timestamps=[{key: item[key] for key in ('type', 'timestamp')} for item in proof['verified_timestamps']], fresh_cli_output_sha256=proof['fresh_cli_output_sha256'],
         attesting_execution_identity_verified=True, candidate_to_ci_source_relation_verified=False,
         independent_compiler_causality_verified=False, owning_github_execution_authenticated=False)
+    if source_summary is not None:
+        summary["source_relation"] = source_summary
+        summary["candidate_to_ci_source_relation_verified"] = True
+        summary["committed_recipe_bytes_match_review"] = True
     return summary, revalidate
