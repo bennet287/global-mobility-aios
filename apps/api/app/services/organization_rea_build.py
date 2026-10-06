@@ -480,6 +480,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             result['candidate_to_ci_source_relation_verified'] = attestation_summary['candidate_to_ci_source_relation_verified']
             if attestation_summary['candidate_to_ci_source_relation_verified']:
                 result['committed_recipe_bytes_match_review'] = True
+            if attestation_summary.get('compiler_workflow_outputs_authenticated') is True:
+                result['compiler_workflow_outputs_authenticated'] = True
             result['independent_compiler_causality_verified'] = False
             result['blockers'] = ['independent_compiler_causality_unproven' if value == 'authenticated_ci_execution_provenance_unproven' else value for value in result['blockers']]
         evidence = {'result':result, 'signed_envelope':parsed}

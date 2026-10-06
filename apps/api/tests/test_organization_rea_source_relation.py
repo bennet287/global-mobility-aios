@@ -19,7 +19,7 @@ from tests.test_organization_rea_compilation import correlated
 from tests.test_organization_rea_build import package_setup, board, approve
 
 
-def witness(trigger='pull_request'):
+def witness(trigger='pull_request', compiler=False):
     objects = {}
     def add(kind, raw):
         oid = relation.object_sha(kind, raw)
@@ -30,7 +30,10 @@ def witness(trigger='pull_request'):
             for name, mode, oid in sorted(entries, key=lambda v:v[0]+('/' if v[1]=='40000' else ''))))
     workflow, helper, verifier = b'workflow\n', b'helper\n', b'verifier\n'
     scripts = tree([('rea_build_repeatability.py','100644',add('blob',helper)), ('rea_ci_attestation.py','100644',add('blob',verifier))])
-    workflows = tree([('rea-build-repeatability.yml','100644',add('blob',workflow))])
+    workflow_entries = [('rea-build-repeatability.yml','100644',add('blob',workflow))]
+    if compiler:
+        workflow_entries += [('rea-source-build-'+lane+'.yml','100644',add('blob',('reusable-'+lane+'\n').encode())) for lane in ('a','b')]
+    workflows = tree(workflow_entries)
     github = tree([('workflows','40000',workflows)])
     root = tree([('.github','40000',github), ('scripts','40000',scripts)])
     def commit(parents):

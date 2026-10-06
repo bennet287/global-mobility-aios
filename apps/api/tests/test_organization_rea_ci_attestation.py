@@ -228,5 +228,9 @@ def test_runtime_orphan_pipe_cleanup_after_parent_exit(tmp_path):
             break
         time.sleep(0.01)
     else:
-        os.kill(pid,signal.SIGKILL)
+        try:
+            os.kill(pid,signal.SIGKILL)
+        except ProcessLookupError:
+            # The descendant exited between the last observation and cleanup.
+            return
         pytest.fail('verifier descendant remained running after timeout')

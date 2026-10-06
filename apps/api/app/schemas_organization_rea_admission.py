@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator, model_serializer
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator, model_serializer, model_validator
 from app.schemas_organization_rea_artifacts import Key, Text, ReaArtifactScope
 
 Digest = Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -18,8 +18,20 @@ class ReaCiSourceRelationEvidence(StrictModel):
     approved_base_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")] | None = None
 
 
+class ReaCompilerLaneEvidence(StrictModel):
+    manifest_sha256: Digest
+    bundle_sha256: Digest
+    workflow_sha256: Digest
+
+
+class ReaCompilerOutputsEvidence(StrictModel):
+    a: ReaCompilerLaneEvidence
+    b: ReaCompilerLaneEvidence
+
+
 class ReaCiAttestationEvidence(StrictModel):
     """Exact human-approved attesting execution; compiler causality is separate."""
+    compiler_outputs: ReaCompilerOutputsEvidence | None = None
     source_relation: ReaCiSourceRelationEvidence | None = None
     bundle_sha256: Digest
     ci_source_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
@@ -30,9 +42,16 @@ class ReaCiAttestationEvidence(StrictModel):
     @model_serializer(mode="wrap")
     def preserve_historical_shape(self, handler):
         value = handler(self)
-        if "source_relation" not in self.model_fields_set:
-            value.pop("source_relation", None)
+        for key in ("source_relation", "compiler_outputs"):
+            if key not in self.model_fields_set:
+                value.pop(key, None)
         return value
+
+    @model_validator(mode="after")
+    def compiler_requires_source_relation(self):
+        if self.compiler_outputs is not None and self.source_relation is None:
+            raise ValueError("compiler outputs require reviewed source relation")
+        return self
 
     @field_validator("source_ref")
     @classmethod

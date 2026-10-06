@@ -244,21 +244,29 @@ def test_materials_digest_pin(tmp_path):
 
 
 def test_workflow_is_fresh_bounded_no_runtime_authority():
-    workflow = (ROOT / ".github/workflows/rea-build-repeatability.yml").read_text()
-    assert "build: [a, b]" in workflow and "needs: source-build" in workflow
     import yaml
+    workflow = (ROOT / ".github/workflows/rea-build-repeatability.yml").read_text()
     jobs = yaml.safe_load(workflow)["jobs"]
-    assert {name: job["timeout-minutes"] for name, job in jobs.items()} == {
-        "source-build": 15, "compare": 10, "verify-attestation": 10}
-    assert all(job["runs-on"] == "ubuntu-24.04" for job in jobs.values())
-    checkouts = [step for job in jobs.values() for step in job["steps"]
+    assert jobs["compare"]["needs"] == ["source-build-a", "source-build-b"]
+    runner_jobs = [jobs["compare"], jobs["verify-attestation"]]
+    assert all(job["timeout-minutes"] == 10 for job in runner_jobs)
+    for lane in ("a", "b"):
+        caller = jobs[f"source-build-{lane}"]
+        assert caller["uses"] == f"./.github/workflows/rea-source-build-{lane}.yml"
+        assert "with" not in caller and "secrets" not in caller
+        reusable = (ROOT / f".github/workflows/rea-source-build-{lane}.yml").read_text()
+        compile_job = yaml.safe_load(reusable)["jobs"]["compile"]
+        assert compile_job["timeout-minutes"] == 15
+        runner_jobs.append(compile_job)
+        assert "--ignore-scripts --no-audit --no-fund" in reusable
+        assert "node node_modules/typescript/bin/tsc -p tsconfig.build.json" in reusable
+        assert "npm run" not in reusable and "pull_request_target" not in reusable
+        assert "cache: npm" not in reusable and "actions/cache" not in reusable
+        assert "rea mcp" not in reusable and "node dist/" not in reusable
+    assert all(job["runs-on"] == "ubuntu-24.04" for job in runner_jobs)
+    checkouts = [step for job in runner_jobs for step in job["steps"]
                  if step.get("uses", "").startswith("actions/checkout@")]
     assert checkouts and all(step["with"]["persist-credentials"] is False for step in checkouts)
-    assert "--ignore-scripts --no-audit --no-fund" in workflow
-    assert "node node_modules/typescript/bin/tsc -p tsconfig.build.json" in workflow
-    assert "npm run" not in workflow and "pull_request_target" not in workflow
-    assert "cache: npm" not in workflow and "actions/cache" not in workflow
-    assert "rea mcp" not in workflow and "node dist/" not in workflow
 
 
 @pytest.mark.parametrize("limit", ["MAX_ENTRIES", "MAX_DEPTH"])

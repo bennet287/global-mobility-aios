@@ -9,6 +9,7 @@ from app.services.organization_command import InvalidTransition
 from app.services.organization_rea_catalog import _bounded_json
 
 MAX_WITNESS = 4_000_000
+COMPILER_PATHS = ('.github/workflows/rea-source-build-a.yml', '.github/workflows/rea-source-build-b.yml')
 PATHS = ('.github/workflows/rea-build-repeatability.yml', 'scripts/rea_build_repeatability.py', 'scripts/rea_ci_attestation.py')
 
 def require(condition, message):
@@ -74,7 +75,7 @@ def tree(raw):
     return entries
 
 
-def verify(raw, *, candidate_sha, ci_source_sha, ci_workflow_sha, trigger, pins, workflow_sha256, helper_sha256):
+def verify(raw, *, candidate_sha, ci_source_sha, ci_workflow_sha, trigger, pins, workflow_sha256, helper_sha256, compiler_workflow_pins=None):
     require(0 < len(raw) <= MAX_WITNESS and hashlib.sha256(raw).hexdigest() == pins.witness_sha256, 'witness digest or bound')
     require(ci_source_sha == ci_workflow_sha, 'inline workflow/source identity mismatch')
     try:
@@ -111,7 +112,13 @@ def verify(raw, *, candidate_sha, ci_source_sha, ci_workflow_sha, trigger, pins,
         require(trigger == 'workflow_dispatch' and pins.approved_base_sha is None and ci_source_sha == candidate_sha, 'dispatch cannot grant PR relation')
     require(source_tree == candidate_tree, 'candidate/source trees differ')
     file_pins = (workflow_sha256, helper_sha256, pins.reviewed_verifier_sha256)
-    for path, digest in zip(PATHS, file_pins):
+    paths = PATHS
+    if compiler_workflow_pins is not None:
+        require(type(compiler_workflow_pins) is dict and set(compiler_workflow_pins) == {"a", "b"}, "fixed compiler workflow pins missing")
+        require(all(type(value) is str and re.fullmatch(r"[0-9a-f]{64}", value) is not None for value in compiler_workflow_pins.values()), "invalid compiler workflow pins")
+        paths += COMPILER_PATHS
+        file_pins += tuple(compiler_workflow_pins[lane] for lane in ("a", "b"))
+    for path, digest in zip(paths, file_pins):
         current = source_tree
         parts = path.split('/')
         for index, name in enumerate(parts):
@@ -124,8 +131,12 @@ def verify(raw, *, candidate_sha, ci_source_sha, ci_workflow_sha, trigger, pins,
                 require(mode == '100644', 'recipe is not a regular reviewed blob')
                 require(hashlib.sha256(get(current, 'blob')).hexdigest() == digest, 'reviewed recipe blob mismatch')
     require(used == set(decoded), 'extraneous witness objects')
-    return dict(witness_sha256=pins.witness_sha256, approved_base_sha=pins.approved_base_sha,
+    summary = dict(witness_sha256=pins.witness_sha256, approved_base_sha=pins.approved_base_sha,
         candidate_sha=candidate_sha, ci_source_sha=ci_source_sha, shared_tree_sha=candidate_tree,
         reviewed_workflow_sha256=workflow_sha256, reviewed_build_helper_sha256=helper_sha256,
         reviewed_verifier_sha256=pins.reviewed_verifier_sha256, object_count=len(used),
         candidate_to_ci_source_relation_verified=True, committed_recipe_bytes_match_review=True)
+
+    if compiler_workflow_pins is not None:
+        summary["reviewed_compiler_workflows_sha256"] = compiler_workflow_pins
+    return summary

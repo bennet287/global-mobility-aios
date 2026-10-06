@@ -248,7 +248,9 @@ def test_workflow_privileges_and_independent_raw_verification():
     workflow = yaml.safe_load((ROOT / proof.WORKFLOW).read_text())
     assert workflow["permissions"] == {"contents": "read"}
     jobs = workflow["jobs"]
-    assert "permissions" not in jobs["source-build"]
+    for lane in ("a", "b"):
+        assert jobs[f"source-build-{lane}"]["permissions"] == {"contents": "read", "id-token": "write", "attestations": "write"}
+        assert "head.repo.full_name == github.repository" in jobs[f"source-build-{lane}"]["if"]
     assert jobs["compare"]["permissions"] == {"contents": "read", "id-token": "write", "attestations": "write"}
     assert "head.repo.full_name == github.repository" in jobs["compare"]["if"]
     assert jobs["verify-attestation"]["permissions"] == {"contents": "read"}

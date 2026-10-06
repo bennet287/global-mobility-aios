@@ -1,0 +1,114 @@
+name: REA fixed compiler lane a
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    name: REA fresh source build (a)
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact AIOS candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          path: aios
+          persist-credentials: false
+      - name: Checkout fixed reviewed source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: morluto/rea
+          ref: 4c8dc39f439b5283b077c6aa47f262714d7c4bbd
+          path: donor
+          persist-credentials: false
+      - name: Verify all tracked source bytes before build
+        run: >-
+          python aios/scripts/rea_build_repeatability.py verify-source
+          --source donor
+          --materials aios/apps/api/app/services/rea_catalog/build_materials.json
+      - name: Set up fixed Node without dependency cache
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+      - name: Install fixed npm tool and locked dependencies without lifecycle scripts
+        working-directory: donor
+        shell: bash
+        env:
+          BUILD_JOB: a
+        run: |
+          set -euo pipefail
+          npm_tool_root="$RUNNER_TEMP/rea-npm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$BUILD_JOB"
+          npm_cache_root="$RUNNER_TEMP/rea-cache-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$BUILD_JOB"
+          test ! -e "$npm_tool_root"
+          test ! -e "$npm_cache_root"
+          npm install --global --prefix "$npm_tool_root" npm@11.16.0 --ignore-scripts --no-audit --no-fund --cache "$npm_cache_root/tool"
+          node "$npm_tool_root/lib/node_modules/npm/bin/npm-cli.js" ci --ignore-scripts --no-audit --no-fund --cache "$npm_cache_root/dependencies"
+      - name: Compile directly with locked TypeScript; no donor generators or app execution
+        working-directory: donor
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf -- dist .cache
+          node node_modules/typescript/bin/tsc -p tsconfig.build.json
+      - name: Verify source again and capture actual output bytes
+        shell: bash
+        env:
+          BUILD_JOB: a
+        run: |
+          set -euo pipefail
+          npm_tool_root="$RUNNER_TEMP/rea-npm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$BUILD_JOB"
+          python aios/scripts/rea_build_repeatability.py capture \
+            --source donor --materials aios/apps/api/app/services/rea_catalog/build_materials.json \
+            --candidate "$CANDIDATE_SHA" --repository "$GITHUB_REPOSITORY" \
+            --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" --job "$BUILD_JOB" \
+            --node "$(command -v node)" --npm-cli "$npm_tool_root/lib/node_modules/npm/bin/npm-cli.js" \
+            --workflow aios/.github/workflows/rea-build-repeatability.yml --output "rea-build-$BUILD_JOB"
+      - name: Attest exact locally captured compiler manifest
+        id: compiler-attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: rea-build-a/manifest.json
+      - name: Preserve bounded raw compiler signature independently
+        shell: bash
+        env:
+          RAW_BUNDLE: ${{ steps.compiler-attestation.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          import os
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, "aios/scripts")
+          from rea_ci_attestation import MAX_JSON, snapshot
+          from rea_build_repeatability import parse_json
+          raw, _ = snapshot(Path(os.environ["RAW_BUNDLE"]), MAX_JSON)
+          parse_json(raw)
+          output = Path("rea-compiler-attestation-a")
+          output.mkdir(mode=0o700)
+          (output / "bundle.json").write_bytes(raw)
+          PYCODE
+      - name: Upload raw compiler signature outside strict build inventory
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-compiler-attestation-a
+          path: rea-compiler-attestation-a/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload bounded compiled bytes and manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-build-a
+          path: rea-build-a/
+          if-no-files-found: error
+          retention-days: 14
