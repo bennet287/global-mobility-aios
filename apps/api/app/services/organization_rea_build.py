@@ -26,6 +26,7 @@ from app.schemas_organization_rea_build import ReaSignedBuildStatement, ReaPacka
 from app.services.audit_log import record_audit
 from app.services.organization_command import AuthorityDenied, InvalidTransition, canonical_fingerprint, canonical_json
 from app.services import organization_rea_admission as admission, organization_rea_artifacts as artifact
+from app.services import organization_rea_ci_attestation as trusted_ci
 from app.services.organization_rea_catalog import _bounded_json, ReaCatalogInvalid, REA_SOURCE_COMMIT, REA_LOCAL_CATALOG_SHA256
 
 MAX_EXPANDED = 256 * 1024 * 1024
@@ -64,6 +65,7 @@ class ReaCompilationTrust:
     helper_sha256: str
     provider_decision_id: str
     provider_contract_sha256: str
+    ci_attestation: trusted_ci.ReaCiAttestationTrust | None = None
 
 
 def _compilation_report(trust, *, decision_id, contract, manifest, scope):
@@ -422,6 +424,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         row, contract, scope, authorized = admission.resolve_rea_provider_review(session, context, decision_id=decision_id, trust=deployment_trust)
         work, attempt = admission._barrier(session, context, authorized.work_item_id, attempt_id)
         compilation_summary = None
+        attestation_summary = None
+        revalidate_attestation = None
         manifest = None
         def fresh():
             current = admission.resolve_rea_provider_review(session, context, decision_id=decision_id, trust=deployment_trust)
@@ -430,6 +434,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             admission._attempt(session, context, work.id, attempt.id)
             artifact.revalidate_rea_artifact_custody(session, context, receipt_id=receipt_id, decision_id=authorized.decision_id, custody_root=deployment_trust.custody_root)
             require_fresh_time()
+            if revalidate_attestation is not None:
+                revalidate_attestation()
             if compilation_summary is not None:
                 current_report = _compilation_report(compilation_trust, decision_id=row.id, contract=contract, manifest=manifest, scope=scope)
                 if canonical_json(current_report) != canonical_json(compilation_summary):
@@ -451,6 +457,9 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             raise InvalidTransition('installed complete manifest differs from archive')
         if compilation_trust is not None:
             compilation_summary = _compilation_report(compilation_trust, decision_id=row.id, contract=contract, manifest=manifest, scope=scope)
+            approved_attestation = scope.compilation_evidence.ci_attestation
+            if approved_attestation is not None or compilation_trust.ci_attestation is not None:
+                attestation_summary, revalidate_attestation = trusted_ci.authenticate(compilation_trust, approved_attestation)
         result = dict(receipt_id=str(uuid4()), tenant_key=context.tenant_key, work_item_id=str(work.id), attempt_id=str(attempt.id), attempt_number=attempt.attempt_number,
             execution_token_sha256=hashlib.sha256(attempt.execution_token.encode()).hexdigest(), decision_id=str(row.id), contract_sha256=canonical_fingerprint(contract),
             artifact_decision_id=str(authorized.decision_id), artifact_sha256=authorized.artifact_sha256, custody_receipt_id=str(receipt_id),
@@ -466,7 +475,14 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             result['governed_compilation_evidence_approved'] = True
             result['governed_compilation_evidence_sha256'] = compilation_summary['governed_compilation_evidence_sha256']
             result['compilation_report_sha256'] = compilation_summary['report_sha256']
+        if attestation_summary is not None:
+            result['attesting_execution_identity_verified'] = True
+            result['candidate_to_ci_source_relation_verified'] = False
+            result['independent_compiler_causality_verified'] = False
+            result['blockers'] = ['independent_compiler_causality_unproven' if value == 'authenticated_ci_execution_provenance_unproven' else value for value in result['blockers']]
         evidence = {'result':result, 'signed_envelope':parsed}
+        if attestation_summary is not None:
+            evidence['ci_attestation'] = attestation_summary
         if compilation_summary is not None:
             evidence['compilation_correlation'] = compilation_summary
         serialized_evidence = json.dumps(evidence, ensure_ascii=True, sort_keys=True)
