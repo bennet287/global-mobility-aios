@@ -273,6 +273,63 @@ jobs:
             --candidate "$CANDIDATE_SHA" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" \
             --source-sha "$CI_SOURCE_SHA" --workflow-sha "$CI_WORKFLOW_SHA" \
             --source-ref "$GITHUB_REF" --trigger "$GITHUB_EVENT_NAME" --output rea-ci-attestation-independent
+      - name: Install constrained trusted AIOS verifier dependencies
+        run: python -m pip install -r aios/apps/api/requirements.txt -c aios/apps/api/constraints.txt
+      - name: Authenticate actual raw evidence with trusted product verifier
+        shell: bash
+        env:
+          CI_SOURCE_SHA: ${{ github.sha }}
+          CI_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          PYTHONPATH: aios/apps/api
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          import os
+          from pathlib import Path
+          from types import SimpleNamespace
+          from app.schemas_organization_rea_admission import ReaCiAttestationEvidence
+          from app.services import organization_rea_ci_attestation as trusted
+          custody = Path("trusted-verifier-custody").absolute()
+          custody.mkdir(mode=0o700)
+          inputs = {"correlation.json": Path("received-package/correlation.json"),
+                    "bundle.json": Path("received-attestation/bundle.json"),
+                    "cli.tar.gz": Path("gh-cli.tar.gz")}
+          # No source package import, native application or REA provider execution.
+          import sys
+          sys.path.insert(0, "aios/scripts")
+          from rea_ci_attestation import snapshot
+          for name, source in inputs.items():
+              raw, _ = snapshot(source, trusted.MAX_ARCHIVE if name == "cli.tar.gz" else trusted.MAX_JSON)
+              if len(raw) > (trusted.MAX_ARCHIVE if name == "cli.tar.gz" else trusted.MAX_JSON):
+                  raise ValueError("raw custody size bound")
+              target = custody / name
+              target.write_bytes(raw)
+              target.chmod(0o444)
+          custody.chmod(0o555)
+          approved = ReaCiAttestationEvidence(
+              bundle_sha256=trusted.sha((custody / "bundle.json").read_bytes()),
+              ci_source_sha=os.environ["CI_SOURCE_SHA"], ci_workflow_sha=os.environ["CI_WORKFLOW_SHA"],
+              source_ref=os.environ["GITHUB_REF"], trigger=os.environ["GITHUB_EVENT_NAME"])
+          deployment = trusted.ReaCiAttestationTrust(custody, "bundle.json", custody, "cli.tar.gz",
+              **approved.model_dump(mode="json"))
+          compilation = SimpleNamespace(ci_attestation=deployment, report_root=custody,
+              report_relative="correlation.json", report_sha256=trusted.sha((custody / "correlation.json").read_bytes()),
+              candidate_sha=os.environ["CANDIDATE_SHA"], run_id=os.environ["GITHUB_RUN_ID"],
+              run_attempt=os.environ["GITHUB_RUN_ATTEMPT"])
+          summary, fresh = trusted.authenticate(compilation, approved)
+          fresh()
+          output = Path("rea-ci-attestation-product")
+          output.mkdir(mode=0o700)
+          import json
+          (output / "diagnostic.json").write_text(json.dumps(summary, sort_keys=True))
+          PYCODE
+      - name: Preserve trusted product verifier cryptographic diagnostics
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rea-ci-attestation-product
+          path: rea-ci-attestation-product/
+          if-no-files-found: error
+          retention-days: 14
       - name: Preserve independently fresh diagnostic signature verification
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:

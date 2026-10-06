@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator, model_serializer
 from app.schemas_organization_rea_artifacts import Key, Text, ReaArtifactScope
 
 Digest = Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -12,9 +12,28 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class ReaCiAttestationEvidence(StrictModel):
+    """Exact human-approved attesting execution; compiler causality is separate."""
+    bundle_sha256: Digest
+    ci_source_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
+    ci_workflow_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
+    source_ref: Annotated[StrictStr, Field(max_length=256)]
+    trigger: Literal["pull_request", "workflow_dispatch"]
+
+    @field_validator("source_ref")
+    @classmethod
+    def exact_ref(cls, value, info):
+        import re
+        if not (re.fullmatch(r"refs/pull/[1-9][0-9]*/merge", value) or
+                (re.fullmatch(r"refs/heads/[A-Za-z0-9_.\-/]+", value) and ".." not in value)):
+            raise ValueError("exact supported CI ref required")
+        return value
+
+
 class ReaCompilationEvidence(StrictModel):
     """Board-reviewed correlation pins; file location stays deployment-owned."""
 
+    ci_attestation: ReaCiAttestationEvidence | None = None
     report_sha256: Digest
     candidate_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
     repository: Literal["bennet287/global-mobility-aios"]
@@ -23,6 +42,13 @@ class ReaCompilationEvidence(StrictModel):
     workflow_sha256: Digest
     helper_sha256: Digest
     review_reference: Text
+
+    @model_serializer(mode="wrap")
+    def preserve_historical_shape(self, handler):
+        value = handler(self)
+        if "ci_attestation" not in self.model_fields_set:
+            value.pop("ci_attestation", None)
+        return value
 
     @field_validator("review_reference")
     @classmethod
