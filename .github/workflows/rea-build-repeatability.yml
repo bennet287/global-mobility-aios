@@ -280,6 +280,7 @@ jobs:
         env:
           CI_SOURCE_SHA: ${{ github.sha }}
           CI_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          APPROVED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PYTHONPATH: aios/apps/api
         run: |
           set -euo pipefail
@@ -287,7 +288,7 @@ jobs:
           import os
           from pathlib import Path
           from types import SimpleNamespace
-          from app.schemas_organization_rea_admission import ReaCiAttestationEvidence
+          from app.schemas_organization_rea_admission import ReaCiAttestationEvidence, ReaCiSourceRelationEvidence
           from app.services import organization_rea_ci_attestation as trusted
           custody = Path("trusted-verifier-custody").absolute()
           custody.mkdir(mode=0o700)
@@ -297,7 +298,12 @@ jobs:
           # No source package import, native application or REA provider execution.
           import sys
           sys.path.insert(0, "aios/scripts")
-          from rea_ci_attestation import snapshot
+          from rea_ci_attestation import snapshot, export_source_witness
+          from app.services import organization_rea_source_relation as relation
+          witness = export_source_witness(Path("aios"), Path("ci-workflow"),
+              os.environ["CANDIDATE_SHA"], os.environ["CI_SOURCE_SHA"])
+          (custody / "source-witness.json").write_bytes(witness)
+          (custody / "source-witness.json").chmod(0o444)
           for name, source in inputs.items():
               raw, _ = snapshot(source, trusted.MAX_ARCHIVE if name == "cli.tar.gz" else trusted.MAX_JSON)
               if len(raw) > (trusted.MAX_ARCHIVE if name == "cli.tar.gz" else trusted.MAX_JSON):
@@ -306,22 +312,30 @@ jobs:
               target.write_bytes(raw)
               target.chmod(0o444)
           custody.chmod(0o555)
+          source_pins = ReaCiSourceRelationEvidence(witness_sha256=trusted.sha(witness),
+              reviewed_verifier_sha256=trusted.sha(snapshot(Path("aios/scripts/rea_ci_attestation.py"), trusted.MAX_JSON)[0]),
+              approved_base_sha=os.environ["APPROVED_BASE_SHA"] or None)
           approved = ReaCiAttestationEvidence(
+              source_relation=source_pins,
               bundle_sha256=trusted.sha((custody / "bundle.json").read_bytes()),
               ci_source_sha=os.environ["CI_SOURCE_SHA"], ci_workflow_sha=os.environ["CI_WORKFLOW_SHA"],
               source_ref=os.environ["GITHUB_REF"], trigger=os.environ["GITHUB_EVENT_NAME"])
           deployment = trusted.ReaCiAttestationTrust(custody, "bundle.json", custody, "cli.tar.gz",
-              **approved.model_dump(mode="json"))
+              **{key: getattr(approved, key) for key in ("bundle_sha256", "ci_source_sha", "ci_workflow_sha", "source_ref", "trigger")},
+              source_relation=relation.ReaCiSourceRelationTrust(custody, "source-witness.json", **source_pins.model_dump(mode="json")))
           compilation = SimpleNamespace(ci_attestation=deployment, report_root=custody,
               report_relative="correlation.json", report_sha256=trusted.sha((custody / "correlation.json").read_bytes()),
               candidate_sha=os.environ["CANDIDATE_SHA"], run_id=os.environ["GITHUB_RUN_ID"],
-              run_attempt=os.environ["GITHUB_RUN_ATTEMPT"])
+              run_attempt=os.environ["GITHUB_RUN_ATTEMPT"],
+              workflow_sha256=trusted.sha(snapshot(Path("aios/.github/workflows/rea-build-repeatability.yml"), trusted.MAX_JSON)[0]),
+              helper_sha256=trusted.sha(snapshot(Path("aios/scripts/rea_build_repeatability.py"), trusted.MAX_JSON)[0]))
           summary, fresh = trusted.authenticate(compilation, approved)
           fresh()
           output = Path("rea-ci-attestation-product")
           output.mkdir(mode=0o700)
           import json
           (output / "diagnostic.json").write_text(json.dumps(summary, sort_keys=True))
+          (output / "source-witness.json").write_bytes(witness)
           PYCODE
       - name: Preserve trusted product verifier cryptographic diagnostics
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

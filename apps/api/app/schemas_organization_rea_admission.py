@@ -12,13 +12,27 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class ReaCiSourceRelationEvidence(StrictModel):
+    witness_sha256: Digest
+    reviewed_verifier_sha256: Digest
+    approved_base_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")] | None = None
+
+
 class ReaCiAttestationEvidence(StrictModel):
     """Exact human-approved attesting execution; compiler causality is separate."""
+    source_relation: ReaCiSourceRelationEvidence | None = None
     bundle_sha256: Digest
     ci_source_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
     ci_workflow_sha: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{40}$")]
     source_ref: Annotated[StrictStr, Field(max_length=256)]
     trigger: Literal["pull_request", "workflow_dispatch"]
+
+    @model_serializer(mode="wrap")
+    def preserve_historical_shape(self, handler):
+        value = handler(self)
+        if "source_relation" not in self.model_fields_set:
+            value.pop("source_relation", None)
+        return value
 
     @field_validator("source_ref")
     @classmethod

@@ -477,7 +477,9 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             result['compilation_report_sha256'] = compilation_summary['report_sha256']
         if attestation_summary is not None:
             result['attesting_execution_identity_verified'] = True
-            result['candidate_to_ci_source_relation_verified'] = False
+            result['candidate_to_ci_source_relation_verified'] = attestation_summary['candidate_to_ci_source_relation_verified']
+            if attestation_summary['candidate_to_ci_source_relation_verified']:
+                result['committed_recipe_bytes_match_review'] = True
             result['independent_compiler_causality_verified'] = False
             result['blockers'] = ['independent_compiler_causality_unproven' if value == 'authenticated_ci_execution_provenance_unproven' else value for value in result['blockers']]
         evidence = {'result':result, 'signed_envelope':parsed}

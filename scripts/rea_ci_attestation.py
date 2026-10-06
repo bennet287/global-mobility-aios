@@ -37,6 +37,43 @@ MAX_PROCESS = 4 * 1024 * 1024
 PROCESS_TIMEOUT = 60
 
 
+def export_source_witness(candidate_root: Path, workflow_root: Path, candidate_sha: str, source_sha: str) -> bytes:
+    """Export bounded native object bytes; consumers verify hashes, never API JSON.
+
+    No inherited Git configuration or replacement refs affect these reads.
+    Both checkouts are untrusted byte sources, not executable authorities.
+    """
+    import base64
+    from app.services import organization_rea_source_relation as relation
+    objects = {}
+    env = {"PATH": "/usr/bin:/bin", "HOME": "/nonexistent", "LANG": "C.UTF-8",
+           "GIT_NO_REPLACE_OBJECTS": "1", "GIT_CONFIG_NOSYSTEM": "1",
+           "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null", "GIT_CONFIG_COUNT": "0"}
+    def get(root, oid, kind):
+        require(re.fullmatch(r"[0-9a-f]{40}", oid) is not None, "raw Git object identity")
+        raw = bounded_process(["/usr/bin/git", "--no-replace-objects", "cat-file", kind, oid], cwd=root, env=env)
+        require(len(raw) <= 1024 * 1024 and relation.object_sha(kind, raw) == oid, "raw Git object hash mismatch")
+        value = {"type": kind, "data_base64": base64.b64encode(raw).decode()}
+        require(oid not in objects or objects[oid] == value, "raw Git object collision")
+        objects[oid] = value
+        require(len(objects) <= 16, "raw Git witness object bound")
+        return raw
+    relation.commit(get(candidate_root, candidate_sha, "commit"))
+    source_tree, _ = relation.commit(get(workflow_root, source_sha, "commit"))
+    for path in relation.PATHS:
+        current = source_tree
+        parts = path.split("/")
+        for index, name in enumerate(parts):
+            entries = relation.tree(get(workflow_root, current, "tree"))
+            require(name.encode() in entries, "raw recipe path missing")
+            mode, current = entries[name.encode()]
+            require(mode == ("40000" if index < len(parts)-1 else "100644"), "raw recipe path mode")
+        get(workflow_root, current, "blob")
+    raw = canonical({"format": "aios-rea-ci-source-witness.v1", "objects": objects})
+    require(len(raw) <= relation.MAX_WITNESS, "raw Git witness size bound")
+    return raw
+
+
 def snapshot(path: Path, limit: int) -> tuple[bytes, tuple]:
     """Traverse every parent with directory FDs; never follow a path symlink."""
     parts = Path(os.path.abspath(path)).parts
