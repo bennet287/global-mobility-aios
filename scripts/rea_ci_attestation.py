@@ -37,7 +37,7 @@ MAX_PROCESS = 4 * 1024 * 1024
 PROCESS_TIMEOUT = 60
 
 
-def export_source_witness(candidate_root: Path, workflow_root: Path, candidate_sha: str, source_sha: str) -> bytes:
+def export_source_witness(candidate_root: Path, workflow_root: Path, candidate_sha: str, source_sha: str, *, compiler_outputs: bool = False) -> bytes:
     """Export bounded native object bytes; consumers verify hashes, never API JSON.
 
     No inherited Git configuration or replacement refs affect these reads.
@@ -60,7 +60,8 @@ def export_source_witness(candidate_root: Path, workflow_root: Path, candidate_s
         return raw
     relation.commit(get(candidate_root, candidate_sha, "commit"))
     source_tree, _ = relation.commit(get(workflow_root, source_sha, "commit"))
-    for path in relation.PATHS:
+    require(type(compiler_outputs) is bool, "fixed compiler witness option")
+    for path in relation.PATHS + (relation.COMPILER_PATHS if compiler_outputs else ()):
         current = source_tree
         parts = path.split("/")
         for index, name in enumerate(parts):

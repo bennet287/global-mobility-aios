@@ -15,81 +15,26 @@ env:
   CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
-  source-build:
-    name: REA fresh source build (${{ matrix.build }})
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        build: [a, b]
-    steps:
-      - name: Checkout exact AIOS candidate
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ env.CANDIDATE_SHA }}
-          path: aios
-          persist-credentials: false
-      - name: Checkout fixed reviewed source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          repository: morluto/rea
-          ref: 4c8dc39f439b5283b077c6aa47f262714d7c4bbd
-          path: donor
-          persist-credentials: false
-      - name: Verify all tracked source bytes before build
-        run: >-
-          python aios/scripts/rea_build_repeatability.py verify-source
-          --source donor
-          --materials aios/apps/api/app/services/rea_catalog/build_materials.json
-      - name: Set up fixed Node without dependency cache
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 24.18.0
-      - name: Install fixed npm tool and locked dependencies without lifecycle scripts
-        working-directory: donor
-        shell: bash
-        env:
-          BUILD_JOB: ${{ matrix.build }}
-        run: |
-          set -euo pipefail
-          npm_tool_root="$RUNNER_TEMP/rea-npm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$BUILD_JOB"
-          npm_cache_root="$RUNNER_TEMP/rea-cache-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$BUILD_JOB"
-          test ! -e "$npm_tool_root"
-          test ! -e "$npm_cache_root"
-          npm install --global --prefix "$npm_tool_root" npm@11.16.0 --ignore-scripts --no-audit --no-fund --cache "$npm_cache_root/tool"
-          node "$npm_tool_root/lib/node_modules/npm/bin/npm-cli.js" ci --ignore-scripts --no-audit --no-fund --cache "$npm_cache_root/dependencies"
-      - name: Compile directly with locked TypeScript; no donor generators or app execution
-        working-directory: donor
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf -- dist .cache
-          node node_modules/typescript/bin/tsc -p tsconfig.build.json
-      - name: Verify source again and capture actual output bytes
-        shell: bash
-        env:
-          BUILD_JOB: ${{ matrix.build }}
-        run: |
-          set -euo pipefail
-          npm_tool_root="$RUNNER_TEMP/rea-npm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$BUILD_JOB"
-          python aios/scripts/rea_build_repeatability.py capture \
-            --source donor --materials aios/apps/api/app/services/rea_catalog/build_materials.json \
-            --candidate "$CANDIDATE_SHA" --repository "$GITHUB_REPOSITORY" \
-            --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" --job "$BUILD_JOB" \
-            --node "$(command -v node)" --npm-cli "$npm_tool_root/lib/node_modules/npm/bin/npm-cli.js" \
-            --workflow aios/.github/workflows/rea-build-repeatability.yml --output "rea-build-$BUILD_JOB"
-      - name: Upload bounded compiled bytes and manifest
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: rea-build-${{ matrix.build }}
-          path: rea-build-${{ matrix.build }}/
-          if-no-files-found: error
-          retention-days: 14
+  source-build-a:
+    name: REA fixed authenticated compiler lane a
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    uses: ./.github/workflows/rea-source-build-a.yml
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
 
+  source-build-b:
+    name: REA fixed authenticated compiler lane b
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    uses: ./.github/workflows/rea-source-build-b.yml
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
   compare:
     name: Compare received REA build bytes
-    needs: source-build
+    needs: [source-build-a, source-build-b]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     # Forked PRs never receive attestation privileges or a privileged fallback.
@@ -252,6 +197,26 @@ jobs:
         with:
           name: rea-ci-attestation-raw
           path: received-attestation
+      - name: Download exact compiler a manifest and inert output bytes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: rea-build-a
+          path: received-compiler-a
+      - name: Download compiler a raw signature
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: rea-compiler-attestation-a
+          path: received-compiler-signature-a
+      - name: Download exact compiler b manifest and inert output bytes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: rea-build-b
+          path: received-compiler-b
+      - name: Download compiler b raw signature
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: rea-compiler-attestation-b
+          path: received-compiler-signature-b
       - name: Download fixed GitHub CLI archive in independent job
         shell: bash
         run: |
@@ -288,20 +253,23 @@ jobs:
           import os
           from pathlib import Path
           from types import SimpleNamespace
-          from app.schemas_organization_rea_admission import ReaCiAttestationEvidence, ReaCiSourceRelationEvidence
+          from app.schemas_organization_rea_admission import ReaCiAttestationEvidence, ReaCiSourceRelationEvidence, ReaCompilerOutputsEvidence, ReaCompilerLaneEvidence
           from app.services import organization_rea_ci_attestation as trusted
           custody = Path("trusted-verifier-custody").absolute()
           custody.mkdir(mode=0o700)
           inputs = {"correlation.json": Path("received-package/correlation.json"),
                     "bundle.json": Path("received-attestation/bundle.json"),
                     "cli.tar.gz": Path("gh-cli.tar.gz")}
+          for lane in ("a", "b"):
+              inputs[f"compiler-{lane}-manifest.json"] = Path(f"received-compiler-{lane}/manifest.json")
+              inputs[f"compiler-{lane}-bundle.json"] = Path(f"received-compiler-signature-{lane}/bundle.json")
           # No source package import, native application or REA provider execution.
           import sys
           sys.path.insert(0, "aios/scripts")
           from rea_ci_attestation import snapshot, export_source_witness
           from app.services import organization_rea_source_relation as relation
           witness = export_source_witness(Path("aios"), Path("ci-workflow"),
-              os.environ["CANDIDATE_SHA"], os.environ["CI_SOURCE_SHA"])
+              os.environ["CANDIDATE_SHA"], os.environ["CI_SOURCE_SHA"], compiler_outputs=True)
           (custody / "source-witness.json").write_bytes(witness)
           (custody / "source-witness.json").chmod(0o444)
           for name, source in inputs.items():
@@ -315,14 +283,25 @@ jobs:
           source_pins = ReaCiSourceRelationEvidence(witness_sha256=trusted.sha(witness),
               reviewed_verifier_sha256=trusted.sha(snapshot(Path("aios/scripts/rea_ci_attestation.py"), trusted.MAX_JSON)[0]),
               approved_base_sha=os.environ["APPROVED_BASE_SHA"] or None)
+          from app.services import organization_rea_compiler_outputs as compiler
+          lane_pins = {}
+          lane_trust = {}
+          for lane in ("a", "b"):
+              lane_pins[lane] = ReaCompilerLaneEvidence(
+                  manifest_sha256=trusted.sha((custody / f"compiler-{lane}-manifest.json").read_bytes()),
+                  bundle_sha256=trusted.sha((custody / f"compiler-{lane}-bundle.json").read_bytes()),
+                  workflow_sha256=trusted.sha(snapshot(Path(f"aios/.github/workflows/rea-source-build-{lane}.yml"), trusted.MAX_JSON)[0]))
+              lane_trust[lane] = compiler.ReaCompilerLaneTrust(custody, f"compiler-{lane}-manifest.json",
+                  custody, f"compiler-{lane}-bundle.json", **lane_pins[lane].model_dump(mode="json"))
           approved = ReaCiAttestationEvidence(
-              source_relation=source_pins,
+              source_relation=source_pins, compiler_outputs=ReaCompilerOutputsEvidence(**lane_pins),
               bundle_sha256=trusted.sha((custody / "bundle.json").read_bytes()),
               ci_source_sha=os.environ["CI_SOURCE_SHA"], ci_workflow_sha=os.environ["CI_WORKFLOW_SHA"],
               source_ref=os.environ["GITHUB_REF"], trigger=os.environ["GITHUB_EVENT_NAME"])
           deployment = trusted.ReaCiAttestationTrust(custody, "bundle.json", custody, "cli.tar.gz",
               **{key: getattr(approved, key) for key in ("bundle_sha256", "ci_source_sha", "ci_workflow_sha", "source_ref", "trigger")},
-              source_relation=relation.ReaCiSourceRelationTrust(custody, "source-witness.json", **source_pins.model_dump(mode="json")))
+              source_relation=relation.ReaCiSourceRelationTrust(custody, "source-witness.json", **source_pins.model_dump(mode="json")),
+              compiler_outputs=compiler.ReaCompilerOutputsTrust(**lane_trust))
           compilation = SimpleNamespace(ci_attestation=deployment, report_root=custody,
               report_relative="correlation.json", report_sha256=trusted.sha((custody / "correlation.json").read_bytes()),
               candidate_sha=os.environ["CANDIDATE_SHA"], run_id=os.environ["GITHUB_RUN_ID"],
@@ -336,6 +315,10 @@ jobs:
           import json
           (output / "diagnostic.json").write_text(json.dumps(summary, sort_keys=True))
           (output / "source-witness.json").write_bytes(witness)
+          for lane in ("a", "b"):
+              for kind in ("manifest", "bundle"):
+                  name = f"compiler-{lane}-{kind}.json"
+                  (output / name).write_bytes((custody / name).read_bytes())
           PYCODE
       - name: Preserve trusted product verifier cryptographic diagnostics
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

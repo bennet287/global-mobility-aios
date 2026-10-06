@@ -1,7 +1,8 @@
 """Trusted runtime verification of raw REA CI evidence, never candidate Python.
 
-The pinned CLI authenticates only the report's attesting execution. No supplied
-verification JSON, predicate assertion, custom root or credential is trusted.
+The pinned CLI authenticates the report and optional fixed compiler workflow
+manifest identities. This does not prove independent compiler causality. No
+supplied verification JSON, custom root or credential is trusted.
 """
 from __future__ import annotations
 from dataclasses import dataclass
@@ -18,6 +19,9 @@ import subprocess
 import tarfile
 import tempfile
 import time
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.services.organization_rea_compiler_outputs import ReaCompilerOutputsTrust
 from app.services.organization_command import InvalidTransition
 from app.services.organization_rea_catalog import _bounded_json
 from app.services import organization_rea_artifacts as artifact
@@ -151,7 +155,7 @@ def expected_identity(*, candidate: str, run_id: str, run_attempt: str, source_s
             "runInvocationURI": f"https://github.com/{REPOSITORY}/actions/runs/{run_id}/attempts/{run_attempt}"}
 
 
-def validate_result(raw: bytes, subject: bytes, expected: dict) -> dict:
+def validate_result(raw: bytes, subject: bytes, expected: dict, *, _subject_name="correlation.json") -> dict:
     """Called only with fresh successful pinned CLI stdout by verify()."""
     results = parse_json(raw)
     require(type(results) is list and len(results) == 1, "expected exactly one verified attestation")
@@ -183,7 +187,7 @@ def validate_result(raw: bytes, subject: bytes, expected: dict) -> dict:
             and statement.get("predicateType") == "https://slsa.dev/provenance/v1", "unexpected signed statement type")
     subjects = statement.get("subject")
     require(type(subjects) is list and len(subjects) == 1 and type(subjects[0]) is dict
-            and subjects[0].get("name") == "correlation.json"
+            and subjects[0].get("name") == _subject_name
             and subjects[0].get("digest") == {"sha256": sha(subject)}, "signed subject mismatch")
     # Do not inspect predicate metadata.invocationId to authorize a run: the
     # workflow controls the predicate, while runInvocationURI is in the cert.
@@ -203,6 +207,7 @@ class ReaCiAttestationTrust:
     source_ref: str
     trigger: str
     source_relation: relation.ReaCiSourceRelationTrust | None = None
+    compiler_outputs: ReaCompilerOutputsTrust | None = None
 
 
 def immutable_snapshot(root, relative, limit):
@@ -236,6 +241,28 @@ def immutable_snapshot(root, relative, limit):
         os.close(parent)
 
 
+def _verify_raw_subject(subject, bundle, archive, expected, *, _subject_name="correlation.json"):
+    require(_subject_name in ("correlation.json", "manifest.json"), "fixed signed subject required")
+    parse_json(bundle)
+    with tempfile.TemporaryDirectory(prefix='aios-rea-attestation-') as tmp:
+        private = Path(tmp)
+        env = minimal_environment(private)
+        cli = extract_cli(archive, private)
+        require(bounded_process([str(cli), '--version'], cwd=private, env=env).startswith(f'gh version {CLI_VERSION} '.encode()), "GitHub CLI version mismatch")
+        sealed_subject, sealed_bundle = private / _subject_name, private / 'bundle.json'
+        sealed_subject.write_bytes(subject); sealed_bundle.write_bytes(bundle)
+        sealed_subject.chmod(0o400); sealed_bundle.chmod(0o400)
+        cli_before = cli.read_bytes()
+        raw = bounded_process([str(cli), 'attestation', 'verify', str(sealed_subject), '--bundle', str(sealed_bundle),
+            '--repo', REPOSITORY, '--hostname', 'github.com', '--cert-identity', expected['buildSignerURI'],
+            '--cert-oidc-issuer', ISSUER, '--source-digest', expected['sourceRepositoryDigest'],
+            '--source-ref', expected['sourceRepositoryRef'], '--signer-digest', expected['buildSignerDigest'],
+            '--deny-self-hosted-runners', '--format', 'json'], cwd=private, env=env)
+        require(cli.read_bytes() == cli_before and sealed_subject.read_bytes() == subject and sealed_bundle.read_bytes() == bundle, "sealed verifier inputs changed")
+        proof = validate_result(raw, subject, expected, _subject_name=_subject_name)
+    return proof
+
+
 def authenticate(compilation_trust, approved):
     trust = compilation_trust.ci_attestation
     require(type(trust) is ReaCiAttestationTrust and approved is not None, "governed raw attestation trust missing")
@@ -253,31 +280,26 @@ def authenticate(compilation_trust, approved):
         require(type(source_trust) is relation.ReaCiSourceRelationTrust and approved.source_relation is not None, "source relation trust missing")
         require({key: getattr(source_trust, key) for key in type(approved.source_relation).model_fields} == approved.source_relation.model_dump(mode="json"), "source relation deployment pins differ")
         locators.append((source_trust.witness_root, source_trust.witness_relative, relation.MAX_WITNESS))
+    from app.services import organization_rea_compiler_outputs as compiler
+    compiler_trust = trust.compiler_outputs
+    compiler_pins = None
+    if compiler_trust is not None or approved.compiler_outputs is not None:
+        require(source_trust is not None, "compiler outputs require governed source relation")
+        compiler_pins = compiler.reviewed_pins(compiler_trust, approved.compiler_outputs)
+        locators.extend(compiler.locators(compiler_trust))
     snapshots = [immutable_snapshot(*locator) for locator in locators]
     subject, bundle, archive = [item[0] for item in snapshots[:3]]
     require(sha(subject) == compilation_trust.report_sha256 and sha(bundle) == trust.bundle_sha256, "raw attestation digest differs")
     parse_json(bundle)
-    with tempfile.TemporaryDirectory(prefix='aios-rea-attestation-') as tmp:
-        private = Path(tmp)
-        env = minimal_environment(private)
-        cli = extract_cli(archive, private)
-        require(bounded_process([str(cli), '--version'], cwd=private, env=env).startswith(f'gh version {CLI_VERSION} '.encode()), "GitHub CLI version mismatch")
-        sealed_subject, sealed_bundle = private / 'correlation.json', private / 'bundle.json'
-        sealed_subject.write_bytes(subject); sealed_bundle.write_bytes(bundle)
-        sealed_subject.chmod(0o400); sealed_bundle.chmod(0o400)
-        cli_before = cli.read_bytes()
-        raw = bounded_process([str(cli), 'attestation', 'verify', str(sealed_subject), '--bundle', str(sealed_bundle),
-            '--repo', REPOSITORY, '--hostname', 'github.com', '--cert-identity', expected['buildSignerURI'],
-            '--cert-oidc-issuer', ISSUER, '--source-digest', expected['sourceRepositoryDigest'],
-            '--source-ref', expected['sourceRepositoryRef'], '--signer-digest', expected['buildSignerDigest'],
-            '--deny-self-hosted-runners', '--format', 'json'], cwd=private, env=env)
-        require(cli.read_bytes() == cli_before and sealed_subject.read_bytes() == subject and sealed_bundle.read_bytes() == bundle, "sealed verifier inputs changed")
-        proof = validate_result(raw, subject, expected)
+    proof = _verify_raw_subject(subject, bundle, archive, expected)
     source_summary = None
     if source_trust is not None:
         source_summary = relation.verify(snapshots[3][0], candidate_sha=compilation_trust.candidate_sha,
             ci_source_sha=proof["certificate"]["sourceRepositoryDigest"], ci_workflow_sha=proof["certificate"]["buildSignerDigest"],
-            trigger=trust.trigger, pins=source_trust, workflow_sha256=compilation_trust.workflow_sha256, helper_sha256=compilation_trust.helper_sha256)
+            trigger=trust.trigger, pins=source_trust, workflow_sha256=compilation_trust.workflow_sha256, helper_sha256=compilation_trust.helper_sha256, compiler_workflow_pins=compiler_pins)
+    compiler_summary = None
+    if compiler_trust is not None:
+        compiler_summary = compiler.authenticate(subject, archive, expected, compiler_trust, snapshots[4:])
     def revalidate():
         require([immutable_snapshot(*locator) for locator in locators] == snapshots, "raw attestation evidence changed")
     revalidate()
@@ -292,4 +314,7 @@ def authenticate(compilation_trust, approved):
         summary["source_relation"] = source_summary
         summary["candidate_to_ci_source_relation_verified"] = True
         summary["committed_recipe_bytes_match_review"] = True
+    if compiler_summary is not None:
+        summary["compiler_outputs"] = compiler_summary
+        summary["compiler_workflow_outputs_authenticated"] = True
     return summary, revalidate
