@@ -110,6 +110,30 @@ class ReaToolAdmission(StrictModel):
         return ReaArtifactScope.meaningful(value)
 
 
+class ReaRuntimeFootprintEvidence(StrictModel):
+    """Human-reviewed physical footprint pins, not runtime closure or permission."""
+    manifest_sha256: Digest
+    node_sha256: Digest
+    node_bytes: Annotated[StrictInt, Field(ge=1, le=256*1024*1024)]
+    node_version: Annotated[StrictStr, Field(max_length=32, pattern=r"^[0-9]+\.[0-9]+\.[0-9]+$")]
+    platform: Literal["linux"]
+    architecture: Literal["x64"]
+    review_reference: Text
+
+    @field_validator("node_version")
+    @classmethod
+    def supported_node(cls, value):
+        major, minor, _ = map(int, value.split('.'))
+        if not ((major == 22 and minor >= 19) or major > 24 or (major == 24 and minor >= 11)):
+            raise ValueError("reviewed Node version must satisfy source engine range")
+        return value
+
+    @field_validator("review_reference")
+    @classmethod
+    def meaningful(cls, value):
+        return ReaArtifactScope.meaningful(value)
+
+
 class ReaProviderScope(StrictModel):
     package_name: Literal["rea-agents"] = "rea-agents"
     package_version: Literal["3.2.1"] = "3.2.1"
@@ -118,6 +142,7 @@ class ReaProviderScope(StrictModel):
     build_review_reference: Text
     publisher_review_reference: Text
     compilation_evidence: ReaCompilationEvidence | None = None
+    runtime_footprint: ReaRuntimeFootprintEvidence | None = None
     worker_id: Key
     worker_public_key_hex: Annotated[StrictStr, Field(pattern=r"^[0-9a-f]{64}$")]
     isolation_policy_sha256: Digest
@@ -128,6 +153,13 @@ class ReaProviderScope(StrictModel):
     protocol_version: Key
     tools: Annotated[list[ReaToolAdmission], Field(min_length=122, max_length=122)]
     expires_at: datetime
+
+    @model_serializer(mode="wrap")
+    def preserve_historical_shape(self, handler):
+        value = handler(self)
+        if "runtime_footprint" not in self.model_fields_set:
+            value.pop("runtime_footprint", None)
+        return value
 
     @field_validator("tools", mode="before")
     @classmethod
