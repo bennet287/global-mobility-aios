@@ -10,6 +10,7 @@ from datetime import timedelta
 import hashlib
 import json
 import os
+import posixpath
 import re
 from pathlib import Path
 import stat
@@ -18,6 +19,9 @@ from sqlalchemy.exc import OperationalError
 import tarfile
 from uuid import uuid4
 import zlib
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.services.organization_rea_runtime_footprint import ReaRuntimeFootprintTrust
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -330,7 +334,7 @@ def _verify_source_assets(files, contents, materials):
 
 
 @contextmanager
-def _installed_snapshot(root):
+def _installed_snapshot(root, *, max_file=None, allowed_links=None):
     """Retain the inspected objects and namespace bindings through audit commit.
 
     External ancestors bind only object/type/mode: unrelated sibling activity is
@@ -339,8 +343,15 @@ def _installed_snapshot(root):
     """
     if not isinstance(root, Path) or not root.is_absolute() or any(part in {'.', '..'} for part in root.parts):
         raise InvalidTransition('custody roots must be explicit absolute paths')
+    if max_file is None:
+        max_file = MAX_FILE
+    if allowed_links is None:
+        allowed_links = {}
+    if type(max_file) is not int or not 0 < max_file <= MAX_EXPANDED or type(allowed_links) is not dict:
+        raise InvalidTransition('installed snapshot policy invalid')
     files, retained, visited, folded = [], [], 0, set()
     ancestors, bindings = [], []
+    links, regular_paths = [], set()
     total = 0
     def ancestor_identity(value):
         return (value.st_dev, value.st_ino, value.st_mode)
@@ -354,6 +365,9 @@ def _installed_snapshot(root):
         for parent, name, identity in bindings:
             if _identity(os.stat(name, dir_fd=parent, follow_symlinks=False)) != identity:
                 raise InvalidTransition('installed package path binding changed')
+        for parent, name, target, _ in links:
+            if os.readlink(name, dir_fd=parent) != target:
+                raise InvalidTransition('installed declared link changed')
     def walk(fd, prefix, depth):
         nonlocal visited, total
         before = os.fstat(fd)
@@ -382,7 +396,7 @@ def _installed_snapshot(root):
                 finally:
                     os.close(child)
             elif stat.S_ISREG(child_stat.st_mode):
-                if child_stat.st_mode & 0o222 or child_stat.st_nlink != 1 or child_stat.st_size > MAX_FILE:
+                if child_stat.st_mode & 0o222 or child_stat.st_nlink != 1 or child_stat.st_size > max_file:
                     raise InvalidTransition('installed file mode/link/size unsafe')
                 total += child_stat.st_size
                 if total > MAX_EXPANDED:
@@ -396,6 +410,28 @@ def _installed_snapshot(root):
                         raise InvalidTransition('installed file changed during read')
                     retained.append((os.dup(child), _identity(child_stat), None))
                     files.append(dict(path=path,size=child_stat.st_size,sha256=digest))
+                    regular_paths.add(path)
+                finally:
+                    os.close(child)
+            elif stat.S_ISLNK(child_stat.st_mode) and path in allowed_links:
+                target = os.readlink(name, dir_fd=fd)
+                if type(allowed_links[path]) is not str or target != allowed_links[path] or target.startswith('/') or '\\' in target or any(ord(c) < 32 or ord(c) == 127 for c in target):
+                    raise InvalidTransition('installed declared link target unsafe')
+                destination = posixpath.normpath(posixpath.join(prefix, target))
+                package_path(destination)
+                child = os.open(name, os.O_PATH|os.O_NOFOLLOW, dir_fd=fd)
+                try:
+                    if child_stat.st_nlink != 1 or _identity(os.fstat(child)) != _identity(child_stat):
+                        raise InvalidTransition('installed declared link changed during open')
+                    retained.append((os.dup(child), _identity(child_stat), None))
+                    raw_target = target.encode('utf-8')
+                    if len(raw_target) != child_stat.st_size:
+                        raise InvalidTransition('installed declared link size differs')
+                    files.append(dict(path=path,size=child_stat.st_size,sha256=hashlib.sha256(raw_target).hexdigest()))
+                    links.append((held_parent, name, target, destination))
+                    total += child_stat.st_size
+                    if total > MAX_EXPANDED:
+                        raise InvalidTransition('installed total exceeds bound')
                 finally:
                     os.close(child)
             else:
@@ -414,6 +450,8 @@ def _installed_snapshot(root):
         walk(root_fd, '', 0)
         if not files:
             raise InvalidTransition('installed package empty')
+        if len(links) != len(allowed_links) or any(destination not in regular_paths for _, _, _, destination in links):
+            raise InvalidTransition('installed declared link absent or target not regular')
         directories = {''}
         for file in files:
             parts = file['path'].split('/')
@@ -437,7 +475,8 @@ def _installed_manifest(root):
 def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id,
                         deployment_trust: admission.ReaDeploymentTrust,
                         build_trust: ReaBuildTrust, signed_statement: bytes,
-                        compilation_trust: ReaCompilationTrust | None = None):
+                        compilation_trust: ReaCompilationTrust | None = None,
+                        runtime_trust: 'ReaRuntimeFootprintTrust | None' = None):
     """Emit nonauthorizing evidence after fresh canonical and byte checks."""
     installed_custody = ExitStack()
     try:
@@ -464,6 +503,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         attestation_summary = None
         revalidate_attestation = None
         revalidate_installed = None
+        runtime_summary = None
+        revalidate_runtime = None
         manifest = None
         def fresh():
             current = admission.resolve_rea_provider_review(session, context, decision_id=decision_id, trust=deployment_trust)
@@ -480,6 +521,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
                     raise InvalidTransition('compilation report changed during inspection')
             if revalidate_installed is not None:
                 revalidate_installed()
+            if revalidate_runtime is not None:
+                revalidate_runtime()
         def require_fresh_time():
             now = artifact._utc(now_utc())
             if not statement.started_at <= statement.finished_at <= now < min(scope.expires_at, authorized.expires_at) or now-statement.finished_at > timedelta(hours=24):
@@ -495,6 +538,12 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         installed, revalidate_installed = installed_custody.enter_context(_installed_snapshot(build_trust.installed_root))
         if installed != manifest:
             raise InvalidTransition('installed complete manifest differs from archive')
+        if runtime_trust is not None:
+            if scope.runtime_footprint is None:
+                raise AuthorityDenied('governed runtime footprint evidence required')
+            from app.services import organization_rea_runtime_footprint as runtime
+            runtime_summary, revalidate_runtime = runtime.inspect_footprint(installed_custody, runtime_trust,
+                scope.runtime_footprint, scope=scope, package_manifest=manifest)
         if compilation_trust is not None:
             compilation_summary = _compilation_report(compilation_trust, decision_id=row.id, contract=contract, manifest=manifest, scope=scope)
             approved_attestation = scope.compilation_evidence.ci_attestation
@@ -515,6 +564,9 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             result['governed_compilation_evidence_approved'] = True
             result['governed_compilation_evidence_sha256'] = compilation_summary['governed_compilation_evidence_sha256']
             result['compilation_report_sha256'] = compilation_summary['report_sha256']
+        if runtime_summary is not None:
+            result['reviewed_runtime_footprint_matches'] = True
+            result['runtime_footprint_sha256'] = runtime_summary['manifest_sha256']
         if attestation_summary is not None:
             result['attesting_execution_identity_verified'] = True
             result['candidate_to_ci_source_relation_verified'] = attestation_summary['candidate_to_ci_source_relation_verified']
@@ -529,6 +581,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
             evidence['ci_attestation'] = attestation_summary
         if compilation_summary is not None:
             evidence['compilation_correlation'] = compilation_summary
+        if runtime_summary is not None:
+            evidence['runtime_footprint'] = runtime_summary
         serialized_evidence = json.dumps(evidence, ensure_ascii=True, sort_keys=True)
         if len(canonical_json(evidence).encode()) > artifact.MAX_AUDIT_BYTES or len(serialized_evidence.encode()) > artifact.MAX_AUDIT_BYTES:
             raise InvalidTransition('signed package evidence exceeds audit JSON bounds')

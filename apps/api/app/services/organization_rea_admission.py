@@ -146,16 +146,19 @@ def propose_rea_provider_review(session, context, payload: ReaProviderProposal):
     contract = {"kind": KIND, "scope": payload.scope.model_dump(mode="json"), "link": link,
                 "artifact_decision_id": str(payload.artifact_decision_id), "artifact_contract_sha256": authorized.contract_sha256,
                 "catalog_sha256": REA_LOCAL_CATALOG_SHA256, "source_commit": REA_SOURCE_COMMIT}
-    # An unchanged retry of a historical review must retain its original generic
-    # decision fingerprint. This exception covers only the newly nullable field;
-    # every other contract/request value still passes existing exact checks.
-    if existing is not None and payload.scope.compilation_evidence is None:
+    # Only absent nullable evidence fields may retain their historical shape;
+    # every other contract/request value still passes the existing exact checks.
+    if existing is not None:
         original, _ = _contract(existing)
-        if "compilation_evidence" not in original["scope"]:
-            historical_candidate = {**contract, "scope": dict(contract["scope"])}
-            historical_candidate["scope"].pop("compilation_evidence", None)
-            if canonical_json(historical_candidate) == canonical_json(original):
-                contract = original
+        historical_candidate = {**contract, "scope": dict(contract["scope"])}
+        for key in ("compilation_evidence", "runtime_footprint"):
+            if getattr(payload.scope, key) is None:
+                if key not in original['scope']:
+                    historical_candidate['scope'].pop(key, None)
+                elif original['scope'][key] is None:
+                    historical_candidate['scope'][key] = None
+        if canonical_json(historical_candidate) == canonical_json(original):
+            contract = original
     # Bound the escaped serialized contract too: generic creation/approval audits
     # embed conditions_json as a JSON string and escape it a second time.
     if len(canonical_json([contract]).encode()) > artifact.MAX_CONTRACT_BYTES or len(json.dumps([contract], ensure_ascii=True).encode()) > artifact.MAX_CONTRACT_BYTES:
