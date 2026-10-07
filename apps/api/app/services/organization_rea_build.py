@@ -5,6 +5,7 @@ and archive/installed snapshot equality. Source consumption and runtime closure 
 unproven, and every live execution/transport authority flag remains false.
 """
 from dataclasses import dataclass
+from contextlib import contextmanager, ExitStack
 from datetime import timedelta
 import hashlib
 import json
@@ -328,17 +329,39 @@ def _verify_source_assets(files, contents, materials):
         raise InvalidTransition('generated dist package output missing')
 
 
-def _installed_manifest(root):
-    root_fd = artifact._directory(root)
+@contextmanager
+def _installed_snapshot(root):
+    """Retain the inspected objects and namespace bindings through audit commit.
+
+    External ancestors bind only object/type/mode: unrelated sibling activity is
+    not package drift. The installed subtree retains complete stat identities and
+    directory inventories. This does not freeze bytes for later provider use.
+    """
+    if not isinstance(root, Path) or not root.is_absolute() or any(part in {'.', '..'} for part in root.parts):
+        raise InvalidTransition('custody roots must be explicit absolute paths')
     files, retained, visited, folded = [], [], 0, set()
+    ancestors, bindings = [], []
     total = 0
+    def ancestor_identity(value):
+        return (value.st_dev, value.st_ino, value.st_mode)
+    def revalidate():
+        for parent, name, child, identity in ancestors:
+            if ancestor_identity(os.fstat(child)) != identity or ancestor_identity(os.stat(name, dir_fd=parent, follow_symlinks=False)) != identity:
+                raise InvalidTransition('installed ancestor path binding changed')
+        for fd, identity, names in retained:
+            if _identity(os.fstat(fd)) != identity or (names is not None and sorted(os.listdir(fd)) != names):
+                raise InvalidTransition('installed snapshot changed before completion')
+        for parent, name, identity in bindings:
+            if _identity(os.stat(name, dir_fd=parent, follow_symlinks=False)) != identity:
+                raise InvalidTransition('installed package path binding changed')
     def walk(fd, prefix, depth):
         nonlocal visited, total
         before = os.fstat(fd)
         if depth > 80 or before.st_mode & 0o022:
             raise InvalidTransition('installed directory unsafe')
         names = sorted(os.listdir(fd))
-        retained.append((os.dup(fd), _identity(before), names))
+        held_parent = os.dup(fd)
+        retained.append((held_parent, _identity(before), names))
         for name in names:
             visited += 1
             if visited > MAX_FILES:
@@ -349,6 +372,7 @@ def _installed_manifest(root):
                 raise InvalidTransition('installed casefold collision denied')
             folded.add(path.casefold())
             child_stat = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            bindings.append((held_parent, name, _identity(child_stat)))
             if stat.S_ISDIR(child_stat.st_mode):
                 child = os.open(name, os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW, dir_fd=fd)
                 try:
@@ -378,24 +402,36 @@ def _installed_manifest(root):
                 raise InvalidTransition('installed links/devices denied')
         if _identity(os.fstat(fd)) != _identity(before) or sorted(os.listdir(fd)) != names:
             raise InvalidTransition('installed directory changed during scan')
+    root_chain = []
     try:
+        root_fd = os.open('/', os.O_RDONLY|os.O_DIRECTORY)
+        root_chain.append(root_fd)
+        for name in root.parts[1:]:
+            child = os.open(name, os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW, dir_fd=root_fd)
+            root_chain.append(child)
+            ancestors.append((root_fd, name, child, ancestor_identity(os.fstat(child))))
+            root_fd = child
         walk(root_fd, '', 0)
         if not files:
             raise InvalidTransition('installed package empty')
-        ancestors = {''}
+        directories = {''}
         for file in files:
             parts = file['path'].split('/')
-            ancestors.update('/'.join(parts[:i]) for i in range(1, len(parts)))
-        if visited != len(files)+len(ancestors)-1:
+            directories.update('/'.join(parts[:i]) for i in range(1, len(parts)))
+        if visited != len(files)+len(directories)-1:
             raise InvalidTransition('installed empty extra directory denied')
-        for fd, identity, names in retained:
-            if _identity(os.fstat(fd)) != identity or (names is not None and sorted(os.listdir(fd)) != names):
-                raise InvalidTransition('installed snapshot changed before completion')
-        return sorted(files, key=lambda v:v['path'])
+        revalidate()
+        yield sorted(files, key=lambda v:v['path']), revalidate
     finally:
         for fd, _, _ in retained:
             os.close(fd)
-        os.close(root_fd)
+        for fd in reversed(root_chain):
+            os.close(fd)
+
+
+def _installed_manifest(root):
+    with _installed_snapshot(root) as (files, _):
+        return files
 
 
 def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id,
@@ -403,6 +439,7 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
                         build_trust: ReaBuildTrust, signed_statement: bytes,
                         compilation_trust: ReaCompilationTrust | None = None):
     """Emit nonauthorizing evidence after fresh canonical and byte checks."""
+    installed_custody = ExitStack()
     try:
         parsed = _bounded_json(signed_statement)
         envelope = ReaSignedBuildStatement.model_validate(parsed)
@@ -426,6 +463,7 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         compilation_summary = None
         attestation_summary = None
         revalidate_attestation = None
+        revalidate_installed = None
         manifest = None
         def fresh():
             current = admission.resolve_rea_provider_review(session, context, decision_id=decision_id, trust=deployment_trust)
@@ -440,6 +478,8 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
                 current_report = _compilation_report(compilation_trust, decision_id=row.id, contract=contract, manifest=manifest, scope=scope)
                 if canonical_json(current_report) != canonical_json(compilation_summary):
                     raise InvalidTransition('compilation report changed during inspection')
+            if revalidate_installed is not None:
+                revalidate_installed()
         def require_fresh_time():
             now = artifact._utc(now_utc())
             if not statement.started_at <= statement.finished_at <= now < min(scope.expires_at, authorized.expires_at) or now-statement.finished_at > timedelta(hours=24):
@@ -452,7 +492,7 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
         if manifest != [v.model_dump() for v in statement.files]:
             raise InvalidTransition('archive complete manifest differs from signed claim')
         _verify_source_assets(manifest, contents, materials)
-        installed = _installed_manifest(build_trust.installed_root)
+        installed, revalidate_installed = installed_custody.enter_context(_installed_snapshot(build_trust.installed_root))
         if installed != manifest:
             raise InvalidTransition('installed complete manifest differs from archive')
         if compilation_trust is not None:
@@ -510,3 +550,5 @@ def inspect_rea_package(session, context, *, decision_id, attempt_id, receipt_id
     except Exception:
         session.rollback()
         raise
+    finally:
+        installed_custody.close()

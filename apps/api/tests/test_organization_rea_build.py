@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import os
+import shutil
 from pathlib import Path
 import tarfile
 
@@ -173,6 +174,121 @@ def test_expiry_during_audit_rolls_back(db_session,board,package_setup,monkeypat
     monkeypatch.setattr(build,'record_audit',expire)
     with pytest.raises(InvalidTransition):inspect(db_session,board,package_setup)
     assert_no_audit(db_session)
+
+
+@pytest.mark.parametrize('barrier', ['before-audit', 'after-audit'])
+@pytest.mark.parametrize('mutation', ['replace-file', 'rewrite-file', 'restore-file', 'add-file', 'remove-file',
+    'replace-directory', 'replace-root', 'replace-ancestor', 'symlink-root', 'symlink-ancestor'])
+def test_installed_custody_mutation_rolls_back(db_session,board,package_setup,monkeypatch,barrier,mutation):
+    state=package_setup
+    # Put the installed root under a dedicated ancestor so other custody inputs
+    # remain valid when the installed ancestor is replaced.
+    ancestor=state['installed'].parent/'package-parent';ancestor.mkdir()
+    root=ancestor/'installed';state['installed'].rename(root)
+    state['installed']=root;state['build_trust']=replace(state['build_trust'],installed_root=root)
+    target=root/'dist'/'main.js'
+    changed=False
+    def mutate():
+        nonlocal changed
+        changed=True
+        if mutation=='replace-file':
+            raw=target.read_bytes();target.unlink();target.write_bytes(raw);target.chmod(0o444)
+        elif mutation in {'rewrite-file', 'restore-file'}:
+            raw=target.read_bytes();target.chmod(0o600)
+            target.write_bytes(b'x'*len(raw))
+            if mutation=='restore-file':target.write_bytes(raw)
+            target.chmod(0o444)
+        elif mutation=='add-file':(root/'dist'/'extra').write_bytes(b'extra')
+        elif mutation=='remove-file':target.unlink()
+        else:
+            selected=root/'dist' if mutation=='replace-directory' else ancestor if 'ancestor' in mutation else root
+            held=selected.with_name(selected.name+'-old');selected.rename(held)
+            if mutation.startswith('symlink-'):selected.symlink_to(held,target_is_directory=True)
+            else:shutil.copytree(held,selected)
+    if barrier=='before-audit':
+        original=build.artifact.revalidate_rea_artifact_custody;calls=0
+        def custody(*args,**kwargs):
+            nonlocal calls
+            result=original(*args,**kwargs);calls+=1
+            if calls==2:mutate()
+            return result
+        monkeypatch.setattr(build.artifact,'revalidate_rea_artifact_custody',custody)
+    else:
+        original=build.record_audit
+        def audit(*args,**kwargs):
+            original(*args,**kwargs);mutate()
+        monkeypatch.setattr(build,'record_audit',audit)
+    with pytest.raises(InvalidTransition):inspect(db_session,board,state)
+    assert changed
+    assert_no_audit(db_session)
+
+
+def test_unrelated_ancestor_sibling_activity_allowed(db_session,board,package_setup,monkeypatch):
+    original=build.record_audit
+    def audit(*args,**kwargs):
+        original(*args,**kwargs)
+        (package_setup['installed'].parent/'unrelated').write_bytes(b'not package content')
+    monkeypatch.setattr(build,'record_audit',audit)
+    result=inspect(db_session,board,package_setup)
+    assert result['installed_package_snapshot_matches'] is True
+    assert result['execution_authorized'] is False
+    assert 'immutable_installed_bytes_at_use_unproven' in result['blockers']
+
+
+@pytest.mark.parametrize('failure', ['none', 'scan', 'revalidate', 'open'])
+def test_installed_snapshot_descriptor_cleanup(package_setup,monkeypatch,failure):
+    before=set(os.listdir('/proc/self/fd'))
+    root=package_setup['installed']
+    if failure=='scan':os.mkfifo(root/'bad-pipe')
+    elif failure=='open':
+        original=build.os.open;calls=0
+        def fail_open(*args,**kwargs):
+            nonlocal calls
+            calls+=1
+            if calls==3:raise OSError('injected descriptor acquisition failure')
+            return original(*args,**kwargs)
+        monkeypatch.setattr(build.os,'open',fail_open)
+    def observe():
+        with build._installed_snapshot(root) as (manifest,revalidate):
+            assert manifest==package_setup['manifest']
+            assert len(os.listdir('/proc/self/fd'))>len(before)
+            if failure=='revalidate':(root/'dist'/'main.js').chmod(0o644)
+            revalidate()
+    if failure=='none':observe()
+    else:
+        with pytest.raises((InvalidTransition,OSError)):observe()
+    assert set(os.listdir('/proc/self/fd'))==before
+
+
+@pytest.mark.parametrize('failure', ['none', 'audit', 'commit'])
+def test_installed_descriptors_retained_until_commit(db_session,board,package_setup,monkeypatch,failure):
+    closed=False
+    original=build._installed_snapshot
+    from contextlib import contextmanager
+    @contextmanager
+    def snapshot(root):
+        nonlocal closed
+        try:
+            with original(root) as value:yield value
+        finally:closed=True
+    monkeypatch.setattr(build,'_installed_snapshot',snapshot)
+    original_audit=build.record_audit
+    def audit(*args,**kwargs):
+        assert not closed
+        original_audit(*args,**kwargs)
+        if failure=='audit':raise RuntimeError('injected audit failure')
+    monkeypatch.setattr(build,'record_audit',audit)
+    original_commit=db_session.commit
+    def commit():
+        assert not closed
+        if failure=='commit':raise RuntimeError('injected commit failure')
+        original_commit()
+    monkeypatch.setattr(db_session,'commit',commit)
+    if failure=='none':inspect(db_session,board,package_setup)
+    else:
+        with pytest.raises(RuntimeError):inspect(db_session,board,package_setup)
+        assert_no_audit(db_session)
+    assert closed
 
 
 @pytest.mark.parametrize('path',['/absolute','../escape','a/./b','a//b','a\\b','a\x00b','a\nb'])
